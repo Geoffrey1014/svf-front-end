@@ -1,0 +1,5 @@
+build/
+.vscode/
+argparse/
+tree-sitter-cpp/
+tree-sitter/
