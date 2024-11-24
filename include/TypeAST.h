@@ -16,3 +16,16 @@ public:
         return indentSpace + "|--type: void\n";
     }
 };
+
+class ASTTypeInt : public TypeAST {
+public:
+    ASTTypeInt(TSNode node) : TypeAST(node) {}
+
+    int hashCode() const {
+        return 17; // some arbitrary prime
+    }
+
+    std::string prettyPrint(std::string indentSpace) const {
+        return indentSpace + "|--type: int\n";
+    }
+};

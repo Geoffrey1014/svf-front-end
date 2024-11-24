@@ -50,6 +50,9 @@ int main(int argc, char *argv[]) {
   ASTBuilder ast_builder(source);
   ast_builder.build(root_node);
 
+  std::cout << "\n======== Src:" << std::endl;
+  std::cout << *source << std::endl;
+
   // Clean up
   ts_tree_delete(tree);
   ts_parser_delete(parser);

@@ -31,7 +31,7 @@ static std::map<std::string, ASTNodeType> ASTNodeTypeMap = {
     {"call_expression", ASTNodeType::CallExpression},
     {"translation_unit", ASTNodeType::TranslationUnit},
     {"unknown", ASTNodeType::Unknown}
-};
+};  // TODO: replace with ts_language_symbol_for_name & ts_node_symbol
 
 // Function to create an AST node from a CST node
 std::shared_ptr<ASTNode> ASTBuilder::create_ast_node(TSNode cst_node) {
@@ -45,9 +45,9 @@ std::shared_ptr<ASTNode> ASTBuilder::create_ast_node(TSNode cst_node) {
     unsigned end = ts_node_end_byte(cst_node);
 
     // Assuming `source_code` is a string containing the original source code
-    std::string source_code_substring = source_code->substr(start, end - start);
+    // std::string source_code_substring = source_code->substr(start, end - start);
 
-    std::cout << "string:" << source_code_substring << std::endl;
+    // std::cout << "string:" << source_code_substring << std::endl;
 
     switch (ast_node_type)
     {
@@ -55,11 +55,15 @@ std::shared_ptr<ASTNode> ASTBuilder::create_ast_node(TSNode cst_node) {
         std::cout << "PrimitiveType" << std::endl;
         
         
-        // if (ts_node_string_is(cst_node, "void"))
-        // {
-        //     n = std::make_shared<ASTTypeVoid>(cst_node);
-        //     std::cout << n->prettyPrint(" ") << std::endl;
-        // }
+        if (source_code->substr(start, end - start) == "int") {
+            n = std::make_shared<ASTTypeInt>(cst_node);
+            std::cout << n->prettyPrint(" ") << std::endl;
+        } 
+        else if (source_code->substr(start, end - start) == "void")
+        {
+            n = std::make_shared<ASTTypeVoid>(cst_node);
+            std::cout << n->prettyPrint(" ") << std::endl;
+        }
         
         
         break;
