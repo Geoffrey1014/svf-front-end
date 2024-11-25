@@ -48,12 +48,12 @@ Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
             node_text = getNodeText(cst_node);
             
             if (*node_text == "int") {
-                node = new ASTTypeInt(&cst_node);
+                node = new IrTypeInt(&cst_node);
                 std::cout << node->prettyPrint(" ") << std::endl;
             } 
             else if (*node_text == "void")
             {
-                node = new ASTTypeVoid(&cst_node);
+                node = new IrTypeVoid(&cst_node);
                 std::cout << node->prettyPrint(" ") << std::endl;
             }
             

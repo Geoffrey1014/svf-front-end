@@ -1,6 +1,6 @@
 // AST builder
 #include <stack>
-#include "TypeAST.h"
+#include "IrType.h"
 
 
 class ASTBuilder {
