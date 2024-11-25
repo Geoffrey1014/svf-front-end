@@ -1,4 +1,7 @@
 #include "Ir.h"
+#ifndef IR_TYPE_H
+#define IR_TYPE_H
+
 class IrType : public Ir {
     public:
         IrType(TSNode* node) : Ir(node) {}
@@ -101,3 +104,4 @@ public:
 
     // Other methods specific to string type...
 };
+#endif

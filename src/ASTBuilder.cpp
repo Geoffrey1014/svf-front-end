@@ -1,12 +1,13 @@
 #include <memory>
 #include <iostream>
-#include "ASTBuilder.h"
 #include <map>
+#include "ASTBuilder.h"
 
 enum class ASTNodeType {
     PrimitiveType,
     Identifier,
     ParameterList,
+    Parameter,
     FunctionDeclarator,
     NumberLiteral,
     ReturnStatement,
@@ -22,6 +23,7 @@ static std::map<std::string, ASTNodeType> ASTNodeTypeMap = {
     {"primitive_type", ASTNodeType::PrimitiveType},
     {"identifier", ASTNodeType::Identifier},
     {"parameter_list", ASTNodeType::ParameterList},
+    {"parameter_declaration", ASTNodeType::Parameter},
     {"function_declarator", ASTNodeType::FunctionDeclarator},
     {"number_literal", ASTNodeType::NumberLiteral},
     {"return_statement", ASTNodeType::ReturnStatement},
@@ -62,6 +64,11 @@ Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
             node_text = getNodeText(cst_node);
             node = new IrIdent(node_text, &cst_node);
             std::cout << node->prettyPrint(" ") << std::endl;
+            break;
+        case ASTNodeType::Parameter:
+            std::cout << "Parameter" << std::endl;
+            // TODO: use stack to get the type and name
+            // node = new IrParamDecl(paramType, paramName, &cst_node);
             break;
         case ASTNodeType::ParameterList:
             /* code */
@@ -104,12 +111,19 @@ Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
 // travese the tree
 void ASTBuilder::traverse_tree(TSNode cursor) {
 
-uint32_t named_child_count = ts_node_named_child_count(cursor);
-for (uint32_t i = 0; i < named_child_count; i++) {
-    TSNode child = ts_node_named_child(cursor, i);
-    traverse_tree(child);
-}
-if (Ir* n = create_ast_node(cursor))
-    nodes.push_back(n);
+    // uint32_t named_child_count = ts_node_named_child_count(cursor);
+    // for (uint32_t i = 0; i < named_child_count; i++) {
+    //     TSNode child = ts_node_named_child(cursor, i);
+    //     traverse_tree(child);
+    // }
+
+    uint32_t child_count = ts_node_child_count(cursor);
+    for (uint32_t i = 0; i < child_count; i++) {
+        TSNode child = ts_node_child(cursor, i);
+        traverse_tree(child);
+    }
+
+    if (Ir* n = create_ast_node(cursor))
+        nodes.push_back(n);
 
 }

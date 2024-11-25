@@ -1,7 +1,6 @@
 // AST builder
 #include <stack>
-#include "IrType.h"
-
+#include "IrDecl.h"
 
 class ASTBuilder {
     private:

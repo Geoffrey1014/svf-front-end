@@ -1,6 +1,8 @@
 #include <string>
 #include <tree_sitter/api.h> // Add this line to include the definition of TSNode
 #include <vector>
+#ifndef IR_H
+#define IR_H
 
 using namespace std;
 
@@ -20,6 +22,8 @@ class Ir {
         return ts_node_start_point(*node).column;
     }
 
+    // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
+    // virtual LlLocation generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) = 0;
 
     virtual std::string prettyPrint(std::string indentSpace) const =0;
 
@@ -41,10 +45,6 @@ public:
         return name;
     }
 
-    // std::string semanticCheck(ScopeStack* scopeStack) {
-    //     return "";
-    // }
-
     bool operator==(const Ir& that) const {
         if (&that == this) {
             return true;
@@ -64,7 +64,5 @@ public:
         return indentSpace + "|--id: " + *name + "\n";
     }
 
-    // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
-    //     return nullptr;
-    // }
 };
+#endif
