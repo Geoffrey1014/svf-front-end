@@ -34,12 +34,12 @@ static std::map<std::string, ASTNodeType> ASTNodeTypeMap = {
 };  // TODO: replace with ts_language_symbol_for_name & ts_node_symbol
 
 // Function to create an AST node from a CST node
-Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
+NodeAST* ASTBuilder::create_ast_node(TSNode cst_node) {
     const char* type = ts_node_type(cst_node);
     TSSymbol symbol_type = ts_node_symbol(cst_node);
     std::cout << "Creating AST node: " << type << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
     ASTNodeType ast_node_type = ASTNodeTypeMap[type];
-    Ir* node =nullptr;
+    NodeAST* node =nullptr;
     std::string* node_text;
 
     switch (ast_node_type)
@@ -53,14 +53,14 @@ Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
             } 
             else if (*node_text == "void")
             {
-                node = new ASTTypeVoid(&cst_node);
+                node = new TypeVoid(&cst_node);
                 std::cout << node->prettyPrint(" ") << std::endl;
             }
             
             break;
         case ASTNodeType::Identifier:
             node_text = getNodeText(cst_node);
-            node = new IrIdent(node_text, &cst_node);
+            node = new Identifier(node_text, &cst_node);
             std::cout << node->prettyPrint(" ") << std::endl;
             break;
         case ASTNodeType::ParameterList:
@@ -109,7 +109,7 @@ for (uint32_t i = 0; i < named_child_count; i++) {
     TSNode child = ts_node_named_child(cursor, i);
     traverse_tree(child);
 }
-if (Ir* n = create_ast_node(cursor))
+if (NodeAST* n = create_ast_node(cursor))
     nodes.push_back(n);
 
 }

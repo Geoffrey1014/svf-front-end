@@ -1,17 +1,17 @@
 // AST builder
 #include <stack>
-#include "TypeAST.h"
+#include "Type.h"
 
 
 class ASTBuilder {
     private:
-    std::stack<Ir*> ast_stack;
-    std::vector<Ir*> nodes;
+    std::stack<NodeAST*> ast_stack;
+    std::vector<NodeAST*> nodes;
     string* source_code;
 public:
     ASTBuilder(string* source_code): source_code(source_code) {
-        ast_stack = std::stack<Ir*>();
-        nodes = std::vector<Ir*>();
+        ast_stack = std::stack<NodeAST*>();
+        nodes = std::vector<NodeAST*>();
     }
 
     ~ASTBuilder() {
@@ -28,7 +28,7 @@ public:
     }
 
     // Function to create an AST node from a CST node
-    Ir* create_ast_node(TSNode cst_node);
+    NodeAST* create_ast_node(TSNode cst_node);
 
     // travese the tree
     void traverse_tree(TSNode cursor);

@@ -1,12 +1,12 @@
-#include "Ir.h"
-class TypeAST : public Ir {
+#include "NodeAST.h"
+class Type : public NodeAST {
     public:
-        TypeAST(TSNode* node) : Ir(node) {}
+        Type(TSNode* node) : NodeAST(node) {}
 };
 
-class TypeBoolAST : public TypeAST {
+class TypeBoolAST : public Type {
 public:
-    TypeBoolAST(TSNode* node) : TypeAST(node) {}
+    TypeBoolAST(TSNode* node) : Type(node) {}
 
     int hashCode() const {
         return 11; // some arbitrary prime
@@ -17,9 +17,9 @@ public:
     }
 };
 
-class ASTTypeVoid : public TypeAST {
+class TypeVoid : public Type {
 public:
-    ASTTypeVoid(TSNode* node) : TypeAST(node) {}
+    TypeVoid(TSNode* node) : Type(node) {}
 
     int hashCode() const {
         return 13; // some arbitrary prime
@@ -30,9 +30,9 @@ public:
     }
 };
 
-class ASTTypeInt : public TypeAST {
+class ASTTypeInt : public Type {
 public:
-    ASTTypeInt(TSNode* node) : TypeAST(node) {}
+    ASTTypeInt(TSNode* node) : Type(node) {}
 
     int hashCode() const {
         return 17; // some arbitrary prime

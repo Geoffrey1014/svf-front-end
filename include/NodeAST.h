@@ -4,11 +4,11 @@
 
 using namespace std;
 
-class Ir {
+class NodeAST {
     private:
         TSNode* node;
     public:
-    Ir(TSNode* node) {
+    NodeAST(TSNode* node) {
         this->node = node;
     }
 
@@ -30,12 +30,12 @@ class Ir {
 
 
 
-class IrIdent : public Ir {
+class Identifier : public NodeAST {
 private:
     std::string* name;
 
 public:
-    IrIdent(std::string* name, TSNode* node) : Ir(node), name(name) {}
+    Identifier(std::string* name, TSNode* node) : NodeAST(node), name(name) {}
 
     std::string* getValue() const{
         return name;
@@ -45,11 +45,11 @@ public:
     //     return "";
     // }
 
-    bool operator==(const Ir& that) const {
+    bool operator==(const NodeAST& that) const {
         if (&that == this) {
             return true;
         }
-        if (auto thatIdent = dynamic_cast<const IrIdent*>(&that)) {
+        if (auto thatIdent = dynamic_cast<const Identifier*>(&that)) {
             return *(this->getValue()) == *(thatIdent->getValue());
         }
         return false;
@@ -149,9 +149,9 @@ public:
 // };
 
 
-class TransUnitAST : public Ir {
+class TransUnitAST : public NodeAST {
     public:
-    TransUnitAST(TSNode* node) : Ir(node) {
+    TransUnitAST(TSNode* node) : NodeAST(node) {
     }
 
     std::string prettyPrint(std::string indentSpace) const override;
