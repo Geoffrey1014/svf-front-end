@@ -1,6 +1,6 @@
 int foo ( ) {
   return 0;
 }
-int main ( ) {
+void main ( ) {
   return foo ( );
 }

@@ -203,8 +203,6 @@ public:
 };
 
 
-#include <string>
-
 class LlLocationArray : public LlLocation {
 private:
     LlComponent elementIndex;
