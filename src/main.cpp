@@ -38,20 +38,19 @@ int main(int argc, char *argv[]) {
   TSNode root_node = ts_tree_root_node(tree);
 
   // Print the root node type
-  std::cout << "Root node type: " << ts_node_type(root_node) << std::endl;
+  // std::cout << "Root node type: " << ts_node_type(root_node) << std::endl;
 
   // Print the syntax tree as an S-expression.
   char *string = ts_node_string(root_node);
   // printf("Syntax tree: %s\n", string);
 
-  // traverse the tree
-  // traverse_tree(root_node);
 
   ASTBuilder ast_builder(source);
   ast_builder.build(root_node);
 
   std::cout << "\n======== Src:" << std::endl;
   std::cout << *source << std::endl;
+
 
   // Clean up
   ts_tree_delete(tree);

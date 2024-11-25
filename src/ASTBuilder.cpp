@@ -34,34 +34,34 @@ static std::map<std::string, ASTNodeType> ASTNodeTypeMap = {
 };  // TODO: replace with ts_language_symbol_for_name & ts_node_symbol
 
 // Function to create an AST node from a CST node
-std::shared_ptr<ASTNode> ASTBuilder::create_ast_node(TSNode cst_node) {
+Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
     const char* type = ts_node_type(cst_node);
     TSSymbol symbol_type = ts_node_symbol(cst_node);
     std::cout << "Creating AST node: " << type << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
     ASTNodeType ast_node_type = ASTNodeTypeMap[type];
-    std::shared_ptr<ASTNode> n;
-
+    Ir* node =nullptr;
     std::string* node_text;
 
     switch (ast_node_type)
     {
         case ASTNodeType::PrimitiveType:
-            std::cout << "PrimitiveType" << std::endl;
             node_text = getNodeText(cst_node);
             
             if (*node_text == "int") {
-                n = std::make_shared<ASTTypeInt>(cst_node);
-                std::cout << n->prettyPrint(" ") << std::endl;
+                node = new ASTTypeInt(&cst_node);
+                std::cout << node->prettyPrint(" ") << std::endl;
             } 
             else if (*node_text == "void")
             {
-                n = std::make_shared<ASTTypeVoid>(cst_node);
-                std::cout << n->prettyPrint(" ") << std::endl;
+                node = new ASTTypeVoid(&cst_node);
+                std::cout << node->prettyPrint(" ") << std::endl;
             }
             
             break;
         case ASTNodeType::Identifier:
-            std::cout << "Identifier" << std::endl;
+            node_text = getNodeText(cst_node);
+            node = new IrIdent(node_text, &cst_node);
+            std::cout << node->prettyPrint(" ") << std::endl;
             break;
         case ASTNodeType::ParameterList:
             /* code */
@@ -98,7 +98,7 @@ std::shared_ptr<ASTNode> ASTBuilder::create_ast_node(TSNode cst_node) {
             break;
     }
 
-    return n;
+    return node;
 }
 
 // travese the tree
@@ -109,6 +109,7 @@ for (uint32_t i = 0; i < named_child_count; i++) {
     TSNode child = ts_node_named_child(cursor, i);
     traverse_tree(child);
 }
-create_ast_node(cursor);
+if (Ir* n = create_ast_node(cursor))
+    nodes.push_back(n);
 
 }

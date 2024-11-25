@@ -5,14 +5,20 @@
 
 class ASTBuilder {
     private:
-    std::stack<shared_ptr<ASTNode>> ast_stack;
+    std::stack<Ir*> ast_stack;
+    std::vector<Ir*> nodes;
     string* source_code;
 public:
     ASTBuilder(string* source_code): source_code(source_code) {
-        ast_stack = std::stack<shared_ptr<ASTNode>>();
+        ast_stack = std::stack<Ir*>();
+        nodes = std::vector<Ir*>();
     }
 
     ~ASTBuilder() {
+        for (auto node : nodes) {
+            delete node;
+        }
+        delete source_code;
     }
 
     std::string* getNodeText(TSNode node) {
@@ -22,7 +28,7 @@ public:
     }
 
     // Function to create an AST node from a CST node
-    std::shared_ptr<ASTNode> create_ast_node(TSNode cst_node);
+    Ir* create_ast_node(TSNode cst_node);
 
     // travese the tree
     void traverse_tree(TSNode cursor);

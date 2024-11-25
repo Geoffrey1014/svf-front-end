@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(SVF_Frontend
         VERSION "0.1.0"
-        DESCRIPTION "C++ front for the SVF"
+        DESCRIPTION "C++ frontend for the SVF"
         LANGUAGES C CXX
 )
 
@@ -15,6 +15,14 @@ set(SOURCES
     tree-sitter-cpp/src/parser.c
     tree-sitter-cpp/src/scanner.c
 )
+
+# Set default build type to Debug if not specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type (Debug, Release, RelWithDebInfo, MinSizeRel)" FORCE)
+endif()
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 
 message(STATUS "Building ${PROJECT_NAME} with configuration:
   SVF_Frontend version:                         ${SVF_Frontend_VERSION}
