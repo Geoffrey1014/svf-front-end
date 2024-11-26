@@ -6,9 +6,10 @@ class ASTBuilder {
     private:
     std::stack<Ir*> ast_stack;
     std::vector<Ir*> nodes;
-    string* source_code;
+    const string* source_code;
+    const TSLanguage* language;
 public:
-    ASTBuilder(string* source_code): source_code(source_code) {
+    ASTBuilder(const string* source_code, const TSLanguage* language): source_code(source_code), language(language) {
         ast_stack = std::stack<Ir*>();
         nodes = std::vector<Ir*>();
     }

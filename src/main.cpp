@@ -26,7 +26,9 @@ int main(int argc, char *argv[]) {
 
   // Create a new parser
   TSParser *parser = ts_parser_new();
-  ts_parser_set_language(parser, tree_sitter_cpp());
+  // Get the language from the parser
+  const TSLanguage *language = tree_sitter_cpp();
+  ts_parser_set_language(parser, language);
 
   const char * source_code = source->c_str();
   TSTree *tree = ts_parser_parse_string(parser, nullptr, source_code, strlen(source_code));
@@ -37,7 +39,7 @@ int main(int argc, char *argv[]) {
   TSNode root_node = ts_tree_root_node(tree);
 
 
-  ASTBuilder ast_builder(source);
+  ASTBuilder ast_builder(source, language);
   ast_builder.build(root_node);
 
   std::cout << "\n======== Src:" << std::endl;

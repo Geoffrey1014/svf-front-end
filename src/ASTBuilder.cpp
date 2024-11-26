@@ -39,7 +39,7 @@ static std::map<std::string, ASTNodeType> ASTNodeTypeMap = {
 Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
     const char* type = ts_node_type(cst_node);
     TSSymbol symbol_type = ts_node_symbol(cst_node);
-    std::cout << "Creating AST node: " << type << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
+    std::cout << "Creating AST node: " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
     ASTNodeType ast_node_type = ASTNodeTypeMap[type];
     Ir* node =nullptr;
     std::string* node_text;
@@ -47,6 +47,7 @@ Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
     // Declare variables outside the switch statement
     IrType* paramType = nullptr;
     IrIdent* paramName = nullptr;
+   
 
     switch (ast_node_type)
     {
