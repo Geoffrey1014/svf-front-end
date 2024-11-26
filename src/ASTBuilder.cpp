@@ -44,6 +44,10 @@ Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
     Ir* node =nullptr;
     std::string* node_text;
 
+    // Declare variables outside the switch statement
+    IrType* paramType = nullptr;
+    IrIdent* paramName = nullptr;
+
     switch (ast_node_type)
     {
         case ASTNodeType::PrimitiveType:
@@ -51,11 +55,13 @@ Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
             
             if (*node_text == "int") {
                 node = new IrTypeInt(&cst_node);
+                this->ast_stack.push(node);
                 std::cout << node->prettyPrint(" ") << std::endl;
             } 
             else if (*node_text == "void")
             {
                 node = new IrTypeVoid(&cst_node);
+                this->ast_stack.push(node);
                 std::cout << node->prettyPrint(" ") << std::endl;
             }
             
@@ -63,12 +69,31 @@ Ir* ASTBuilder::create_ast_node(TSNode cst_node) {
         case ASTNodeType::Identifier:
             node_text = getNodeText(cst_node);
             node = new IrIdent(node_text, &cst_node);
+            this->ast_stack.push(node);
             std::cout << node->prettyPrint(" ") << std::endl;
             break;
         case ASTNodeType::Parameter:
             std::cout << "Parameter" << std::endl;
-            // TODO: use stack to get the type and name
-            // node = new IrParamDecl(paramType, paramName, &cst_node);
+            // Use stack to get the type and name
+            if (this->ast_stack.size() < 2) {
+                std::cerr << "Error: Not enough elements on the stack for parameter declaration" << std::endl;
+                break;
+            }
+
+            paramName = dynamic_cast<IrIdent*>( this->ast_stack.top());
+            this->ast_stack.pop();
+
+            paramType = dynamic_cast<IrType*>(this->ast_stack.top());
+            this->ast_stack.pop();
+
+
+            if (paramType && paramName) {
+                node = new IrParamDecl(paramType, paramName, &cst_node);
+                this->ast_stack.push(node);
+                std::cout << node->prettyPrint(" ") << std::endl;
+            } else {
+                std::cerr << "Error: Invalid parameter type or name" << std::endl;
+            }
             break;
         case ASTNodeType::ParameterList:
             /* code */
