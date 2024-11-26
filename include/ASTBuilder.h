@@ -33,7 +33,7 @@ public:
     void exitParameter(TSNode cst_node);
 
     // Function to create an AST node from a CST node
-    Ir* exit_ast_node(TSNode cst_node);
+    void exit_ast_node(TSNode cst_node);
 
     // travese the tree
     void traverse_tree(TSNode cursor);

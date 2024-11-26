@@ -12,8 +12,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(SOURCES
     src/main.cpp
     src/ASTBuilder.cpp
-    tree-sitter-cpp/src/parser.c
-    tree-sitter-cpp/src/scanner.c
+    tree-sitter-c/src/parser.c
+    # tree-sitter-c/src/scanner.c
 )
 
 # Set default build type to Debug if not specified

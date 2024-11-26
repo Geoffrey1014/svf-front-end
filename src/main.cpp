@@ -9,8 +9,8 @@
 #include <memory>
 #include "ASTBuilder.h"
 
-// Include the C++ parser header
-extern "C" const TSLanguage *tree_sitter_cpp();
+// Include the C parser header
+extern "C" const TSLanguage *tree_sitter_c();
 
 
 int main(int argc, char *argv[]) {
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
   // Create a new parser
   TSParser *parser = ts_parser_new();
   // Get the language from the parser
-  const TSLanguage *language = tree_sitter_cpp();
+  const TSLanguage *language = tree_sitter_c();
   ts_parser_set_language(parser, language);
 
   const char * source_code = source->c_str();

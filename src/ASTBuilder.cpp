@@ -6,6 +6,7 @@
 enum class ASTNodeType {
     PrimitiveType,
     Identifier,
+    Declaration,
     ParameterList,
     Parameter,
     FunctionDeclarator,
@@ -22,6 +23,7 @@ enum class ASTNodeType {
 static std::map<std::string, ASTNodeType> ASTNodeTypeMap = {
     {"primitive_type", ASTNodeType::PrimitiveType},
     {"identifier", ASTNodeType::Identifier},
+    {"declaration", ASTNodeType::Declaration},
     {"parameter_list", ASTNodeType::ParameterList},
     {"parameter_declaration", ASTNodeType::Parameter},
     {"function_declarator", ASTNodeType::FunctionDeclarator},
@@ -90,16 +92,11 @@ void ASTBuilder::exitParameter(TSNode cst_node) {
 }
 
 // Function to create an AST node from a CST node
-Ir* ASTBuilder::exit_ast_node(TSNode cst_node) {
+void ASTBuilder::exit_ast_node(TSNode cst_node) {
     const char* type = ts_node_type(cst_node);
     TSSymbol symbol_type = ts_node_symbol(cst_node);
     std::cout << "Creating AST node: " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
     ASTNodeType ast_node_type = ASTNodeTypeMap[type];
-    Ir* node =nullptr;
-    std::string* node_text;
-
-    
-   
 
     switch (ast_node_type)
     {
@@ -147,26 +144,25 @@ Ir* ASTBuilder::exit_ast_node(TSNode cst_node) {
             break;
     }
 
-    return node;
+    return;
 }
 
 // travese the tree
 void ASTBuilder::traverse_tree(TSNode cursor) {
 
-    // uint32_t named_child_count = ts_node_named_child_count(cursor);
-    // for (uint32_t i = 0; i < named_child_count; i++) {
-    //     TSNode child = ts_node_named_child(cursor, i);
-    //     traverse_tree(child);
-    // }
-
-    uint32_t child_count = ts_node_child_count(cursor);
-    for (uint32_t i = 0; i < child_count; i++) {
-        TSNode child = ts_node_child(cursor, i);
+    uint32_t named_child_count = ts_node_named_child_count(cursor);
+    for (uint32_t i = 0; i < named_child_count; i++) {
+        TSNode child = ts_node_named_child(cursor, i);
         traverse_tree(child);
     }
 
+    // uint32_t child_count = ts_node_child_count(cursor);
+    // for (uint32_t i = 0; i < child_count; i++) {
+    //     TSNode child = ts_node_child(cursor, i);
+    //     traverse_tree(child);
+    // }
 
-    if (Ir* n = exit_ast_node(cursor))
-        nodes.push_back(n);
+
+    exit_ast_node(cursor);
 
 }

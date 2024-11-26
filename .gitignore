@@ -2,4 +2,5 @@ build/
 .vscode/
 argparse/
 tree-sitter-cpp/
+tree-sitter-c/
 tree-sitter/
