@@ -27,8 +27,13 @@ public:
         return new std::string(source_code->substr(start, end - start));
     }
 
+
+    void exitIdentifier(TSNode cst_node);
+    void exitPrimitiveType(TSNode cst_node);
+    void exitParameter(TSNode cst_node);
+
     // Function to create an AST node from a CST node
-    Ir* create_ast_node(TSNode cst_node);
+    Ir* exit_ast_node(TSNode cst_node);
 
     // travese the tree
     void traverse_tree(TSNode cursor);
