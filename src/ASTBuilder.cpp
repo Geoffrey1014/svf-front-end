@@ -33,8 +33,7 @@ static std::map<std::string, ASTNodeType> ASTNodeTypeMap = {
     {"function_definition", ASTNodeType::FunctionDefinition},
     {"argument_list", ASTNodeType::ArgumentList},
     {"call_expression", ASTNodeType::CallExpression},
-    {"translation_unit", ASTNodeType::TranslationUnit},
-    {"unknown", ASTNodeType::Unknown}
+    {"translation_unit", ASTNodeType::TranslationUnit}
 };  // TODO: replace with ts_language_symbol_for_name & ts_node_symbol
 
 
@@ -96,7 +95,13 @@ void ASTBuilder::exit_ast_node(TSNode cst_node) {
     const char* type = ts_node_type(cst_node);
     TSSymbol symbol_type = ts_node_symbol(cst_node);
     std::cout << "Creating AST node: " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
-    ASTNodeType ast_node_type = ASTNodeTypeMap[type];
+    ASTNodeType ast_node_type;
+    auto it = ASTNodeTypeMap.find(type);
+    if (it != ASTNodeTypeMap.end()) {
+        ast_node_type = it->second;
+    } else {
+        ast_node_type = ASTNodeType::Unknown;
+    }
 
     switch (ast_node_type)
     {

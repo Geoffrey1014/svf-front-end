@@ -33,7 +33,11 @@ int main(int argc, char *argv[]) {
   const char * source_code = source->c_str();
   TSTree *tree = ts_parser_parse_string(parser, nullptr, source_code, strlen(source_code));
 
-  write_cst_to_file("cst.dot", tree);
+  // print s-expression
+  std::cout << ts_node_string(ts_tree_root_node(tree)) << std::endl << std::endl; 
+
+
+  // write_cst_to_file("cst.dot", tree);
 
   // Get the root node of the syntax tree
   TSNode root_node = ts_tree_root_node(tree);
