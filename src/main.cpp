@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
   TSTree *tree = ts_parser_parse_string(parser, nullptr, source_code, strlen(source_code));
 
   // print s-expression
-  std::cout << ts_node_string(ts_tree_root_node(tree)) << std::endl << std::endl; 
+  // std::cout << ts_node_string(ts_tree_root_node(tree)) << std::endl << std::endl; 
 
 
   // write_cst_to_file("cst.dot", tree);

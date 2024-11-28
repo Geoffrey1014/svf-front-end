@@ -32,8 +32,8 @@ public:
     void exitPrimitiveType(TSNode cst_node);
     void exitParameter(TSNode cst_node);
 
-    void exit_ast_node(TSNode cst_node);
-    void enter_ast_node(TSNode cst_node);
+    void exit_cst_node(TSNode cst_node);
+    void enter_cst_node(TSNode cst_node);
 
     // travese the tree
     void traverse_tree(TSNode cursor);

@@ -1,43 +1,8 @@
 #include <memory>
 #include <iostream>
 #include <map>
+#include <cstring>
 #include "ASTBuilder.h"
-
-enum class ASTNodeType {
-    PrimitiveType,
-    Identifier,
-    Declaration,
-    ParameterList,
-    Parameter,
-    FunctionDeclarator,
-    NumberLiteral,
-    ReturnStatement,
-    CompoundStatement,
-    FunctionDefinition,
-    ArgumentList,
-    CallExpression,
-    TranslationUnit,
-    Unknown
-};
-
-static std::map<std::string, ASTNodeType> ASTNodeTypeMap = {
-    {"primitive_type", ASTNodeType::PrimitiveType},
-    {"identifier", ASTNodeType::Identifier},
-    {"declaration", ASTNodeType::Declaration},
-    {"parameter_list", ASTNodeType::ParameterList},
-    {"parameter_declaration", ASTNodeType::Parameter},
-    {"function_declarator", ASTNodeType::FunctionDeclarator},
-    {"number_literal", ASTNodeType::NumberLiteral},
-    {"return_statement", ASTNodeType::ReturnStatement},
-    {"compound_statement", ASTNodeType::CompoundStatement},
-    {"function_definition", ASTNodeType::FunctionDefinition},
-    {"argument_list", ASTNodeType::ArgumentList},
-    {"call_expression", ASTNodeType::CallExpression},
-    {"translation_unit", ASTNodeType::TranslationUnit}
-};  // TODO: replace with ts_language_symbol_for_name & ts_node_symbol
-
-
-
 
 void ASTBuilder::exitPrimitiveType(TSNode cst_node) {
     std::string* node_text = getNodeText(cst_node);
@@ -65,7 +30,6 @@ void ASTBuilder::exitIdentifier(TSNode cst_node) {
     std::cout << node->prettyPrint(" ") << std::endl;
 }
 
-
 void ASTBuilder::exitParameter(TSNode cst_node) {
     Ir* node =nullptr;
     // Use stack to get the type and name
@@ -91,59 +55,56 @@ void ASTBuilder::exitParameter(TSNode cst_node) {
 }
 
 // Function to create an AST node from a CST node
-void ASTBuilder::exit_ast_node(TSNode cst_node) {
+void ASTBuilder::exit_cst_node(TSNode cst_node) {
     const char* type = ts_node_type(cst_node);
     TSSymbol symbol_type = ts_node_symbol(cst_node);
-    std::cout << "Creating AST node: " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
-    ASTNodeType ast_node_type;
-    auto it = ASTNodeTypeMap.find(type);
-    if (it != ASTNodeTypeMap.end()) {
-        ast_node_type = it->second;
-    } else {
-        ast_node_type = ASTNodeType::Unknown;
-    }
+    
+    std::cout << "Exiting CST node: " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
+    
+    // std::cout << "ts_language_symbol_name: " << ts_language_symbol_name(this->language, symbol_type) << std::endl;
+    // std::cout << "ts_language_symbol_for_name: " <<  ts_language_symbol_for_name(this->language, type, std::strlen(type), true) << std::endl;
 
-    switch (ast_node_type)
+    switch (symbol_type)
     {
-        case ASTNodeType::PrimitiveType:
-            exitPrimitiveType(cst_node);
-            break;
-        case ASTNodeType::Identifier:
+        case 1: // Identifier
             exitIdentifier(cst_node);
             break;
-        case ASTNodeType::Parameter:
+        case 93: // primitive_type
+            exitPrimitiveType(cst_node);
+            break;
+        case 260: // parameter_declaration
             exitParameter(cst_node);
             break;
-        case ASTNodeType::ParameterList:
-            /* code */
-            break;
-        case ASTNodeType::FunctionDeclarator:
+        // case ASTNodeType::ParameterList:
+        //     /* code */
+        //     break;
+        // case ASTNodeType::FunctionDeclarator:
 
-            break;
-        case ASTNodeType::NumberLiteral:
-            /* code */
-            break;
-        case ASTNodeType::ReturnStatement:
-            /* code */
-            break;
-        case ASTNodeType::CompoundStatement:
-            /* code */
-            break;
-        case ASTNodeType::FunctionDefinition:
-            /* code */
-            break;
-        case ASTNodeType::ArgumentList:
-            /* code */
-            break;
-        case ASTNodeType::CallExpression:
-            /* code */
-            break;
-        case ASTNodeType::TranslationUnit:
+        //     break;
+        // case ASTNodeType::NumberLiteral:
+        //     /* code */
+        //     break;
+        // case ASTNodeType::ReturnStatement:
+        //     /* code */
+        //     break;
+        // case ASTNodeType::CompoundStatement:
+        //     /* code */
+        //     break;
+        // case ASTNodeType::FunctionDefinition:
+        //     /* code */
+        //     break;
+        // case ASTNodeType::ArgumentList:
+        //     /* code */
+        //     break;
+        // case ASTNodeType::CallExpression:
+        //     /* code */
+        //     break;
+        // case ASTNodeType::TranslationUnit:
 
-            break;
-        case ASTNodeType::Unknown:
-            /* code */
-            break;
+        //     break;
+        // case ASTNodeType::Unknown:
+        //     /* code */
+        //     break;
         
         default:
             break;
@@ -152,13 +113,13 @@ void ASTBuilder::exit_ast_node(TSNode cst_node) {
     return;
 }
 
-void ASTBuilder::enter_ast_node(TSNode cst_node){
-    std::cout << "Entering AST node: " << ts_node_type(cst_node) << std::endl;
+void ASTBuilder::enter_cst_node(TSNode cst_node){
+    std::cout << "Entering CST node: " << ts_node_type(cst_node) << std::endl;
 }
 // travese the tree
 void ASTBuilder::traverse_tree(TSNode cursor) {
 
-    enter_ast_node(cursor);
+    enter_cst_node(cursor);
 
     uint32_t named_child_count = ts_node_named_child_count(cursor);
     for (uint32_t i = 0; i < named_child_count; i++) {
@@ -173,6 +134,6 @@ void ASTBuilder::traverse_tree(TSNode cursor) {
     // }
 
 
-    exit_ast_node(cursor);
+    exit_cst_node(cursor);
 
 }
