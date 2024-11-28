@@ -11,6 +11,7 @@ class Ir {
         const TSNode & node;
     public:
     Ir(const TSNode & node): node(node) {}
+    ~Ir() = default;
 
     int getLineNumber() {
         return ts_node_start_point(node).row;
@@ -38,6 +39,9 @@ private:
 
 public:
     IrIdent(const std::string* name, const TSNode & node) : Ir(node), name(name) {}
+    ~IrIdent() {
+        delete name;
+    }
 
     const std::string* getValue() const{
         return name;
