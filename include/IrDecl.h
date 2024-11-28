@@ -111,6 +111,34 @@ public:
     }
 };
 
+class IrParamList : public Ir {
+private:
+    std::vector<IrParamDecl*> paramsList;
+
+public:
+    IrParamList(const TSNode& node) : Ir(node) {}
+
+    std::vector<IrParamDecl*> getParamsList() {
+        return this->paramsList;
+    }
+
+    void addToParamsList(IrParamDecl* newParam) {
+        this->paramsList.push_back(newParam);
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--paramList:\n";
+
+        // pretty print statement
+        for (IrParamDecl* paramDecl: this->paramsList) {
+            prettyString += paramDecl->prettyPrint("  " + indentSpace);
+        }
+
+        return prettyString;
+    }
+
+};
+
 class IrMethodDecl : public IrDecl {
 private:
     std::vector<IrParamDecl*> paramsList;

@@ -5,19 +5,15 @@
 class ASTBuilder {
     private:
     std::stack<Ir*> ast_stack;
-    std::vector<Ir*> nodes;
     const string* source_code;
     const TSLanguage* language;
+    Ir* root_node;
 public:
-    ASTBuilder(const string* source_code, const TSLanguage* language): source_code(source_code), language(language) {
-        ast_stack = std::stack<Ir*>();
-        nodes = std::vector<Ir*>();
+    ASTBuilder(const string* source_code, const TSLanguage* language)
+        : source_code(source_code), language(language), ast_stack(),root_node(nullptr) {
     }
 
     ~ASTBuilder() {
-        for (auto node : nodes) {
-            delete node;
-        }
         delete source_code;
     }
 
@@ -32,6 +28,7 @@ public:
     void exitPrimitiveType(const TSNode & cst_node);
     void exitParameter(const TSNode & cst_node);
     void exitDeclaration(const TSNode & cst_node);
+    void exitParamList(const TSNode & cst_node);
 
     void exit_cst_node(const TSNode & cst_node);
     void enter_cst_node(const TSNode & cst_node);
@@ -39,8 +36,9 @@ public:
     // travese the tree
     void traverse_tree(const TSNode & cursor);
 
-    void build(const TSNode & root) {
+    Ir* build(const TSNode & cst_root) {
         // traverse the tree
-        traverse_tree(root);
+        traverse_tree(cst_root);
+        return root_node;
     }
 };

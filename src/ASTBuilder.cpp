@@ -10,13 +10,11 @@ void ASTBuilder::exitPrimitiveType(const TSNode & cst_node) {
     if (*node_text == "int") {
         node = new IrTypeInt(cst_node);
         this->ast_stack.push(node);
-        std::cout << node->prettyPrint(" ") << std::endl;
     } 
     else if (*node_text == "void")
     {
         node = new IrTypeVoid(cst_node);
         this->ast_stack.push(node);
-        std::cout << node->prettyPrint(" ") << std::endl;
     }
     else {
         std::cerr << "Error: Unknown primitive type" << std::endl;
@@ -27,7 +25,6 @@ void ASTBuilder::exitIdentifier(const TSNode & cst_node) {
     std::string* node_text = getNodeText(cst_node);
     Ir* node = new IrIdent(node_text, cst_node);
     this->ast_stack.push(node);
-    std::cout << node->prettyPrint(" ") << std::endl;
 }
 
 void ASTBuilder::exitParameter(const TSNode & cst_node) {
@@ -48,7 +45,6 @@ void ASTBuilder::exitParameter(const TSNode & cst_node) {
     if (paramType && paramName) {
         node = new IrParamDecl(paramType, paramName, cst_node);
         this->ast_stack.push(node);
-        std::cout << node->prettyPrint(" ") << std::endl;
     } else {
         std::cerr << "Error: Invalid parameter type or name" << std::endl;
     }
@@ -77,6 +73,21 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
     }
 }
 
+void ASTBuilder::exitParamList(const TSNode & cst_node){
+
+    IrParamList* paramList = new IrParamList(cst_node);
+    IrParamDecl* paramDecl = dynamic_cast<IrParamDecl*>(this->ast_stack.top());
+
+    while (paramDecl) {
+        this->ast_stack.pop();
+        paramList->addToParamsList(paramDecl);
+        paramDecl = dynamic_cast<IrParamDecl*>(this->ast_stack.top());
+    }
+
+    this->ast_stack.push(paramList);
+    std::cout << paramList->prettyPrint(" ") << std::endl;
+}
+
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
@@ -100,7 +111,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 198: // declaration
             exitDeclaration(cst_node);
-            /* code */
+            break;
+        case 258: // parameter_list
+            exitParamList(cst_node);
             break;
         // case ASTNodeType::FunctionDeclarator:
 
@@ -139,7 +152,7 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
 }
 
 void ASTBuilder::enter_cst_node(const TSNode & cst_node){
-    std::cout << "Entering CST node: " << ts_node_type(cst_node) << std::endl;
+    // std::cout << "Entering CST node: " << ts_node_type(cst_node) << std::endl;
 }
 
 void ASTBuilder::traverse_tree(const TSNode & node) {
