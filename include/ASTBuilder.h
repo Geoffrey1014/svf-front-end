@@ -31,6 +31,7 @@ public:
     void exitIdentifier(const TSNode & cst_node);
     void exitPrimitiveType(const TSNode & cst_node);
     void exitParameter(const TSNode & cst_node);
+    void exitDeclaration(const TSNode & cst_node);
 
     void exit_cst_node(const TSNode & cst_node);
     void enter_cst_node(const TSNode & cst_node);

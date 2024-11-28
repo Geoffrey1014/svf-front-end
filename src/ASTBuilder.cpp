@@ -54,6 +54,29 @@ void ASTBuilder::exitParameter(const TSNode & cst_node) {
     }
 }
 
+void ASTBuilder::exitDeclaration(const TSNode & cst_node){
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for declaration" << std::endl;
+    }
+    // Declare variables outside the switch statement
+
+    IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrType* declType = dynamic_cast<IrType*>( this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (declType && declName) {
+        node = new IrDecl(declName, declType, cst_node);
+        this->ast_stack.push(node);
+        std::cout << node->prettyPrint(" ") << std::endl;
+    } else {
+        std::cerr << "Error: Invalid declaration type or name" << std::endl;
+    }
+}
+
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
@@ -75,9 +98,10 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 260: // parameter_declaration
             exitParameter(cst_node);
             break;
-        // case ASTNodeType::ParameterList:
-        //     /* code */
-        //     break;
+        case 198: // declaration
+            exitDeclaration(cst_node);
+            /* code */
+            break;
         // case ASTNodeType::FunctionDeclarator:
 
         //     break;

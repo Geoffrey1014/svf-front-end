@@ -3,13 +3,13 @@
 #ifndef IR_DECL_H
 #define IR_DECL_H
 
-class IrMemberDecl : public Ir {
+class IrDecl : public Ir {
 private:
     IrIdent* name;
     IrType* type;
 
 public:
-    IrMemberDecl(IrIdent* name, IrType* type, const TSNode & node) : Ir(node), name(name), type(type) {}
+    IrDecl(IrIdent* name, IrType* type, const TSNode & node) : Ir(node), name(name), type(type) {}
 
     const std::string* getName() const {
         return this->name->getValue();
@@ -22,12 +22,24 @@ public:
     IrType* getType() const{
         return this->type;
     }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--declaration:\n";
+
+        // print the parameter's name
+        prettyString += ("  " + indentSpace + "|--name: " + *(this->name->getValue()) + "\n");
+
+        // print the parameter's type
+        prettyString += this->type->prettyPrint("  " + indentSpace);
+
+        return prettyString;
+    }
 };
 
 
-class IrFieldDecl : public IrMemberDecl {
+class IrFieldDecl : public IrDecl {
 public:
-    IrFieldDecl(IrIdent* name, IrType* fieldType, const TSNode& node) : IrMemberDecl(name, fieldType, node) {}
+    IrFieldDecl(IrIdent* name, IrType* fieldType, const TSNode& node) : IrDecl(name, fieldType, node) {}
 
 };
 
@@ -99,14 +111,14 @@ public:
     }
 };
 
-class IrMethodDecl : public IrMemberDecl {
+class IrMethodDecl : public IrDecl {
 private:
     std::vector<IrParamDecl*> paramsList;
     IrCodeBlock* methodBody;
 
 public:
     IrMethodDecl(IrType* returnType, std::vector<IrParamDecl*> paramsList,
-                 IrCodeBlock* methodBody, IrIdent* name, const TSNode& node) : IrMemberDecl(name, returnType, node), paramsList(paramsList), methodBody(methodBody) {}
+                 IrCodeBlock* methodBody, IrIdent* name, const TSNode& node) : IrDecl(name, returnType, node), paramsList(paramsList), methodBody(methodBody) {}
  
     std::vector<IrParamDecl*> getParamsList() {
         return this->paramsList;
