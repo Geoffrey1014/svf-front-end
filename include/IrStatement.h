@@ -4,6 +4,6 @@
 
 class IrStatement : public Ir {
 public:
-    IrStatement(TSNode* node) : Ir(node) {}
+    IrStatement(const TSNode& node) : Ir(node) {}
 };
 #endif

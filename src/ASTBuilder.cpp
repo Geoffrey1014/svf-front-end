@@ -4,17 +4,17 @@
 #include <cstring>
 #include "ASTBuilder.h"
 
-void ASTBuilder::exitPrimitiveType(TSNode cst_node) {
+void ASTBuilder::exitPrimitiveType(const TSNode & cst_node) {
     std::string* node_text = getNodeText(cst_node);
     Ir* node =nullptr;
     if (*node_text == "int") {
-        node = new IrTypeInt(&cst_node);
+        node = new IrTypeInt(cst_node);
         this->ast_stack.push(node);
         std::cout << node->prettyPrint(" ") << std::endl;
     } 
     else if (*node_text == "void")
     {
-        node = new IrTypeVoid(&cst_node);
+        node = new IrTypeVoid(cst_node);
         this->ast_stack.push(node);
         std::cout << node->prettyPrint(" ") << std::endl;
     }
@@ -23,14 +23,14 @@ void ASTBuilder::exitPrimitiveType(TSNode cst_node) {
     }
 }
 
-void ASTBuilder::exitIdentifier(TSNode cst_node) {
+void ASTBuilder::exitIdentifier(const TSNode & cst_node) {
     std::string* node_text = getNodeText(cst_node);
-    Ir* node = new IrIdent(node_text, &cst_node);
+    Ir* node = new IrIdent(node_text, cst_node);
     this->ast_stack.push(node);
     std::cout << node->prettyPrint(" ") << std::endl;
 }
 
-void ASTBuilder::exitParameter(TSNode cst_node) {
+void ASTBuilder::exitParameter(const TSNode & cst_node) {
     Ir* node =nullptr;
     // Use stack to get the type and name
     if (this->ast_stack.size() < 2) {
@@ -46,7 +46,7 @@ void ASTBuilder::exitParameter(TSNode cst_node) {
 
 
     if (paramType && paramName) {
-        node = new IrParamDecl(paramType, paramName, &cst_node);
+        node = new IrParamDecl(paramType, paramName, cst_node);
         this->ast_stack.push(node);
         std::cout << node->prettyPrint(" ") << std::endl;
     } else {
@@ -55,7 +55,7 @@ void ASTBuilder::exitParameter(TSNode cst_node) {
 }
 
 // Function to create an AST node from a CST node
-void ASTBuilder::exit_cst_node(TSNode cst_node) {
+void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
     TSSymbol symbol_type = ts_node_symbol(cst_node);
     
@@ -107,23 +107,24 @@ void ASTBuilder::exit_cst_node(TSNode cst_node) {
         //     break;
         
         default:
+            std::cerr << "Error: Unknown CST node type" << std::endl;
             break;
     }
 
     return;
 }
 
-void ASTBuilder::enter_cst_node(TSNode cst_node){
+void ASTBuilder::enter_cst_node(const TSNode & cst_node){
     std::cout << "Entering CST node: " << ts_node_type(cst_node) << std::endl;
 }
-// travese the tree
-void ASTBuilder::traverse_tree(TSNode cursor) {
 
-    enter_cst_node(cursor);
+void ASTBuilder::traverse_tree(const TSNode & node) {
 
-    uint32_t named_child_count = ts_node_named_child_count(cursor);
+    enter_cst_node(node);
+
+    uint32_t named_child_count = ts_node_named_child_count(node);
     for (uint32_t i = 0; i < named_child_count; i++) {
-        TSNode child = ts_node_named_child(cursor, i);
+        TSNode child = ts_node_named_child(node, i);
         traverse_tree(child);
     }
 
@@ -134,6 +135,6 @@ void ASTBuilder::traverse_tree(TSNode cursor) {
     // }
 
 
-    exit_cst_node(cursor);
+    exit_cst_node(node);
 
 }

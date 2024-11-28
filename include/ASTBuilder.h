@@ -21,25 +21,25 @@ public:
         delete source_code;
     }
 
-    std::string* getNodeText(TSNode node) {
+    std::string* getNodeText(const TSNode & node) {
         unsigned start = ts_node_start_byte(node);
         unsigned end = ts_node_end_byte(node);
         return new std::string(source_code->substr(start, end - start));
     }
 
 
-    void exitIdentifier(TSNode cst_node);
-    void exitPrimitiveType(TSNode cst_node);
-    void exitParameter(TSNode cst_node);
+    void exitIdentifier(const TSNode & cst_node);
+    void exitPrimitiveType(const TSNode & cst_node);
+    void exitParameter(const TSNode & cst_node);
 
-    void exit_cst_node(TSNode cst_node);
-    void enter_cst_node(TSNode cst_node);
+    void exit_cst_node(const TSNode & cst_node);
+    void enter_cst_node(const TSNode & cst_node);
 
     // travese the tree
-    void traverse_tree(TSNode cursor);
+    void traverse_tree(const TSNode & cursor);
 
-    void build(TSNode cursor) {
+    void build(const TSNode & root) {
         // traverse the tree
-        traverse_tree(cursor);
+        traverse_tree(root);
     }
 };

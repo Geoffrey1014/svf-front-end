@@ -8,18 +8,16 @@ using namespace std;
 
 class Ir {
     private:
-        TSNode* node;
+        const TSNode & node;
     public:
-    Ir(TSNode* node) {
-        this->node = node;
-    }
+    Ir(const TSNode & node): node(node) {}
 
     int getLineNumber() {
-        return ts_node_start_point(*node).row;
+        return ts_node_start_point(node).row;
     }
 
     int getColNumber() {
-        return ts_node_start_point(*node).column;
+        return ts_node_start_point(node).column;
     }
 
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
@@ -28,7 +26,7 @@ class Ir {
     virtual std::string prettyPrint(std::string indentSpace) const =0;
 
     std::string toString() {
-        return "ASTNode: " + std::to_string(getLineNumber()) + ", " + std::to_string(getColNumber()) + " - " + std::to_string(ts_node_end_point(*node).row) + ", " + std::to_string(ts_node_end_point(*node).column);
+        return "ASTNode: " + std::to_string(getLineNumber()) + ", " + std::to_string(getColNumber()) + " - " + std::to_string(ts_node_end_point(node).row) + ", " + std::to_string(ts_node_end_point(node).column);
     }
 };
 
@@ -36,16 +34,16 @@ class Ir {
 
 class IrIdent : public Ir {
 private:
-    std::string* name;
+    const std::string* name;
 
 public:
-    IrIdent(std::string* name, TSNode* node) : Ir(node), name(name) {}
+    IrIdent(const std::string* name, const TSNode & node) : Ir(node), name(name) {}
 
-    std::string* getValue() const{
+    const std::string* getValue() const{
         return name;
     }
 
-    bool operator==(const Ir& that) const {
+    bool operator==(const Ir & that) const {
         if (&that == this) {
             return true;
         }
@@ -65,4 +63,5 @@ public:
     }
 
 };
+
 #endif

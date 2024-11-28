@@ -4,14 +4,14 @@
 
 class IrType : public Ir {
     public:
-        IrType(TSNode* node) : Ir(node) {}
+        IrType(const TSNode& node) : Ir(node) {}
         virtual ~IrType() = default;
         int hashCode() const;
 };
 
 class IrTypeBool : public IrType {
 public:
-    IrTypeBool(TSNode* node) : IrType(node) {}
+    IrTypeBool(const TSNode& node) : IrType(node) {}
 
     bool operator==(const Ir& that) const {
         if (&that == this) {
@@ -34,7 +34,7 @@ public:
 
 class IrTypeVoid : public IrType {
 public:
-    IrTypeVoid(TSNode* node) : IrType(node) {}
+    IrTypeVoid(const TSNode& node) : IrType(node) {}
 
     bool operator==(const Ir& that) const {
         if (&that == this) {
@@ -58,7 +58,7 @@ public:
 
 class IrTypeInt : public IrType {
 public:
-    IrTypeInt(TSNode* node) : IrType(node) {}
+    IrTypeInt(const TSNode& node) : IrType(node) {}
 
     bool operator==(const Ir& that) const {
         if (&that == this) {
@@ -82,7 +82,7 @@ public:
 
 class IrTypeString : public IrType {
 public:
-    IrTypeString(TSNode* node) : IrType(node) {}
+    IrTypeString(const TSNode& node) : IrType(node) {}
 
     bool operator==(const Ir& that) const {
         if (&that == this) {

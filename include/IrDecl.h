@@ -9,9 +9,9 @@ private:
     IrType* type;
 
 public:
-    IrMemberDecl(IrIdent* name, IrType* type, TSNode* node) : Ir(node), name(name), type(type) {}
+    IrMemberDecl(IrIdent* name, IrType* type, const TSNode & node) : Ir(node), name(name), type(type) {}
 
-    std::string* getName() const {
+    const std::string* getName() const {
         return this->name->getValue();
     }
 
@@ -27,7 +27,7 @@ public:
 
 class IrFieldDecl : public IrMemberDecl {
 public:
-    IrFieldDecl(IrIdent* name, IrType* fieldType, TSNode* node) : IrMemberDecl(name, fieldType, node) {}
+    IrFieldDecl(IrIdent* name, IrType* fieldType, const TSNode& node) : IrMemberDecl(name, fieldType, node) {}
 
 };
 
@@ -38,7 +38,7 @@ private:
     std::vector<IrStatement*> stmtsList;
 
 public:
-    IrCodeBlock(std::vector<IrFieldDecl*> fieldsList, std::vector<IrStatement*> stmtsList, TSNode* node) 
+    IrCodeBlock(std::vector<IrFieldDecl*> fieldsList, std::vector<IrStatement*> stmtsList, const TSNode& node) 
         : Ir(node), fieldsList(fieldsList), stmtsList(stmtsList) {}
 
     std::vector<IrFieldDecl*> getFieldsList() {
@@ -72,7 +72,7 @@ private:
     IrIdent* paramName;
 
 public:
-    IrParamDecl(IrType* paramType, IrIdent* paramName, TSNode* node) : Ir(node), paramType(paramType), paramName(paramName) {}
+    IrParamDecl(IrType* paramType, IrIdent* paramName, const TSNode& node) : Ir(node), paramType(paramType), paramName(paramName) {}
 
     std::string toString() {
         return paramType->toString() + " " + paramName->toString();
@@ -106,7 +106,7 @@ private:
 
 public:
     IrMethodDecl(IrType* returnType, std::vector<IrParamDecl*> paramsList,
-                 IrCodeBlock* methodBody, IrIdent* name, TSNode* node) : IrMemberDecl(name, returnType, node), paramsList(paramsList), methodBody(methodBody) {}
+                 IrCodeBlock* methodBody, IrIdent* name, const TSNode& node) : IrMemberDecl(name, returnType, node), paramsList(paramsList), methodBody(methodBody) {}
  
     std::vector<IrParamDecl*> getParamsList() {
         return this->paramsList;
