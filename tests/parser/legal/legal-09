@@ -1,4 +1,5 @@
-extern printf();
+extern void printf();
+int a;
 void bar ( int a ) {
   int i;
   for ( i = 0; i < a; i += 1) {

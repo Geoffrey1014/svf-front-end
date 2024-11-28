@@ -152,8 +152,13 @@ void ASTBuilder::exit_ast_node(TSNode cst_node) {
     return;
 }
 
+void ASTBuilder::enter_ast_node(TSNode cst_node){
+    std::cout << "Entering AST node: " << ts_node_type(cst_node) << std::endl;
+}
 // travese the tree
 void ASTBuilder::traverse_tree(TSNode cursor) {
+
+    enter_ast_node(cursor);
 
     uint32_t named_child_count = ts_node_named_child_count(cursor);
     for (uint32_t i = 0; i < named_child_count; i++) {
