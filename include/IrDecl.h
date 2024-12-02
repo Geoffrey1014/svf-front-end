@@ -139,44 +139,19 @@ public:
 
 };
 
-class IrMethodDecl : public IrDecl {
+class IrFunctionDecl : public Ir {
 private:
-    std::vector<IrParamDecl*> paramsList;
-    IrCodeBlock* methodBody;
-
+    IrParamList* paramsList;
+    IrIdent* name;
 public:
-    IrMethodDecl(IrType* returnType, std::vector<IrParamDecl*> paramsList,
-                 IrCodeBlock* methodBody, IrIdent* name, const TSNode& node) : IrDecl(name, returnType, node), paramsList(paramsList), methodBody(methodBody) {}
- 
-    std::vector<IrParamDecl*> getParamsList() {
-        return this->paramsList;
-    }
-
-    void addToParamsList(IrParamDecl* newParam) {
-        this->paramsList.push_back(newParam);
-    }
-
-    IrCodeBlock* getMethodBody() {
-        return this->methodBody;
-    }
-
+    IrFunctionDecl(IrIdent* name, IrParamList* paramsList,
+                  const TSNode& node) : name(name), paramsList(paramsList), Ir(node){}
 
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--method\n";
-
-        // print the name
-        prettyString += ("  " + indentSpace + "|--name: " + *(this->getName()) + "\n");
-
-        // print the params
-        prettyString += ("    " + indentSpace + "|--paramsList:\n");
-        for (auto& paramDecl : this->paramsList) {
-            prettyString += paramDecl->prettyPrint("      " + indentSpace);
-        }
-
-        // print the block
-        prettyString += this->methodBody->prettyPrint("    " + indentSpace);
-
+        std::string prettyString = indentSpace + "|--function_declarator\n";
+        prettyString += name->prettyPrint("  " + indentSpace);
+        prettyString += paramsList->prettyPrint("  " + indentSpace);
         return prettyString;
     }
 };

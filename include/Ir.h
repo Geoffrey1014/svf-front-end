@@ -26,7 +26,7 @@ class Ir {
 
     virtual std::string prettyPrint(std::string indentSpace) const =0;
 
-    std::string toString() {
+    virtual std::string toString() {
         return "ASTNode: " + std::to_string(getLineNumber()) + ", " + std::to_string(getColNumber()) + " - " + std::to_string(ts_node_end_point(node).row) + ", " + std::to_string(ts_node_end_point(node).column);
     }
 };
@@ -64,6 +64,9 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const {
         return indentSpace + "|--id: " + *name + "\n";
+    }
+    std::string toString() {
+        return "IrIdent: " + *name;
     }
 
 };

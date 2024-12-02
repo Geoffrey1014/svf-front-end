@@ -29,6 +29,7 @@ public:
     void exitParameter(const TSNode & cst_node);
     void exitDeclaration(const TSNode & cst_node);
     void exitParamList(const TSNode & cst_node);
+    void exitFunctionDeclarator(const TSNode & cst_node);
 
     void exit_cst_node(const TSNode & cst_node);
     void enter_cst_node(const TSNode & cst_node);

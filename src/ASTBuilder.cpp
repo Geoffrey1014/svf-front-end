@@ -33,7 +33,6 @@ void ASTBuilder::exitParameter(const TSNode & cst_node) {
     if (this->ast_stack.size() < 2) {
         std::cerr << "Error: Not enough elements on the stack for parameter declaration" << std::endl;
     }
-    // Declare variables outside the switch statement
 
     IrIdent* paramName = dynamic_cast<IrIdent*>(this->ast_stack.top());
     this->ast_stack.pop();
@@ -56,7 +55,6 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
     if (this->ast_stack.size() < 2) {
         std::cerr << "Error: Not enough elements on the stack for declaration" << std::endl;
     }
-    // Declare variables outside the switch statement
 
     IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
     this->ast_stack.pop();
@@ -67,7 +65,6 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
     if (declType && declName) {
         node = new IrDecl(declName, declType, cst_node);
         this->ast_stack.push(node);
-        std::cout << node->prettyPrint(" ") << std::endl;
     } else {
         std::cerr << "Error: Invalid declaration type or name" << std::endl;
     }
@@ -85,7 +82,28 @@ void ASTBuilder::exitParamList(const TSNode & cst_node){
     }
 
     this->ast_stack.push(paramList);
-    std::cout << paramList->prettyPrint(" ") << std::endl;
+}
+
+void ASTBuilder::exitFunctionDeclarator(const TSNode & cst_node){
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for function declaration" << std::endl;
+    }
+
+    IrParamList* paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (declName && paramList) {
+        node = new IrFunctionDecl(declName, paramList, cst_node);
+        this->ast_stack.push(node);
+        std::cout << node->prettyPrint(" ") << std::endl;
+    } else {
+        std::cerr << "Error: Invalid function declaration type or name" << std::endl;
+    }
 }
 
 // Function to create an AST node from a CST node
@@ -115,9 +133,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 258: // parameter_list
             exitParamList(cst_node);
             break;
-        // case ASTNodeType::FunctionDeclarator:
-
-        //     break;
+        case 230: // function_declarator
+            exitFunctionDeclarator(cst_node);
+            break;
         // case ASTNodeType::NumberLiteral:
         //     /* code */
         //     break;
