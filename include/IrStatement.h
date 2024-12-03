@@ -6,6 +6,9 @@
 class IrStatement : public Ir {
 public:
     IrStatement(const TSNode& node) : Ir(node) {}
+    std::string toString() override{
+        return "IrStatement";
+    }
 };
 
 class IrStmtReturn : public IrStatement {
@@ -47,6 +50,9 @@ public:
         std::string prettyString = indentSpace + "|--returnVoid\n";
         return prettyString;
     }
+    std::string toString() {
+        return "IrStmtReturnVoid";
+    }
 };
 
 class IrCompoundStmt : public IrStatement {
@@ -73,6 +79,29 @@ public:
         }
 
         return prettyString;
+    }
+};
+
+class IrExprStmt : public IrStatement {
+private:
+    IrExpr* expr;
+public:
+    IrExprStmt(IrExpr* expr, const TSNode& node) : IrStatement(node), expr(expr) {}
+
+    IrExpr* getExpr() {
+        return this->expr;
+    }
+
+    std::string prettyPrint(std::string indentSpace)const override  {
+        std::string prettyString = indentSpace + "|--exprStmt\n";
+
+        // pretty print the expression
+        prettyString += this->expr->prettyPrint("  " + indentSpace);
+
+        return prettyString;
+    }
+    std::string toString() {
+        return "IrExprStmt";
     }
 };
 

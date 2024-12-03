@@ -165,12 +165,17 @@ void ASTBuilder:: exitReturnStatement(const TSNode & cst_node){
     }
 
     IrExpr* result = dynamic_cast<IrExpr*>(this->ast_stack.top());
-    this->ast_stack.pop();
 
     if (result) {
+        this->ast_stack.pop();
         node = new IrStmtReturnExpr(result,cst_node);
         this->ast_stack.push(node);
-    } else {
+    } 
+    else if(ts_node_named_child_count(cst_node) == 0) {
+        node = new IrStmtReturnVoid(cst_node);
+        this->ast_stack.push(node);
+    }
+    else {
         std::cerr << "Error: Invalid return statement" << std::endl;
     }
 }
@@ -206,8 +211,68 @@ void ASTBuilder::exitArgList(const TSNode & cst_node){
         this->ast_stack.pop();
         argList->addToArgsList(arg);
     }
-    std::cout << argList->prettyPrint("") << std::endl;
     this->ast_stack.push(argList);
+}
+
+void ASTBuilder::exitCallExpr(const TSNode & cst_node){
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for call expression" << std::endl;
+    }
+
+    IrArgList* argList = dynamic_cast<IrArgList*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrIdent* functionName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (functionName && argList) {
+        node = new IrCallExpr(functionName, argList, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid call expression" << std::endl;
+    }
+}
+
+void ASTBuilder::exitAssignExpr(const TSNode & cst_node){
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for assign expression" << std::endl;
+    }
+
+    IrExpr* rhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrExpr* lhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (lhs && rhs) {
+        node = new IrAssignExpr(lhs, rhs, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid assign expression" << std::endl;
+    }
+}
+
+void ASTBuilder::exitExprStmt(const TSNode & cst_node){
+    IrExprStmt* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 1) {
+        std::cerr << "Error: Not enough elements on the stack for expression statement" << std::endl;
+    }
+
+    IrExpr* expr = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (expr) {
+        node = new IrExprStmt(expr, cst_node);
+        this->ast_stack.push(node);
+        std::cout << node->prettyPrint("") << std::endl;
+    } else {
+        std::cerr << "Error: Invalid expression statement" << std::endl;
+    }
 }
 
 // Function to create an AST node from a CST node
@@ -260,16 +325,15 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 309: // arg_list
             exitArgList(cst_node);
             break;
-        // case ASTNodeType::CallExpression:
-        //     /* code */
-        //     break;
-        // case ASTNodeType::TranslationUnit:
-
-        //     break;
-        // case ASTNodeType::Unknown:
-        //     /* code */
-        //     break;
-        
+        case 299: // call_expr
+            exitCallExpr(cst_node);
+            break;
+        case 287: // assign_expr
+            exitAssignExpr(cst_node);
+            break;
+        case 266: //expression_statement
+            exitExprStmt(cst_node);
+            break;
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;
             break;
