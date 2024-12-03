@@ -3,6 +3,8 @@
 #include "IrDecl.h"
 #include "IrExpr.h"
 #include "IrLiteral.h"
+#include "IrBinaryExpr.h"
+#include "IrArg.h"
 
 #ifndef AST_BUILDER_H
 #define AST_BUILDER_H
@@ -41,6 +43,7 @@ public:
     void exitReturnStatement(const TSNode & cst_node);
     void exitCompoundStatement(const TSNode & cst_node);
     void exitLiteralNumber(const TSNode & cst_node);    
+    void exitArgList(const TSNode & cst_node);
 
 
     void exit_cst_node(const TSNode & cst_node);

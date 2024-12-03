@@ -195,8 +195,19 @@ void ASTBuilder:: exitCompoundStatement(const TSNode & cst_node){
 void ASTBuilder::exitLiteralNumber(const TSNode & cst_node){
     std::string* node_text = getNodeText(cst_node);
     IrLiteralNumber* node = new IrLiteralNumber(std::stoi(*node_text), cst_node);
-    std::cout << node->prettyPrint("") << std::endl;
     this->ast_stack.push(node);
+}
+
+void ASTBuilder::exitArgList(const TSNode & cst_node){
+    IrArgList* argList = new IrArgList(cst_node);
+    uint32_t arg_count = ts_node_named_child_count(cst_node);
+    for (uint32_t i = 0; i < arg_count; i++) {
+        IrExpr* arg = dynamic_cast<IrExpr*>(this->ast_stack.top());
+        this->ast_stack.pop();
+        argList->addToArgsList(arg);
+    }
+    std::cout << argList->prettyPrint("") << std::endl;
+    this->ast_stack.push(argList);
 }
 
 // Function to create an AST node from a CST node
@@ -246,9 +257,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 196: // function_definition
             exitFunctionDefinition(cst_node);
             break;
-        // case ASTNodeType::ArgumentList:
-        //     /* code */
-        //     break;
+        case 309: // arg_list
+            exitArgList(cst_node);
+            break;
         // case ASTNodeType::CallExpression:
         //     /* code */
         //     break;
