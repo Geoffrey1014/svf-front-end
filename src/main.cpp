@@ -16,10 +16,11 @@ extern "C" const TSLanguage *tree_sitter_c();
 int main(int argc, char *argv[]) {
   
   // Parse command line arguments
-  std::string filename = parse_command_line(argc, argv);
+  argparse::ArgumentParser program("svf_frontend");
+  parse_command_line(program, argc, argv);
 
    // Read C++ code from file
-  std::string *source = read_file(filename);
+  std::string *source = read_file(program.get<std::string>("filename"));
   if (source == nullptr) {
     return 1;
   }
@@ -36,8 +37,9 @@ int main(int argc, char *argv[]) {
   // print s-expression
   // std::cout << ts_node_string(ts_tree_root_node(tree)) << std::endl << std::endl; 
 
-
-  // write_cst_to_file("cst.dot", tree);
+  if (program["--output-cst"] == true) {
+    write_cst_to_file("cst.dot", tree);
+  }
 
   // Get the root node of the syntax tree
   TSNode root_node = ts_tree_root_node(tree);
