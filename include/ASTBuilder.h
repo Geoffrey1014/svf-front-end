@@ -33,6 +33,10 @@ public:
     void exitFunctionDeclarator(const TSNode & cst_node);
     void exitFunctionDefinition(const TSNode & cst_node);
     void exitBinaryExpr(const TSNode & cst_node);
+    void exitUnaryExpr(const TSNode & cst_node);
+    void exitReturnStatement(const TSNode & cst_node);
+    void exitCompoundStatement(const TSNode & cst_node);
+
 
     void exit_cst_node(const TSNode & cst_node);
     void enter_cst_node(const TSNode & cst_node);

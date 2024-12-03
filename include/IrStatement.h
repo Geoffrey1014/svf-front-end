@@ -1,4 +1,5 @@
 #include "Ir.h"
+#include "IrExpr.h"
 #ifndef IR_STATEMENT_H
 #define IR_STATEMENT_H
 
@@ -6,4 +7,73 @@ class IrStatement : public Ir {
 public:
     IrStatement(const TSNode& node) : Ir(node) {}
 };
+
+class IrStmtReturn : public IrStatement {
+public:
+    IrStmtReturn(const TSNode& node) : IrStatement(node) {}
+    // virtual IrType* getExpressionType() = 0; // pure virtual function
+};
+
+class IrStmtReturnExpr : public IrStmtReturn {
+private:
+    IrExpr* result;
+
+public:
+    IrStmtReturnExpr(IrExpr* result, const TSNode& node) : IrStmtReturn(node), result(result) {}
+
+    // IrType* getExpressionType() override {
+    //     return this->result->getExpressionType();
+    // }
+
+    std::string prettyPrint(std::string indentSpace)const override {
+        std::string prettyString = indentSpace + "|--returnExpr\n";
+
+        // pretty print the expression
+        prettyString += this->result->prettyPrint("  " + indentSpace);
+
+        return prettyString;
+    }
+};
+
+class IrStmtReturnVoid : public IrStmtReturn {
+public:
+    IrStmtReturnVoid(const TSNode& node) : IrStmtReturn(node) {}
+
+    // IrType* getExpressionType() override {
+    //     return new IrTypeVoid(this->getLineNumber(), this->getColNumber());
+    // }
+
+    std::string prettyPrint(std::string indentSpace)const override  {
+        std::string prettyString = indentSpace + "|--returnVoid\n";
+        return prettyString;
+    }
+};
+
+class IrCompoundStmt : public IrStatement {
+private:
+    std::vector<IrStatement*> stmtsList;
+public:
+    IrCompoundStmt(const TSNode& node)
+        : IrStatement(node),
+          stmtsList() {}
+
+    // std::vector<IrStatement*> getStmtsList() {
+    //     return this->stmtsList;
+    // }
+    void addStmt(IrStatement* stmt) {
+        this->stmtsList.push_back(stmt);
+    }
+
+    std::string prettyPrint(std::string indentSpace)const override  {
+        std::string prettyString = indentSpace + "|--compoundStmt:\n";
+
+        // pretty print statement
+        for (IrStatement* statement: this->stmtsList) {
+            prettyString += statement->prettyPrint("  " + indentSpace);
+        }
+
+        return prettyString;
+    }
+};
+
 #endif

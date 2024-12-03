@@ -128,10 +128,45 @@ void ASTBuilder::exitBinaryExpr(const TSNode & cst_node){
     if (leftOperand && rightOperand) {
         node = new IrBinaryExpr(operation, leftOperand, rightOperand, cst_node);
         this->ast_stack.push(node);
-        std::cout << node->prettyPrint(" ") << std::endl;
     } else {
         std::cerr << "Error: Invalid binary expression" << std::endl;
     }
+}
+
+void ASTBuilder:: exitReturnStatement(const TSNode & cst_node){
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 1) {
+        std::cerr << "Error: Not enough elements on the stack for return statement" << std::endl;
+    }
+
+    IrExpr* result = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (result) {
+        node = new IrStmtReturnExpr(result,cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid return statement" << std::endl;
+    }
+}
+
+void ASTBuilder:: exitCompoundStatement(const TSNode & cst_node){
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 1) {
+        std::cerr << "Error: Not enough elements on the stack for compound statement" << std::endl;
+    }
+
+    IrCompoundStmt* compoundStmt = new IrCompoundStmt(cst_node);
+    IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
+    while (stmt) {
+        this->ast_stack.pop();
+        compoundStmt->addStmt(stmt);
+        stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
+    }
+    std::cout << compoundStmt->prettyPrint(" ") << std::endl;
+    this->ast_stack.push(compoundStmt);
 }
 
 // Function to create an AST node from a CST node
@@ -172,12 +207,12 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         // case ASTNodeType::NumberLiteral:
         //     /* code */
         //     break;
-        // case ASTNodeType::ReturnStatement:
-        //     /* code */
-        //     break;
-        // case ASTNodeType::CompoundStatement:
-        //     /* code */
-        //     break;
+        case 275: // return_statement
+            exitReturnStatement(cst_node);
+            break;
+        case 241: // compound_statement
+            exitCompoundStatement(cst_node);
+            break;
         // case ASTNodeType::FunctionDefinition:
         //     /* code */
         //     break;
