@@ -1,6 +1,7 @@
 // AST builder
 #include <stack>
 #include "IrDecl.h"
+#include "IrExpr.h"
 
 class ASTBuilder {
     private:
@@ -30,6 +31,8 @@ public:
     void exitDeclaration(const TSNode & cst_node);
     void exitParamList(const TSNode & cst_node);
     void exitFunctionDeclarator(const TSNode & cst_node);
+    void exitFunctionDefinition(const TSNode & cst_node);
+    void exitBinaryExpr(const TSNode & cst_node);
 
     void exit_cst_node(const TSNode & cst_node);
     void enter_cst_node(const TSNode & cst_node);

@@ -1,5 +1,6 @@
 #include "IrStatement.h"
 #include "IrType.h"
+#include "IrExpr.h"
 #ifndef IR_DECL_H
 #define IR_DECL_H
 
@@ -61,7 +62,7 @@ public:
         return this->stmtsList;
     }
 
-    std::string prettyPrint(std::string indentSpace) {
+    std::string prettyPrint(std::string indentSpace) const override  {
         std::string prettyString = indentSpace + "|--codeBlock:\n";
 
         // pretty print statement

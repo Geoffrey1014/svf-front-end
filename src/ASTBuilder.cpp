@@ -106,13 +106,43 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode & cst_node){
     }
 }
 
+void ASTBuilder::exitBinaryExpr(const TSNode & cst_node){
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for binary expression" << std::endl;
+    }
+
+    IrExpr* rightOperand = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrExpr* leftOperand = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    // Get the operation
+    // get the second child of the cst_node
+    TSNode second_child = ts_node_child(cst_node, 1);
+    std::string* operation = getNodeText(second_child); 
+    // std::cout << "Operation: " << *operation << std::endl;
+
+    if (leftOperand && rightOperand) {
+        node = new IrBinaryExpr(operation, leftOperand, rightOperand, cst_node);
+        this->ast_stack.push(node);
+        std::cout << node->prettyPrint(" ") << std::endl;
+    } else {
+        std::cerr << "Error: Invalid binary expression" << std::endl;
+    }
+}
+
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
     TSSymbol symbol_type = ts_node_symbol(cst_node);
     
-    std::cout << "Exiting CST node: " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
-    
+    if (ts_node_is_named(cst_node))
+        std::cout << "Exiting CST node: "<< "Named, " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
+    else
+        std::cout << "Exiting CST node: " << "Not Named, " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
     // std::cout << "ts_language_symbol_name: " << ts_language_symbol_name(this->language, symbol_type) << std::endl;
     // std::cout << "ts_language_symbol_for_name: " <<  ts_language_symbol_for_name(this->language, type, std::strlen(type), true) << std::endl;
 
@@ -135,6 +165,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 230: // function_declarator
             exitFunctionDeclarator(cst_node);
+            break;
+        case 290: // function_definition
+            exitBinaryExpr(cst_node);
             break;
         // case ASTNodeType::NumberLiteral:
         //     /* code */
@@ -170,7 +203,11 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
 }
 
 void ASTBuilder::enter_cst_node(const TSNode & cst_node){
-    // std::cout << "Entering CST node: " << ts_node_type(cst_node) << std::endl;
+    TSSymbol symbol_type = ts_node_symbol(cst_node);
+    if (symbol_type == 290){
+        std::cout << "ENTERING CST node: " << ts_language_symbol_name(this->language, symbol_type) <<", " << ts_node_grammar_type(cst_node) << std::endl;
+    }
+    
 }
 
 void ASTBuilder::traverse_tree(const TSNode & node) {
@@ -183,9 +220,9 @@ void ASTBuilder::traverse_tree(const TSNode & node) {
         traverse_tree(child);
     }
 
-    // uint32_t child_count = ts_node_child_count(cursor);
+    // uint32_t child_count = ts_node_child_count(node);
     // for (uint32_t i = 0; i < child_count; i++) {
-    //     TSNode child = ts_node_child(cursor, i);
+    //     TSNode child = ts_node_child(node, i);
     //     traverse_tree(child);
     // }
 
