@@ -37,48 +37,6 @@ public:
     }
 };
 
-
-class IrFieldDecl : public IrDecl {
-public:
-    IrFieldDecl(IrIdent* name, IrType* fieldType, const TSNode& node) : IrDecl(name, fieldType, node) {}
-
-};
-
-
-class IrCodeBlock : public Ir {
-private:
-    std::vector<IrFieldDecl*> fieldsList;
-    std::vector<IrStatement*> stmtsList;
-
-public:
-    IrCodeBlock(std::vector<IrFieldDecl*> fieldsList, std::vector<IrStatement*> stmtsList, const TSNode& node) 
-        : Ir(node), fieldsList(fieldsList), stmtsList(stmtsList) {}
-
-    std::vector<IrFieldDecl*> getFieldsList() {
-        return this->fieldsList;
-    }
-
-    std::vector<IrStatement*> getStmtsList() {
-        return this->stmtsList;
-    }
-
-    std::string prettyPrint(std::string indentSpace) const override  {
-        std::string prettyString = indentSpace + "|--codeBlock:\n";
-
-        // pretty print statement
-        for (IrFieldDecl* fieldDecl: this->fieldsList) {
-            prettyString += fieldDecl->prettyPrint("  " + indentSpace);
-        }
-
-        // pretty print field decl
-        for (IrStatement* statement: this->stmtsList) {
-            prettyString += statement->prettyPrint("  " + indentSpace);
-        }
-
-        return prettyString;
-    }
-};
-
 class IrParamDecl : public Ir {
 private:
     IrType* paramType;
@@ -158,4 +116,20 @@ public:
 };
 
 
+class IrFunctionDef : public Ir {
+private:
+    IrType* returnType;
+    IrFunctionDecl* functionDecl;
+    IrCompoundStmt* compoundStmt;
+public:
+    IrFunctionDef(IrType* returnType ,IrFunctionDecl* functionDecl, IrCompoundStmt* compoundStmt, const TSNode& node) : returnType(returnType), functionDecl(functionDecl), compoundStmt(compoundStmt), Ir(node) {}
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--function_definition\n";
+        prettyString += returnType->prettyPrint("  " + indentSpace);
+        prettyString += functionDecl->prettyPrint("  " + indentSpace);
+        prettyString += compoundStmt->prettyPrint("  " + indentSpace);
+        return prettyString;
+    }
+};
 #endif

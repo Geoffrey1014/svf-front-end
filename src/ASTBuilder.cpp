@@ -100,9 +100,33 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode & cst_node){
     if (declName && paramList) {
         node = new IrFunctionDecl(declName, paramList, cst_node);
         this->ast_stack.push(node);
-        std::cout << node->prettyPrint(" ") << std::endl;
     } else {
         std::cerr << "Error: Invalid function declaration type or name" << std::endl;
+    }
+}
+
+void ASTBuilder::exitFunctionDefinition(const TSNode & cst_node){
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 3) {
+        std::cerr << "Error: Not enough elements on the stack for function definition" << std::endl;
+    }
+
+    IrCompoundStmt* compoundStmt = dynamic_cast<IrCompoundStmt*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrFunctionDecl* functionDecl = dynamic_cast<IrFunctionDecl*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrType* returnType = dynamic_cast<IrType*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (returnType && functionDecl && compoundStmt) {
+        node = new IrFunctionDef(returnType, functionDecl, compoundStmt, cst_node);
+        this->ast_stack.push(node);
+        std::cout << node->prettyPrint(" ") << std::endl;
+    } else {
+        std::cerr << "Error: Invalid function definition" << std::endl;
     }
 }
 
@@ -165,8 +189,14 @@ void ASTBuilder:: exitCompoundStatement(const TSNode & cst_node){
         compoundStmt->addStmt(stmt);
         stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
     }
-    std::cout << compoundStmt->prettyPrint(" ") << std::endl;
     this->ast_stack.push(compoundStmt);
+}
+
+void ASTBuilder::exitLiteralNumber(const TSNode & cst_node){
+    std::string* node_text = getNodeText(cst_node);
+    IrLiteralNumber* node = new IrLiteralNumber(std::stoi(*node_text), cst_node);
+    std::cout << node->prettyPrint("") << std::endl;
+    this->ast_stack.push(node);
 }
 
 // Function to create an AST node from a CST node
@@ -204,18 +234,18 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 290: // function_definition
             exitBinaryExpr(cst_node);
             break;
-        // case ASTNodeType::NumberLiteral:
-        //     /* code */
-        //     break;
+        case 141: // literal_number
+            exitLiteralNumber(cst_node);
+            break;
         case 275: // return_statement
             exitReturnStatement(cst_node);
             break;
         case 241: // compound_statement
             exitCompoundStatement(cst_node);
             break;
-        // case ASTNodeType::FunctionDefinition:
-        //     /* code */
-        //     break;
+        case 196: // function_definition
+            exitFunctionDefinition(cst_node);
+            break;
         // case ASTNodeType::ArgumentList:
         //     /* code */
         //     break;
@@ -238,10 +268,10 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
 }
 
 void ASTBuilder::enter_cst_node(const TSNode & cst_node){
-    TSSymbol symbol_type = ts_node_symbol(cst_node);
-    if (symbol_type == 290){
-        std::cout << "ENTERING CST node: " << ts_language_symbol_name(this->language, symbol_type) <<", " << ts_node_grammar_type(cst_node) << std::endl;
-    }
+    // TSSymbol symbol_type = ts_node_symbol(cst_node);
+    // if (symbol_type == 290){
+    //     std::cout << "ENTERING CST node: " << ts_language_symbol_name(this->language, symbol_type) <<", " << ts_node_grammar_type(cst_node) << std::endl;
+    // }
     
 }
 
