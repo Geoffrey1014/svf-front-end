@@ -57,16 +57,20 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
     }
 
     IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
-    this->ast_stack.pop();
-
-    IrType* declType = dynamic_cast<IrType*>( this->ast_stack.top());
-    this->ast_stack.pop();
-
-    if (declType && declName) {
-        node = new IrDecl(declName, declType, cst_node);
-        this->ast_stack.push(node);
-    } else {
-        std::cerr << "Error: Invalid declaration type or name" << std::endl;
+    if (declName){
+        this->ast_stack.pop();
+        IrType* declType = dynamic_cast<IrType*>( this->ast_stack.top());
+        if (declType){
+            this->ast_stack.pop();
+            node = new IrDecl(declName, declType, cst_node);
+            this->ast_stack.push(node);
+        }
+        else{
+            std::cerr << "Error: Invalid declaration type" << std::endl;
+        }
+    }
+    else {
+        std::cerr << "Error: Invalid declaration name" << std::endl;
     }
 }
 
