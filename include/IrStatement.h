@@ -6,6 +6,7 @@
 class IrStatement : public Ir {
 public:
     IrStatement(const TSNode& node) : Ir(node) {}
+    virtual ~IrStatement() = default;
     std::string toString() override{
         return "IrStatement";
     }
@@ -14,6 +15,7 @@ public:
 class IrStmtReturn : public IrStatement {
 public:
     IrStmtReturn(const TSNode& node) : IrStatement(node) {}
+    virtual ~IrStmtReturn() = default;
     // virtual IrType* getExpressionType() = 0; // pure virtual function
 };
 
@@ -23,7 +25,9 @@ private:
 
 public:
     IrStmtReturnExpr(IrExpr* result, const TSNode& node) : IrStmtReturn(node), result(result) {}
-
+    ~IrStmtReturnExpr() {
+        delete result;
+    }
     // IrType* getExpressionType() override {
     //     return this->result->getExpressionType();
     // }
@@ -41,7 +45,7 @@ public:
 class IrStmtReturnVoid : public IrStmtReturn {
 public:
     IrStmtReturnVoid(const TSNode& node) : IrStmtReturn(node) {}
-
+    ~IrStmtReturnVoid() = default;
     // IrType* getExpressionType() override {
     //     return new IrTypeVoid(this->getLineNumber(), this->getColNumber());
     // }
@@ -62,6 +66,11 @@ public:
     IrCompoundStmt(const TSNode& node)
         : IrStatement(node),
           stmtsList() {}
+    ~IrCompoundStmt() {
+        for (IrStatement* stmt: this->stmtsList) {
+            delete stmt;
+        }
+    }
 
     void addStmtToFront(IrStatement* stmt) {
         this->stmtsList.push_front(stmt);
@@ -83,6 +92,9 @@ private:
     IrExpr* expr;
 public:
     IrExprStmt(IrExpr* expr, const TSNode& node) : IrStatement(node), expr(expr) {}
+    ~IrExprStmt() {
+        delete expr;
+    }
 
     IrExpr* getExpr() {
         return this->expr;

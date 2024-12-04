@@ -12,7 +12,11 @@ public:
     IrBinaryExpr(std::string* operation, IrExpr* leftOperand, IrExpr* rightOperand, const TSNode & node) 
         : IrExpr(node), operation(operation), 
           leftOperand(leftOperand), rightOperand(rightOperand) {}
-
+    ~IrBinaryExpr() {
+        delete operation;
+        delete leftOperand;
+        delete rightOperand;
+    }
     IrExpr* getLeftOperand() {
         return this->leftOperand;
     }

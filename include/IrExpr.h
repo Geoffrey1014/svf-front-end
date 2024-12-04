@@ -5,7 +5,7 @@
 class IrExpr : public Ir {
 public:
     IrExpr(const TSNode & node) : Ir(node) {}
-    
+    ~IrExpr() = default;
     std::string toString() {
         return "IrExpr";
     }

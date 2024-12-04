@@ -12,7 +12,7 @@ class Ir {
         const TSNode & node;
     public:
     Ir(const TSNode & node): node(node) {}
-    ~Ir() = default;
+    virtual ~Ir() = default;
 
     int getLineNumber() {
         return ts_node_start_point(node).row;

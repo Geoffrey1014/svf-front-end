@@ -11,7 +11,10 @@ private:
 
 public:
     IrDecl(IrIdent* name, IrType* type, const TSNode & node) : Ir(node), name(name), type(type) {}
-
+    ~IrDecl() {
+        delete name;
+        delete type;
+    }
     const std::string* getName() const {
         return this->name->getValue();
     }
@@ -44,7 +47,10 @@ private:
 
 public:
     IrParamDecl(IrType* paramType, IrIdent* paramName, const TSNode& node) : Ir(node), paramType(paramType), paramName(paramName) {}
-
+    ~IrParamDecl() {
+        delete paramType;
+        delete paramName;
+    }
     std::string toString() {
         return paramType->toString() + " " + paramName->toString();
     }
@@ -76,6 +82,11 @@ private:
 
 public:
     IrParamList(const TSNode& node) : Ir(node) {}
+    ~IrParamList() {
+        for (IrParamDecl* param: this->paramsList) {
+            delete param;
+        }
+    }
 
     std::vector<IrParamDecl*> getParamsList() {
         return this->paramsList;
@@ -105,6 +116,10 @@ private:
 public:
     IrFunctionDecl(IrIdent* name, IrParamList* paramsList,
                   const TSNode& node) : name(name), paramsList(paramsList), Ir(node){}
+    ~IrFunctionDecl(){
+        delete name;
+        delete paramsList;
+    }
 
 
     std::string prettyPrint(std::string indentSpace) const override {
@@ -123,7 +138,11 @@ private:
     IrCompoundStmt* compoundStmt;
 public:
     IrFunctionDef(IrType* returnType ,IrFunctionDecl* functionDecl, IrCompoundStmt* compoundStmt, const TSNode& node) : returnType(returnType), functionDecl(functionDecl), compoundStmt(compoundStmt), Ir(node) {}
-
+    ~IrFunctionDef() {
+        delete returnType;
+        delete functionDecl;
+        delete compoundStmt;
+    }
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_definition\n";
         prettyString += returnType->prettyPrint("  " + indentSpace);

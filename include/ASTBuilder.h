@@ -62,8 +62,10 @@ public:
     // travese the tree
     void traverse_tree(const TSNode & cursor);
 
+    /// build the AST, return the root node. The user should delete the returned pointer.
+    /// @param cst_root the root node of the CST
+    /// @return the root node of the AST
     Ir* build(const TSNode & cst_root) {
-        // traverse the tree
         traverse_tree(cst_root);
         root_node = ast_stack.top();
         ast_stack.pop();

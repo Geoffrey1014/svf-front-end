@@ -14,7 +14,7 @@ private:
 
 public:
     IrLiteralBool(bool value, const TSNode& node) : IrLiteral(node), value(value) {}
-
+    ~IrLiteralBool() = default;
     // IrType* getExpressionType() {
     //     return new IrTypeBool(this->getLineNumber(), this->getColNumber());
     // }
@@ -41,7 +41,7 @@ private:
 
 public:
     IrLiteralChar(char value, const TSNode& node) : IrLiteral(node), value(value) {}
-
+    ~IrLiteralChar() = default;
     // IrType* getExpressionType() {
     //     // it's definitely not of type void but it
     //     // is also not of type int or type bool
@@ -70,7 +70,7 @@ private:
 
 public:
     IrLiteralNumber(long value, const TSNode& node) : IrLiteral(node), value(value) {}
-
+    ~IrLiteralNumber() = default;
     long getValue() {
         return this->value;
     }
@@ -97,12 +97,14 @@ public:
 
 class IrLiteralString : public IrLiteral {
 private:
-    std::string value;
+    std::string* value;
 
 public:
-    IrLiteralString(std::string value,const TSNode& node) : IrLiteral(node), value(value) {}
-
-    std::string getValue() {
+    IrLiteralString(std::string* value,const TSNode& node) : IrLiteral(node), value(value) {}
+    ~IrLiteralString() {
+        delete value;
+    }
+    std::string* getValue() {
         return this->value;
     }
 
@@ -116,7 +118,7 @@ public:
 
     std::string prettyPrint(std::string indentSpace) {
         std::string prettyPrint = indentSpace + "|--StringLiteral\n";
-        prettyPrint += "  " + indentSpace + "|--value: " + this->value + "\n";
+        prettyPrint += "  " + indentSpace + "|--value: " + *(this->value) + "\n";
         return prettyPrint;
     }
 

@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
   ASTBuilder ast_builder(source_code, language);
   Ir* ast_root = ast_builder.build(root_node);
   std::cout << "\n======== AST:\n" << ast_root->prettyPrint("") << std::endl;
+  delete ast_root;
 
 
   std::cout << "\n======== Src:" << std::endl;
