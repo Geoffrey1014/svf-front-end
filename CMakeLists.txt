@@ -55,26 +55,26 @@ endif()
 set(Tree_Sitter_HEADER "${Tree_Sitter_DIR}/lib/include")
 set(Tree_Sitter_LIB "${Tree_Sitter_DIR}/libtree-sitter.a")
 
-find_package(LLVM REQUIRED CONFIG HINTS ${LLVM_DIR} $ENV{LLVM_DIR})
-message(STATUS "LLVM STATUS:
-  Version       ${LLVM_VERSION}
-  Definitions   ${LLVM_DEFINITIONS}
-  Includes      ${LLVM_INCLUDE_DIRS}
-  Libraries     ${LLVM_LIBRARY_DIRS}
-  Targets       ${LLVM_TARGETS_TO_BUILD}
-  Build type    ${LLVM_BUILD_TYPE}
-  Exceptions    ${LLVM_ENABLE_EH}
-  RTTI          ${LLVM_ENABLE_RTTI}
-  Dynamic lib   ${LLVM_LINK_LLVM_DYLIB}
-  LLVM_DIR      ${LLVM_DIR}
-  ENV   ${ENV}"
-)
+# find_package(LLVM REQUIRED CONFIG HINTS ${LLVM_DIR} $ENV{LLVM_DIR})
+# message(STATUS "LLVM STATUS:
+#   Version       ${LLVM_VERSION}
+#   Definitions   ${LLVM_DEFINITIONS}
+#   Includes      ${LLVM_INCLUDE_DIRS}
+#   Libraries     ${LLVM_LIBRARY_DIRS}
+#   Targets       ${LLVM_TARGETS_TO_BUILD}
+#   Build type    ${LLVM_BUILD_TYPE}
+#   Exceptions    ${LLVM_ENABLE_EH}
+#   RTTI          ${LLVM_ENABLE_RTTI}
+#   Dynamic lib   ${LLVM_LINK_LLVM_DYLIB}
+#   LLVM_DIR      ${LLVM_DIR}
+#   ENV   ${ENV}"
+# )
 
 
 include_directories(
   ${Tree_Sitter_HEADER}
-  /home/weigang/svf-front-cpp/include 
-  /home/weigang/svf-front-cpp/argparse/include)
+  include 
+  argparse/include)
 
 add_executable(svf_frontend ${SOURCES})
 
