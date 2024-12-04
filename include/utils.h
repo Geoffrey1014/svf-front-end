@@ -1,3 +1,5 @@
+#ifndef UTILS_H
+#define UTILS_H
 #include <argparse/argparse.hpp>
 
 // Function to parse command line arguments using argparse
@@ -6,7 +8,7 @@ void parse_command_line(argparse::ArgumentParser& program, int argc, char *argv[
   program.add_argument("filename")
     .help("The name of the file to read");
 
-  program.add_argument("--verbose")
+  program.add_argument("-v", "--verbose")
   .help("increase output verbosity")
   .default_value(false)
   .implicit_value(true);
@@ -61,3 +63,4 @@ std::string* read_file(const std::string &filename) {
   buffer << file.rdbuf();
   return new std::string(buffer.str());
 }
+#endif

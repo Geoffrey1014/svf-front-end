@@ -12,16 +12,16 @@
 // Include the C parser header
 extern "C" const TSLanguage *tree_sitter_c();
 
+argparse::ArgumentParser program("svf_frontend");
 
 int main(int argc, char *argv[]) {
   
   // Parse command line arguments
-  argparse::ArgumentParser program("svf_frontend");
   parse_command_line(program, argc, argv);
 
    // Read C++ code from file
-  std::string *source = read_file(program.get<std::string>("filename"));
-  if (source == nullptr) {
+  std::string *source_code = read_file(program.get<std::string>("filename"));
+  if (source_code == nullptr) {
     return 1;
   }
 
@@ -31,11 +31,8 @@ int main(int argc, char *argv[]) {
   const TSLanguage *language = tree_sitter_c();
   ts_parser_set_language(parser, language);
 
-  const char * source_code = source->c_str();
-  TSTree *tree = ts_parser_parse_string(parser, nullptr, source_code, strlen(source_code));
-
-  // print s-expression
-  // std::cout << ts_node_string(ts_tree_root_node(tree)) << std::endl << std::endl; 
+  const char * source_code_ptr = source_code->c_str();
+  TSTree *tree = ts_parser_parse_string(parser, nullptr, source_code_ptr, strlen(source_code_ptr));
 
   if (program["--output-cst"] == true) {
     write_cst_to_file("cst.dot", tree);
@@ -45,11 +42,11 @@ int main(int argc, char *argv[]) {
   TSNode root_node = ts_tree_root_node(tree);
 
 
-  ASTBuilder ast_builder(source, language);
-  ast_builder.build(root_node);
+  ASTBuilder ast_builder(source_code, language);
+  Ir* ast_root = ast_builder.build(root_node);
 
   std::cout << "\n======== Src:" << std::endl;
-  std::cout << *source << std::endl;
+  std::cout << *source_code << std::endl;
 
 
   // Clean up

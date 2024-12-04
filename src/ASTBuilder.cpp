@@ -3,6 +3,7 @@
 #include <map>
 #include <cstring>
 #include "ASTBuilder.h"
+#include "main.h"
 
 void ASTBuilder::exitPrimitiveType(const TSNode & cst_node) {
     std::string* node_text = getNodeText(cst_node);
@@ -128,7 +129,6 @@ void ASTBuilder::exitFunctionDefinition(const TSNode & cst_node){
     if (returnType && functionDecl && compoundStmt) {
         node = new IrFunctionDef(returnType, functionDecl, compoundStmt, cst_node);
         this->ast_stack.push(node);
-        std::cout << node->prettyPrint(" ") << std::endl;
     } else {
         std::cerr << "Error: Invalid function definition" << std::endl;
     }
@@ -273,10 +273,32 @@ void ASTBuilder::exitExprStmt(const TSNode & cst_node){
     if (expr) {
         node = new IrExprStmt(expr, cst_node);
         this->ast_stack.push(node);
-        std::cout << node->prettyPrint("") << std::endl;
     } else {
         std::cerr << "Error: Invalid expression statement" << std::endl;
     }
+}
+
+void ASTBuilder::exitTransUnit(const TSNode & cst_node){
+    IrTransUnit* node = new IrTransUnit(cst_node);
+    uint32_t child_count = ts_node_named_child_count(cst_node);
+
+    for (uint32_t i = 0; i < child_count; i++) {
+        IrDecl* child_d = dynamic_cast<IrDecl*>(this->ast_stack.top());
+        if (!child_d) {
+            IrFunctionDef* child_f = dynamic_cast<IrFunctionDef*>(this->ast_stack.top());
+            if (!child_f) {
+                std::cerr << "Error: Invalid child in translation unit" << std::endl;
+                return;
+            }
+            this->ast_stack.pop();
+            node->addToFunctionList(child_f);
+        }
+        else {
+            this->ast_stack.pop();
+            node->addToDeclerationList(child_d);
+        }
+    }
+    this->ast_stack.push(node);
 }
 
 // Function to create an AST node from a CST node
@@ -284,13 +306,13 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
     TSSymbol symbol_type = ts_node_symbol(cst_node);
     
-    if (ts_node_is_named(cst_node))
+    if (program["--verbose"] == true){
+        if (ts_node_is_named(cst_node))
         std::cout << "Exiting CST node: "<< "Named, " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
-    else
+        else
         std::cout << "Exiting CST node: " << "Not Named, " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
-    // std::cout << "ts_language_symbol_name: " << ts_language_symbol_name(this->language, symbol_type) << std::endl;
-    // std::cout << "ts_language_symbol_for_name: " <<  ts_language_symbol_for_name(this->language, type, std::strlen(type), true) << std::endl;
-
+    }
+    
     switch (symbol_type)
     {
         case 1: // Identifier
@@ -337,6 +359,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 266: //expression_statement
             exitExprStmt(cst_node);
+            break;
+        case 161:
+            exitTransUnit(cst_node);
             break;
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;

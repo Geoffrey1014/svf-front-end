@@ -1,4 +1,7 @@
 // AST builder
+
+#ifndef AST_BUILDER_H
+#define AST_BUILDER_H
 #include <stack>
 #include "IrDecl.h"
 #include "IrExpr.h"
@@ -7,9 +10,10 @@
 #include "IrArg.h"
 #include "IrStatement.h"
 #include "IrNonBinaryExpr.h"
+#include "IrTransUnit.h"
+#include "main.h"
 
-#ifndef AST_BUILDER_H
-#define AST_BUILDER_H
+
 
 class ASTBuilder {
     private:
@@ -49,6 +53,7 @@ public:
     void exitCallExpr(const TSNode & cst_node);
     void exitAssignExpr(const TSNode & cst_node);
     void exitExprStmt(const TSNode & cst_node);
+    void exitTransUnit(const TSNode & cst_node);
 
 
     void exit_cst_node(const TSNode & cst_node);
@@ -60,6 +65,8 @@ public:
     Ir* build(const TSNode & cst_root) {
         // traverse the tree
         traverse_tree(cst_root);
+        root_node = ast_stack.top();
+        ast_stack.pop();
         return root_node;
     }
 };

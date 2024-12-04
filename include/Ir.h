@@ -1,8 +1,9 @@
-#include <string>
-#include <tree_sitter/api.h> // Add this line to include the definition of TSNode
-#include <vector>
 #ifndef IR_H
 #define IR_H
+#include <string>
+#include <tree_sitter/api.h> 
+#include <vector>
+
 
 using namespace std;
 

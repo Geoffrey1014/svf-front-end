@@ -1,7 +1,7 @@
-#include "Ir.h"
-#include "IrExpr.h"
 #ifndef IR_STATEMENT_H
 #define IR_STATEMENT_H
+#include "Ir.h"
+#include "IrExpr.h"
 
 class IrStatement : public Ir {
 public:

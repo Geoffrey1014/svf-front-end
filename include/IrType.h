@@ -1,6 +1,6 @@
-#include "Ir.h"
 #ifndef IR_TYPE_H
 #define IR_TYPE_H
+#include "Ir.h"
 
 class IrType : public Ir {
     public:

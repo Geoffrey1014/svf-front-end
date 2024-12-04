@@ -1,8 +1,8 @@
+#ifndef IR_DECL_H
+#define IR_DECL_H
 #include "IrStatement.h"
 #include "IrType.h"
 #include "IrExpr.h"
-#ifndef IR_DECL_H
-#define IR_DECL_H
 
 class IrDecl : public Ir {
 private:

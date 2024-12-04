@@ -1,6 +1,6 @@
-#include "IrExpr.h"
 #ifndef IR_LITERAL_H
 #define IR_LITERAL_H
+#include "IrExpr.h"
 
 class IrLiteral : public IrExpr {
 public:
