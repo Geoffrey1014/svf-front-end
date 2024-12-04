@@ -29,13 +29,13 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--transUnit:\n";
 
-        // pretty print statement
-        for (Ir* transUnit: this->functionList) {
-            prettyString += transUnit->prettyPrint("  " + indentSpace);
-        }
         for (Ir* decleration: this->declerationList) {
             prettyString += decleration->prettyPrint("  " + indentSpace);
         }
+        for (Ir* transUnit: this->functionList) {
+            prettyString += transUnit->prettyPrint("  " + indentSpace);
+        }
+
         return prettyString;
     }
 };

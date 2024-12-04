@@ -57,23 +57,19 @@ public:
 
 class IrCompoundStmt : public IrStatement {
 private:
-    std::vector<IrStatement*> stmtsList;
+    std::deque<IrStatement*> stmtsList;
 public:
     IrCompoundStmt(const TSNode& node)
         : IrStatement(node),
           stmtsList() {}
 
-    // std::vector<IrStatement*> getStmtsList() {
-    //     return this->stmtsList;
-    // }
-    void addStmt(IrStatement* stmt) {
-        this->stmtsList.push_back(stmt);
+    void addStmtToFront(IrStatement* stmt) {
+        this->stmtsList.push_front(stmt);
     }
 
     std::string prettyPrint(std::string indentSpace)const override  {
         std::string prettyString = indentSpace + "|--compoundStmt:\n";
 
-        // pretty print statement
         for (IrStatement* statement: this->stmtsList) {
             prettyString += statement->prettyPrint("  " + indentSpace);
         }

@@ -186,16 +186,12 @@ void ASTBuilder:: exitReturnStatement(const TSNode & cst_node){
 
 void ASTBuilder:: exitCompoundStatement(const TSNode & cst_node){
     Ir* node = nullptr;
-    // Use stack to get the type and name
-    if (this->ast_stack.size() < 1) {
-        std::cerr << "Error: Not enough elements on the stack for compound statement" << std::endl;
-    }
 
     IrCompoundStmt* compoundStmt = new IrCompoundStmt(cst_node);
     IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
     while (stmt) {
         this->ast_stack.pop();
-        compoundStmt->addStmt(stmt);
+        compoundStmt->addStmtToFront(stmt);
         stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
     }
     this->ast_stack.push(compoundStmt);
