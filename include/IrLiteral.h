@@ -94,36 +94,45 @@ public:
     // }
 };
 
+class IrLiteralStringContent : public IrLiteral {
+private:
+    std::string value;
+
+public:
+    IrLiteralStringContent(const std::string& value, const TSNode& node)
+        : IrLiteral(node), value(value) {}
+
+    const std::string& getValue() const {
+        return value;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        return indentSpace + "|--stringContent: " + value + "\n";
+    }
+};
+
 
 class IrLiteralString : public IrLiteral {
 private:
-    std::string* value;
+    IrLiteralStringContent* stringContent;
 
 public:
-    IrLiteralString(std::string* value,const TSNode& node) : IrLiteral(node), value(value) {}
+    IrLiteralString(IrLiteralStringContent* stringContent, const TSNode& node)
+        : IrLiteral(node), stringContent(stringContent) {}
+
     ~IrLiteralString() {
-        delete value;
-    }
-    std::string* getValue() {
-        return this->value;
+        delete stringContent;
     }
 
-    // IrType* getExpressionType() {
-    //     return new IrTypeString(this->getLineNumber(), this->getColNumber());
-    // }
+    const std::string& getValue() const {
+        return stringContent->getValue();
+    }
 
-    // std::string semanticCheck(ScopeStack* scopeStack) {
-    //     return "";
-    // }
-
-    std::string prettyPrint(std::string indentSpace) {
+    std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyPrint = indentSpace + "|--StringLiteral\n";
-        prettyPrint += "  " + indentSpace + "|--value: " + *(this->value) + "\n";
+        prettyPrint += stringContent->prettyPrint("  " + indentSpace);
         return prettyPrint;
     }
-
-    // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
-    //     return nullptr;
-    // }
 };
+
 #endif

@@ -11,8 +11,10 @@
 #include "IrStatement.h"
 #include "IrNonBinaryExpr.h"
 #include "IrTransUnit.h"
-#include "main.h"
+#include "IrPreprocInclude.h"
+#include "IrStorageClassSpecifier.h"
 
+#include "main.h"
 
 
 class ASTBuilder {
@@ -54,7 +56,10 @@ public:
     void exitAssignExpr(const TSNode & cst_node);
     void exitExprStmt(const TSNode & cst_node);
     void exitTransUnit(const TSNode & cst_node);
-
+    void exitStringContent(const TSNode & cst_node);
+    void exitLiteralString(const TSNode & cst_node);
+    void exitPreprocInclude(const TSNode & cst_node);
+    void exitStorageClassSpecifier(const TSNode & cst_node);
 
     void exit_cst_node(const TSNode & cst_node);
     void enter_cst_node(const TSNode & cst_node);

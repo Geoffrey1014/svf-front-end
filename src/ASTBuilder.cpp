@@ -297,6 +297,70 @@ void ASTBuilder::exitTransUnit(const TSNode & cst_node){
     this->ast_stack.push(node);
 }
 
+void ASTBuilder::exitStringContent(const TSNode &cst_node) {
+    std::string* content = getNodeText(cst_node);
+    if (!content) {
+        std::cerr << "Error: Unable to retrieve string content" << std::endl;
+        return;
+    }
+    Ir* node = new IrLiteralStringContent(*content, cst_node);
+    this->ast_stack.push(node);
+}
+
+void ASTBuilder::exitLiteralString(const TSNode & cst_node){
+    if (this->ast_stack.empty()) {
+        std::cerr << "Error: Not enough elements on the stack for string literal" << std::endl;
+        return;
+    }    
+
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 1) {
+        std::cerr << "Error: Not enough elements on the stack for string literal" << std::endl;
+    }
+
+    IrLiteralStringContent* content = dynamic_cast<IrLiteralStringContent*>(this->ast_stack.top());
+
+    if (content) {
+        this->ast_stack.pop();
+        node = new IrLiteralString(content, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid string literal" << std::endl;
+    }
+}
+
+void ASTBuilder::exitPreprocInclude(const TSNode &cst_node) {
+    Ir* node = nullptr;
+
+    if (this->ast_stack.size() < 1) {
+        std::cerr << "Error: Not enough elements on the stack for preprocessor include" << std::endl;
+    }
+
+    IrLiteralString* path = dynamic_cast<IrLiteralString*>(this->ast_stack.top());
+
+    if (path) {
+        this->ast_stack.pop();
+        node = new IrPreprocInclude(path, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid path for preprocessor include" << std::endl;
+    }
+}
+
+void ASTBuilder::exitStorageClassSpecifier(const TSNode & cst_node) {
+    std::string* specifierText = getNodeText(cst_node);
+
+    if (specifierText) {
+        Ir* node = new IrStorageClassSpecifier(*specifierText, cst_node);
+        this->ast_stack.push(node);
+        delete specifierText;
+    } else {
+        std::cerr << "Error: Unable to retrieve storage class specifier text" << std::endl;
+    }
+}
+
+
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
@@ -321,7 +385,7 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             exitParameter(cst_node);
             break;
         case 198: // declaration
-            exitDeclaration(cst_node);
+            //exitDeclaration(cst_node);
             break;
         case 258: // parameter_list
             exitParamList(cst_node);
@@ -359,6 +423,20 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 161:
             exitTransUnit(cst_node);
             break;
+        case 160: // comment
+            break;
+        case 153: // string_content
+            exitStringContent(cst_node);
+            break;
+        case 320: // string_literal
+            exitLiteralString(cst_node);
+            break;
+        case 164: // preproc_include
+            exitPreprocInclude(cst_node);            
+            break;
+        // case 242: // storage_class_specifier
+        //     exitStorageClassSpecifier(cst_node);
+        //     break;
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;
             break;
