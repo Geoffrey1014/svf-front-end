@@ -11,7 +11,7 @@ public:
     IrStorageClassSpecifier(const std::string& specifier, const TSNode& node)
         : Ir(node), specifier(specifier) {}
 
-    const std::string& getSpecifier() const {
+    const std::string& getValue() const {
         return this->specifier;
     }
 

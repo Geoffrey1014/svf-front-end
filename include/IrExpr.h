@@ -24,15 +24,14 @@ public:
 
 class IrIdent : public IrExpr {
 private:
-    const std::string* name;
+    const std::string name;
 
 public:
-    IrIdent(const std::string* name, const TSNode & node) : IrExpr(node), name(name) {}
-    ~IrIdent() {
-        delete name;
-    }
+    IrIdent(const std::string& name, const TSNode & node) : IrExpr(node), name(name) {}
+    ~IrIdent() = default;
 
-    const std::string* getValue() const{
+    // Getter for name
+    const std::string &getValue() const {
         return name;
     }
 
@@ -40,22 +39,22 @@ public:
         if (&that == this) {
             return true;
         }
-        if (auto thatIdent = dynamic_cast<const IrIdent*>(&that)) {
-            return *(this->getValue()) == *(thatIdent->getValue());
+        if (auto thatIdent = dynamic_cast<const IrIdent *>(&that)) {
+            return this->name == thatIdent->name;
         }
         return false;
     }
 
     int hashCode() const {
         std::hash<std::string> hasher;
-        return hasher(*this->name);
+        return hasher(this->name);
     }
 
     std::string prettyPrint(std::string indentSpace) const {
-        return indentSpace + "|--id: " + *name + "\n";
+        return indentSpace + "|--id: " + name + "\n";
     }
     std::string toString() {
-        return "IrIdent: " + *name;
+        return "IrIdent: " + name;
     }
 
 };

@@ -2,11 +2,13 @@
 #define IR_TRANS_UNIT_H
 #include "Ir.h"
 #include "IrDecl.h"
+#include "IrPreprocInclude.h"
 
 class IrTransUnit : public Ir {
 private:
     std::vector<IrDecl*> declerationList;
     std::vector<IrFunctionDef*> functionList;
+    std::vector<IrPreprocInclude*> preprocIncludeList;
 public:
     IrTransUnit(const TSNode& node) : Ir(node) {}
     ~IrTransUnit() {
@@ -16,14 +18,21 @@ public:
         for (Ir* d: this->declerationList) {
             delete d;
         }
-    }   
+        for (Ir* p: this->preprocIncludeList) {
+            delete p;
+        }
+    }
 
-    void addToDeclerationList(IrDecl* newDecleration) {
+    void addToDeclarationList(IrDecl* newDecleration) {
         this->declerationList.push_back(newDecleration);
     }
 
     void addToFunctionList(IrFunctionDef* newFunction) {
         this->functionList.push_back(newFunction);
+    }
+
+    void addToPreprocIncludeList(IrPreprocInclude* newPreprocInclude) {
+        this->preprocIncludeList.push_back(newPreprocInclude);
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
@@ -32,6 +41,11 @@ public:
         for (Ir* decleration: this->declerationList) {
             prettyString += decleration->prettyPrint("  " + indentSpace);
         }
+
+        for (Ir* preprocInclude: this->preprocIncludeList) {
+            prettyString += preprocInclude->prettyPrint("  " + indentSpace);
+        }
+
         for (Ir* transUnit: this->functionList) {
             prettyString += transUnit->prettyPrint("  " + indentSpace);
         }

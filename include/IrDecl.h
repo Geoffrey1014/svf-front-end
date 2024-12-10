@@ -3,42 +3,7 @@
 #include "IrStatement.h"
 #include "IrType.h"
 #include "IrExpr.h"
-
-class IrDecl : public Ir {
-private:
-    IrIdent* name;
-    IrType* type;
-
-public:
-    IrDecl(IrIdent* name, IrType* type, const TSNode & node) : Ir(node), name(name), type(type) {}
-    ~IrDecl() {
-        delete name;
-        delete type;
-    }
-    const std::string* getName() const {
-        return this->name->getValue();
-    }
-
-    IrIdent* getIdentName() const{
-        return this->name;
-    }
-
-    IrType* getType() const{
-        return this->type;
-    }
-
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--declaration:\n";
-
-        // print the parameter's name
-        prettyString += ("  " + indentSpace + "|--name: " + *(this->name->getValue()) + "\n");
-
-        // print the parameter's type
-        prettyString += this->type->prettyPrint("  " + indentSpace);
-
-        return prettyString;
-    }
-};
+#include "IrStorageClassSpecifier.h"
 
 class IrParamDecl : public Ir {
 private:
@@ -51,8 +16,9 @@ public:
         delete paramType;
         delete paramName;
     }
-    std::string toString() {
-        return paramType->toString() + " " + paramName->toString();
+    std::string toString() const {
+        // Show only the type if the name is null
+        return paramName ? paramType->toString() + " " + paramName->toString() : paramType->toString();
     }
 
     IrType* getParamType() {
@@ -66,8 +32,10 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--param:\n";
 
-        // print the parameter's name
-        prettyString += ("  " + indentSpace + "|--name: " + *(this->paramName->getValue()) + "\n");
+        // Include the name only if it exists
+        if (paramName) {
+            prettyString += "  " + indentSpace + "|--name: " + paramName->getValue() + "\n";
+        }
 
         // print the parameter's type
         prettyString += this->paramType->prettyPrint("  " + indentSpace);
@@ -121,6 +89,15 @@ public:
         delete paramsList;
     }
 
+    // Method to get the name of the function
+    const std::string& getValue() const {
+        return name->getValue();
+    }
+
+    // Accessor for the parameter list
+    IrParamList* getParamsList() const {
+        return paramsList;
+    }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_declarator\n";
@@ -148,6 +125,57 @@ public:
         prettyString += returnType->prettyPrint("  " + indentSpace);
         prettyString += functionDecl->prettyPrint("  " + indentSpace);
         prettyString += compoundStmt->prettyPrint("  " + indentSpace);
+        return prettyString;
+    }
+};
+
+class IrDecl : public Ir {
+private:
+    IrIdent* name;                       // Optional
+    IrType* type;                       // Mandatory
+    IrStorageClassSpecifier* specifier;   // Optional
+    IrFunctionDecl* functionDecl;        // Optional                  
+
+public:
+    // Constructor for variable declarations
+    IrDecl(IrIdent* name, IrType* type, IrStorageClassSpecifier* specifier, const TSNode& node)
+        : Ir(node), name(name), type(type), specifier(specifier), functionDecl(nullptr) {}
+
+    // Constructor for function declarations
+    IrDecl(IrFunctionDecl* functionDecl, IrStorageClassSpecifier* specifier, const TSNode& node)
+        : Ir(node), name(nullptr), type(nullptr), specifier(specifier), functionDecl(functionDecl) {}
+
+    ~IrDecl() {
+        delete name;
+        delete type;
+        delete specifier;
+        delete functionDecl;
+    }
+
+    IrIdent* getIdentName() const { return name; }
+    IrType* getType() const { return type; }
+    IrStorageClassSpecifier* getSpecifier() const { return specifier; }
+    IrFunctionDecl* getFunctionDecl() const { return functionDecl; }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--declaration:\n";
+
+        if (specifier) {
+            prettyString += specifier->prettyPrint("  " + indentSpace);
+        }
+
+        if (name) {
+            prettyString += "  " + indentSpace + "|--name: " + name->getValue() + "\n";
+        }
+
+        if (type) {
+            prettyString += type->prettyPrint("  " + indentSpace);
+        }
+
+        if (functionDecl) {
+            prettyString += functionDecl->prettyPrint("  " + indentSpace);
+        }
+
         return prettyString;
     }
 };

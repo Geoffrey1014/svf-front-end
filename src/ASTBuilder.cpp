@@ -5,16 +5,28 @@
 #include "ASTBuilder.h"
 #include "main.h"
 
+std::string ASTBuilder::getNodeText(const TSNode &node) {
+    unsigned start = ts_node_start_byte(node);
+    unsigned end = ts_node_end_byte(node);
+    return source_code->substr(start, end - start); // Return by value
+}
+
 void ASTBuilder::exitPrimitiveType(const TSNode & cst_node) {
-    std::string* node_text = getNodeText(cst_node);
+    std::string node_text = getNodeText(cst_node);
     Ir* node =nullptr;
-    if (*node_text == "int") {
+
+    if (node_text == "int") {
         node = new IrTypeInt(cst_node);
         this->ast_stack.push(node);
     } 
-    else if (*node_text == "void")
+    else if (node_text == "void")
     {
         node = new IrTypeVoid(cst_node);
+        this->ast_stack.push(node);
+    }
+    else if (node_text == "bool")
+    {
+        node = new IrTypeBool(cst_node);
         this->ast_stack.push(node);
     }
     else {
@@ -23,55 +35,84 @@ void ASTBuilder::exitPrimitiveType(const TSNode & cst_node) {
 }
 
 void ASTBuilder::exitIdentifier(const TSNode & cst_node) {
-    std::string* node_text = getNodeText(cst_node);
+    std::string node_text = getNodeText(cst_node);
     Ir* node = new IrIdent(node_text, cst_node);
     this->ast_stack.push(node);
 }
 
 void ASTBuilder::exitParameter(const TSNode & cst_node) {
-    Ir* node =nullptr;
-    // Use stack to get the type and name
-    if (this->ast_stack.size() < 2) {
+    // Check if the stack has at least one element (type is mandatory)
+    if (this->ast_stack.empty()) {
         std::cerr << "Error: Not enough elements on the stack for parameter declaration" << std::endl;
+        return;
     }
 
-    IrIdent* paramName = dynamic_cast<IrIdent*>(this->ast_stack.top());
-    this->ast_stack.pop();
-
-    IrType* paramType = dynamic_cast<IrType*>( this->ast_stack.top());
-    this->ast_stack.pop();
-
-
-    if (paramType && paramName) {
-        node = new IrParamDecl(paramType, paramName, cst_node);
-        this->ast_stack.push(node);
-    } else {
-        std::cerr << "Error: Invalid parameter type or name" << std::endl;
+    IrIdent* paramName = nullptr;
+    // Check if the top of the stack is a parameter name (optional)
+    if (dynamic_cast<IrIdent*>(this->ast_stack.top())) {
+        paramName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+        this->ast_stack.pop();
     }
+
+    // Check if the stack has a type (mandatory)
+    if (this->ast_stack.empty()) {
+        std::cerr << "Error: Missing type specifier for parameter declaration" << std::endl;
+        return;
+    }
+
+    IrType* paramType = dynamic_cast<IrType*>(this->ast_stack.top());
+    if (!paramType) {
+        std::cerr << "Error: Invalid type specifier for parameter declaration" << std::endl;
+        delete paramName;
+        return;
+    }
+    this->ast_stack.pop();
+
+    // Create a new parameter declaration node
+    Ir* node = new IrParamDecl(paramType, paramName, cst_node);
+    this->ast_stack.push(node);
 }
 
-void ASTBuilder::exitDeclaration(const TSNode & cst_node){
-    Ir* node = nullptr;
-    // Use stack to get the type and name
-    if (this->ast_stack.size() < 2) {
-        std::cerr << "Error: Not enough elements on the stack for declaration" << std::endl;
+void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
+    IrIdent* declName = nullptr;                      // Optional
+    IrStorageClassSpecifier* storageClassSpecifier = nullptr; // Optional
+    IrType* typeSpecifier = nullptr;                  // Mandatory
+    IrFunctionDecl* functionDecl = nullptr;           // Optional
+
+    // Pop the declarator (function or variable name)
+    if (!this->ast_stack.empty() && dynamic_cast<IrFunctionDecl*>(this->ast_stack.top())) {
+        functionDecl = dynamic_cast<IrFunctionDecl*>(this->ast_stack.top());
+        this->ast_stack.pop();
+    } else if (!this->ast_stack.empty() && dynamic_cast<IrIdent*>(this->ast_stack.top())) {
+        declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+        this->ast_stack.pop();
     }
 
-    IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
-    if (declName){
+    // Pop the mandatory type specifier
+    if (!this->ast_stack.empty() && dynamic_cast<IrType*>(this->ast_stack.top())) {
+        typeSpecifier = dynamic_cast<IrType*>(this->ast_stack.top());
         this->ast_stack.pop();
-        IrType* declType = dynamic_cast<IrType*>( this->ast_stack.top());
-        if (declType){
-            this->ast_stack.pop();
-            node = new IrDecl(declName, declType, cst_node);
-            this->ast_stack.push(node);
-        }
-        else{
-            std::cerr << "Error: Invalid declaration type" << std::endl;
-        }
+    } else {
+        std::cerr << "Error: Missing or invalid type specifier in declaration" << std::endl;
+        return;
     }
-    else {
-        std::cerr << "Error: Invalid declaration name" << std::endl;
+
+    // Pop the optional storage class specifier
+    if (!this->ast_stack.empty() && dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top())) {
+        storageClassSpecifier = dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top());
+        this->ast_stack.pop();
+    }
+
+    // Handle function declarations
+    if (functionDecl) {
+        Ir* node = new IrDecl(new IrIdent(functionDecl->getValue(), cst_node), typeSpecifier, storageClassSpecifier, cst_node);
+        this->ast_stack.push(node);
+    } else if (declName || storageClassSpecifier) {
+        // Handle variable declarations
+        Ir* node = new IrDecl(declName, typeSpecifier, storageClassSpecifier, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Insufficient information to create a declaration node" << std::endl;
     }
 }
 
@@ -150,8 +191,7 @@ void ASTBuilder::exitBinaryExpr(const TSNode & cst_node){
     // Get the operation
     // get the second child of the cst_node
     TSNode second_child = ts_node_child(cst_node, 1);
-    std::string* operation = getNodeText(second_child); 
-    // std::cout << "Operation: " << *operation << std::endl;
+    std::string operation = getNodeText(second_child); 
 
     if (leftOperand && rightOperand) {
         node = new IrBinaryExpr(operation, leftOperand, rightOperand, cst_node);
@@ -198,8 +238,8 @@ void ASTBuilder:: exitCompoundStatement(const TSNode & cst_node){
 }
 
 void ASTBuilder::exitLiteralNumber(const TSNode & cst_node){
-    std::string* node_text = getNodeText(cst_node);
-    IrLiteralNumber* node = new IrLiteralNumber(std::stoi(*node_text), cst_node);
+    std::string node_text = getNodeText(cst_node);
+    IrLiteralNumber* node = new IrLiteralNumber(std::stoi(node_text), cst_node);
     this->ast_stack.push(node);
 }
 
@@ -274,36 +314,48 @@ void ASTBuilder::exitExprStmt(const TSNode & cst_node){
     }
 }
 
-void ASTBuilder::exitTransUnit(const TSNode & cst_node){
-    IrTransUnit* node = new IrTransUnit(cst_node);
+void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
+    IrTransUnit* transUnitNode = new IrTransUnit(cst_node);
     uint32_t child_count = ts_node_named_child_count(cst_node);
 
-    for (uint32_t i = 0; i < child_count; i++) {
-        IrDecl* child_d = dynamic_cast<IrDecl*>(this->ast_stack.top());
-        if (!child_d) {
-            IrFunctionDef* child_f = dynamic_cast<IrFunctionDef*>(this->ast_stack.top());
-            if (!child_f) {
-                std::cerr << "Error: Invalid child in translation unit" << std::endl;
-                return;
-            }
-            this->ast_stack.pop();
-            node->addToFunctionList(child_f);
+    // Debugging output to verify the stack size
+    std::cout << "AST stack size before processing: " << this->ast_stack.size() << std::endl;
+
+    // Process only as many items as are available on the stack
+    uint32_t items_to_process = std::min(child_count, static_cast<uint32_t>(this->ast_stack.size()));
+
+    for (uint32_t i = 0; i < items_to_process; i++) {
+        if (this->ast_stack.empty()) {
+            std::cout << "Error: AST stack is empty at child index" << std::endl;
         }
-        else {
+
+        Ir* topLevelItem = this->ast_stack.top();
+
+        if (auto* decl = dynamic_cast<IrDecl*>(topLevelItem)) {
             this->ast_stack.pop();
-            node->addToDeclerationList(child_d);
+            transUnitNode->addToDeclarationList(decl);
+        } else if (auto* func = dynamic_cast<IrFunctionDef*>(topLevelItem)) {
+            this->ast_stack.pop();
+            transUnitNode->addToFunctionList(func);
+        } else if (auto* preprocInclude = dynamic_cast<IrPreprocInclude*>(topLevelItem)) {
+            this->ast_stack.pop();
+            transUnitNode->addToPreprocIncludeList(preprocInclude);
+        } else {
+            std::cerr << "Error: Unrecognized top-level item type." << std::endl;
         }
     }
-    this->ast_stack.push(node);
+
+    // Push the transUnitNode onto the stack
+    this->ast_stack.push(transUnitNode);
 }
 
 void ASTBuilder::exitStringContent(const TSNode &cst_node) {
-    std::string* content = getNodeText(cst_node);
-    if (!content) {
+    std::string content = getNodeText(cst_node);
+    if (content.empty()) {
         std::cerr << "Error: Unable to retrieve string content" << std::endl;
         return;
     }
-    Ir* node = new IrLiteralStringContent(*content, cst_node);
+    Ir* node = new IrLiteralStringContent(content, cst_node);
     this->ast_stack.push(node);
 }
 
@@ -349,12 +401,11 @@ void ASTBuilder::exitPreprocInclude(const TSNode &cst_node) {
 }
 
 void ASTBuilder::exitStorageClassSpecifier(const TSNode & cst_node) {
-    std::string* specifierText = getNodeText(cst_node);
+    std::string specifierText = getNodeText(cst_node);
 
-    if (specifierText) {
-        Ir* node = new IrStorageClassSpecifier(*specifierText, cst_node);
+    if (!specifierText.empty()) {
+        Ir* node = new IrStorageClassSpecifier(specifierText, cst_node);
         this->ast_stack.push(node);
-        delete specifierText;
     } else {
         std::cerr << "Error: Unable to retrieve storage class specifier text" << std::endl;
     }
@@ -385,7 +436,7 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             exitParameter(cst_node);
             break;
         case 198: // declaration
-            //exitDeclaration(cst_node);
+            exitDeclaration(cst_node);
             break;
         case 258: // parameter_list
             exitParamList(cst_node);
@@ -420,9 +471,6 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 266: //expression_statement
             exitExprStmt(cst_node);
             break;
-        case 161:
-            exitTransUnit(cst_node);
-            break;
         case 160: // comment
             break;
         case 153: // string_content
@@ -434,9 +482,12 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 164: // preproc_include
             exitPreprocInclude(cst_node);            
             break;
-        // case 242: // storage_class_specifier
-        //     exitStorageClassSpecifier(cst_node);
-        //     break;
+        case 242: // storage_class_specifier
+            exitStorageClassSpecifier(cst_node);
+            break;
+        case 161:
+            exitTransUnit(cst_node);
+            break;
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;
             break;
