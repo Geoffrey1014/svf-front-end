@@ -130,50 +130,114 @@ void ASTBuilder::exitParamList(const TSNode & cst_node){
     this->ast_stack.push(paramList);
 }
 
-void ASTBuilder::exitFunctionDeclarator(const TSNode & cst_node){
-    Ir* node = nullptr;
-    // Use stack to get the type and name
-    if (this->ast_stack.size() < 2) {
-        std::cerr << "Error: Not enough elements on the stack for function declaration" << std::endl;
-    }
+void ASTBuilder::exitFunctionDeclarator(const TSNode &cst_node) {
+    IrParamList* paramList = nullptr;
+    IrIdent* functionName = nullptr;
 
-    IrParamList* paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
-    this->ast_stack.pop();
-
-    IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
-    this->ast_stack.pop();
-
-    if (declName && paramList) {
-        node = new IrFunctionDecl(declName, paramList, cst_node);
-        this->ast_stack.push(node);
+    // Pop the parameter list (optional)
+    if (!this->ast_stack.empty() && dynamic_cast<IrParamList*>(this->ast_stack.top())) {
+        paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
+        this->ast_stack.pop();
     } else {
-        std::cerr << "Error: Invalid function declaration type or name" << std::endl;
+        paramList = new IrParamList(cst_node); // Empty param list if none exists
     }
+
+    // Pop the function name (mandatory)
+    if (!this->ast_stack.empty() && dynamic_cast<IrIdent*>(this->ast_stack.top())) {
+        functionName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+        this->ast_stack.pop();
+    } else {
+        std::cerr << "Error: Missing or invalid function name in function declarator" << std::endl;
+        return;
+    }
+
+    // Construct the function declarator node
+    Ir* node = new IrFunctionDecl(functionName, paramList, cst_node);
+    this->ast_stack.push(node);
 }
 
-void ASTBuilder::exitFunctionDefinition(const TSNode & cst_node){
-    Ir* node = nullptr;
-    // Use stack to get the type and name
-    if (this->ast_stack.size() < 3) {
-        std::cerr << "Error: Not enough elements on the stack for function definition" << std::endl;
-    }
 
-    IrCompoundStmt* compoundStmt = dynamic_cast<IrCompoundStmt*>(this->ast_stack.top());
-    this->ast_stack.pop();
+// void ASTBuilder::exitFunctionDeclarator(const TSNode & cst_node){
+//     Ir* node = nullptr;
+//     // Use stack to get the type and name
+//     if (this->ast_stack.size() < 2) {
+//         std::cerr << "Error: Not enough elements on the stack for function declaration" << std::endl;
+//     }
 
-    IrFunctionDecl* functionDecl = dynamic_cast<IrFunctionDecl*>(this->ast_stack.top());
-    this->ast_stack.pop();
+//     IrParamList* paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
+//     this->ast_stack.pop();
 
-    IrType* returnType = dynamic_cast<IrType*>(this->ast_stack.top());
-    this->ast_stack.pop();
+//     IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+//     this->ast_stack.pop();
 
-    if (returnType && functionDecl && compoundStmt) {
-        node = new IrFunctionDef(returnType, functionDecl, compoundStmt, cst_node);
-        this->ast_stack.push(node);
+//     if (declName && paramList) {
+//         node = new IrFunctionDecl(declName, paramList, cst_node);
+//         this->ast_stack.push(node);
+//     } else {
+//         std::cerr << "Error: Invalid function declaration type or name" << std::endl;
+//     }
+// }
+
+void ASTBuilder::exitFunctionDefinition(const TSNode &cst_node) {
+    IrCompoundStmt* compoundStmt = nullptr;
+    IrFunctionDecl* functionDecl = nullptr;
+    IrType* returnType = nullptr;
+
+    // Pop the function body (mandatory compound statement)
+    if (!this->ast_stack.empty() && dynamic_cast<IrCompoundStmt*>(this->ast_stack.top())) {
+        compoundStmt = dynamic_cast<IrCompoundStmt*>(this->ast_stack.top());
+        this->ast_stack.pop();
     } else {
-        std::cerr << "Error: Invalid function definition" << std::endl;
+        std::cerr << "Error: Missing or invalid compound statement in function definition" << std::endl;
+        return;
     }
+
+    // Pop the function declarator (mandatory)
+    if (!this->ast_stack.empty() && dynamic_cast<IrFunctionDecl*>(this->ast_stack.top())) {
+        functionDecl = dynamic_cast<IrFunctionDecl*>(this->ast_stack.top());
+        this->ast_stack.pop();
+    } else {
+        std::cerr << "Error: Missing or invalid function declarator in function definition" << std::endl;
+        return;
+    }
+
+    // Pop the declaration specifiers (mandatory return type)
+    if (!this->ast_stack.empty() && dynamic_cast<IrType*>(this->ast_stack.top())) {
+        returnType = dynamic_cast<IrType*>(this->ast_stack.top());
+        this->ast_stack.pop();
+    } else {
+        std::cerr << "Error: Missing or invalid type specifier in function definition" << std::endl;
+        return;
+    }
+
+    // Create the function definition node
+    Ir* node = new IrFunctionDef(returnType, functionDecl, compoundStmt, cst_node);
+    this->ast_stack.push(node);
 }
+
+// void ASTBuilder::exitFunctionDefinition(const TSNode & cst_node){
+//     Ir* node = nullptr;
+
+//     if (this->ast_stack.size() < 3) {
+//         std::cerr << "Error: Not enough elements on the stack for function definition" << std::endl;
+//     }
+
+//     IrCompoundStmt* compoundStmt = dynamic_cast<IrCompoundStmt*>(this->ast_stack.top());
+//     this->ast_stack.pop();
+
+//     IrFunctionDecl* functionDecl = dynamic_cast<IrFunctionDecl*>(this->ast_stack.top());
+//     this->ast_stack.pop();
+
+//     IrType* returnType = dynamic_cast<IrType*>(this->ast_stack.top());
+//     this->ast_stack.pop();
+
+//     if (returnType && functionDecl && compoundStmt) {
+//         node = new IrFunctionDef(returnType, functionDecl, compoundStmt, cst_node);
+//         this->ast_stack.push(node);
+//     } else {
+//         std::cerr << "Error: Invalid function definition" << std::endl;
+//     }
+// }
 
 void ASTBuilder::exitBinaryExpr(const TSNode & cst_node){
     Ir* node = nullptr;
@@ -224,16 +288,22 @@ void ASTBuilder:: exitReturnStatement(const TSNode & cst_node){
     }
 }
 
-void ASTBuilder:: exitCompoundStatement(const TSNode & cst_node){
-    Ir* node = nullptr;
-
+void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
     IrCompoundStmt* compoundStmt = new IrCompoundStmt(cst_node);
-    IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
-    while (stmt) {
-        this->ast_stack.pop();
-        compoundStmt->addStmtToFront(stmt);
-        stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
+
+    // Iterate through the stack to collect statements and declarations
+    while (!this->ast_stack.empty()) {
+        // Try to dynamically cast the top of the stack to IrStatement
+        IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
+        if (stmt) {
+            this->ast_stack.pop();
+            compoundStmt->addStmtToFront(stmt); // Add statements or declarations to the compound statement
+        } else {
+            break; // Stop when no more IrStatement objects are found
+        }
     }
+
+    // Push the compound statement onto the stack
     this->ast_stack.push(compoundStmt);
 }
 
@@ -318,8 +388,8 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
     IrTransUnit* transUnitNode = new IrTransUnit(cst_node);
     uint32_t child_count = ts_node_named_child_count(cst_node);
 
-    // Debugging output to verify the stack size
-    std::cout << "AST stack size before processing: " << this->ast_stack.size() << std::endl;
+    // // Debugging output to verify the stack size
+    // std::cout << "AST stack size before processing: " << this->ast_stack.size() << std::endl;
 
     // Process only as many items as are available on the stack
     uint32_t items_to_process = std::min(child_count, static_cast<uint32_t>(this->ast_stack.size()));

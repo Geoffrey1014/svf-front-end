@@ -77,6 +77,7 @@ public:
 
 };
 
+// function_declarator
 class IrFunctionDecl : public Ir {
 private:
     IrParamList* paramsList;
@@ -107,7 +108,7 @@ public:
     }
 };
 
-
+// function_definition
 class IrFunctionDef : public Ir {
 private:
     IrType* returnType;
@@ -129,7 +130,7 @@ public:
     }
 };
 
-class IrDecl : public Ir {
+class IrDecl : public IrStatement {     
 private:
     IrIdent* name;                       // Optional
     IrType* type;                       // Mandatory
@@ -139,11 +140,11 @@ private:
 public:
     // Constructor for variable declarations
     IrDecl(IrIdent* name, IrType* type, IrStorageClassSpecifier* specifier, const TSNode& node)
-        : Ir(node), name(name), type(type), specifier(specifier), functionDecl(nullptr) {}
+        : IrStatement(node), name(name), type(type), specifier(specifier), functionDecl(nullptr) {}
 
     // Constructor for function declarations
     IrDecl(IrFunctionDecl* functionDecl, IrStorageClassSpecifier* specifier, const TSNode& node)
-        : Ir(node), name(nullptr), type(nullptr), specifier(specifier), functionDecl(functionDecl) {}
+        : IrStatement(node), name(nullptr), type(nullptr), specifier(specifier), functionDecl(functionDecl) {}
 
     ~IrDecl() {
         delete name;
