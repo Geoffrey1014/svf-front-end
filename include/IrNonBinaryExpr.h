@@ -14,7 +14,7 @@ private:
     IrArgList* argList;
 
 public:
-    IrCallExpr(IrIdent* functionName, IrArgList* argList, const TSNode & node) : IrNonBinaryExpr(node), functionName(functionName), argList(argList) {}
+    IrCallExpr(IrIdent* functionName, IrArgList* argList, const TSNode & node) : Ir(node), IrNonBinaryExpr(node), functionName(functionName), argList(argList) {}
     ~IrCallExpr() {
         delete functionName;
         delete argList;
@@ -46,7 +46,7 @@ private:
     IrExpr* lhs;
     IrExpr* rhs;
 public:
-    IrAssignExpr(IrExpr* lhs, IrExpr* rhs, const TSNode & node) : IrNonBinaryExpr(node), lhs(lhs), rhs(rhs) {}
+    IrAssignExpr(IrExpr* lhs, IrExpr* rhs, const TSNode & node) : Ir(node), IrNonBinaryExpr(node), lhs(lhs), rhs(rhs) {}
     ~IrAssignExpr() {
         delete lhs;
         delete rhs;

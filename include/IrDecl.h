@@ -84,8 +84,9 @@ private:
     IrParamList* paramsList;
     IrIdent* name;
 public:
-    IrFunctionDecl(IrIdent* name, IrParamList* paramsList,
-                  const TSNode& node) : name(name), paramsList(paramsList), IrDeclarator(node){}
+    IrFunctionDecl(IrIdent* name, IrParamList* paramsList, const TSNode& node) 
+        : Ir(node), IrDeclarator(node), name(name), paramsList(paramsList) {}
+        
     ~IrFunctionDecl(){
         delete name;
         delete paramsList;

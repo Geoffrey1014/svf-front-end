@@ -4,7 +4,7 @@
 
 class IrLiteral : public IrExpr {
 public:
-    IrLiteral(const TSNode& node) : IrExpr(node) {}
+    IrLiteral(const TSNode& node) : IrExpr(node), Ir(node) {}
 };
 
 
@@ -13,7 +13,7 @@ private:
     bool value;
 
 public:
-    IrLiteralBool(bool value, const TSNode& node) : IrLiteral(node), value(value) {}
+    IrLiteralBool(bool value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
     ~IrLiteralBool() = default;
     // IrType* getExpressionType() {
     //     return new IrTypeBool(this->getLineNumber(), this->getColNumber());
@@ -40,7 +40,7 @@ private:
     char value;
 
 public:
-    IrLiteralChar(char value, const TSNode& node) : IrLiteral(node), value(value) {}
+    IrLiteralChar(char value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
     ~IrLiteralChar() = default;
     // IrType* getExpressionType() {
     //     // it's definitely not of type void but it
@@ -69,7 +69,7 @@ private:
     long value;
 
 public:
-    IrLiteralNumber(long value, const TSNode& node) : IrLiteral(node), value(value) {}
+    IrLiteralNumber(long value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
     ~IrLiteralNumber() = default;
     long getValue() {
         return this->value;
@@ -100,7 +100,7 @@ private:
 
 public:
     IrLiteralStringContent(const std::string& value, const TSNode& node)
-        : IrLiteral(node), value(value) {}
+        : IrLiteral(node), Ir(node), value(value) {}
 
     const std::string& getValue() const {
         return value;
@@ -118,7 +118,7 @@ private:
 
 public:
     IrLiteralString(IrLiteralStringContent* stringContent, const TSNode& node)
-        : IrLiteral(node), stringContent(stringContent) {}
+        : IrLiteral(node), Ir(node), stringContent(stringContent) {}
 
     ~IrLiteralString() {
         delete stringContent;

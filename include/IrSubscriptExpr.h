@@ -15,7 +15,7 @@ private:
 
 public:
     IrSubscriptExpr(IrExpr* baseExpr, IrExpr* indexExpr, const TSNode& node)
-        : IrExpr(node), baseExpr(baseExpr), indexExpr(indexExpr) {}
+        : Ir(node), IrExpr(node), baseExpr(baseExpr), indexExpr(indexExpr) {}
 
     ~IrSubscriptExpr() {
         delete baseExpr;

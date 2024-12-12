@@ -2,7 +2,7 @@
 #define IR_EXPR_H
 #include "Ir.h"
 
-class IrExpr : public Ir {
+class IrExpr : public virtual Ir {
 public:
     IrExpr(const TSNode & node) : Ir(node) {}
     ~IrExpr() = default;

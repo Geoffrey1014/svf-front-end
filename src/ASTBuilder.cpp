@@ -505,9 +505,6 @@ void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
     this->ast_stack.push(arrayDeclaratorNode);
 }
 
-
-
-
 void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
     IrExpr* indexExpr = nullptr;
     IrExpr* baseExpr = nullptr;

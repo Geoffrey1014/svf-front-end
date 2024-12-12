@@ -14,13 +14,10 @@
 //   $.parenthesized_declarator,
 //   $.identifier,   --- done
 // ),
-class IrDeclarator : public Ir {
+class IrDeclarator : public virtual Ir {
 public:
-    IrDeclarator(const TSNode& node) : Ir(node) {}
-    virtual ~IrDeclarator() = default;
+    IrDeclarator(const TSNode& node) : Ir(node) {}};
 
-    virtual std::string prettyPrint(std::string indentSpace) const = 0;
-};
 
 class IrArrayDeclarator : public IrDeclarator {
 private:
@@ -29,7 +26,7 @@ private:
 
 public:
     IrArrayDeclarator(IrDeclarator* baseDeclarator, IrExpr* sizeExpr, const TSNode& node)
-        : IrDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
+        : Ir(node), IrDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
 
     ~IrArrayDeclarator() {
         delete baseDeclarator;
@@ -64,12 +61,12 @@ public:
     }
 };
 
-class IrIdent : public IrDeclarator {
+class IrIdent : public IrDeclarator, public IrExpr {
 private:
     const std::string name;
 
 public:
-    IrIdent(const std::string& name, const TSNode & node) : IrDeclarator(node), name(name) {}
+    IrIdent(const std::string& name, const TSNode & node) : Ir(node), IrDeclarator(node), IrExpr(node), name(name) {}
     ~IrIdent() = default;
 
     // Getter for name
