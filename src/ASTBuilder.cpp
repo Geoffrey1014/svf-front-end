@@ -504,6 +504,33 @@ void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
     }
 }
 
+void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
+    IrExpr* indexExpr = nullptr;
+    IrExpr* baseExpr = nullptr;
+
+    // Pop the index expression (mandatory)
+    if (!this->ast_stack.empty() && dynamic_cast<IrExpr*>(this->ast_stack.top())) {
+        indexExpr = dynamic_cast<IrExpr*>(this->ast_stack.top());
+        this->ast_stack.pop();
+    } else {
+        std::cerr << "Error: Missing or invalid index expression in subscript_expression" << std::endl;
+        return;
+    }
+
+    // Pop the base expression (mandatory)
+    if (!this->ast_stack.empty() && dynamic_cast<IrExpr*>(this->ast_stack.top())) {
+        baseExpr = dynamic_cast<IrExpr*>(this->ast_stack.top());
+        this->ast_stack.pop();
+    } else {
+        std::cerr << "Error: Missing or invalid base expression in subscript_expression" << std::endl;
+        delete indexExpr;
+        return;
+    }
+
+    // Create a new IrSubscriptExpr node
+    Ir* node = new IrSubscriptExpr(baseExpr, indexExpr, cst_node);
+    this->ast_stack.push(node);
+}
 
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
@@ -580,6 +607,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 236: // array_declarator
             exitArrayDeclarator(cst_node);
+            break;
+        case 298: // subscript_expression
+            exitSubscriptExpression(cst_node);
             break;
         case 161: // translation_unit
             exitTransUnit(cst_node);
