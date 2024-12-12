@@ -13,8 +13,8 @@
 #include "IrTransUnit.h"
 #include "IrPreprocInclude.h"
 #include "IrStorageClassSpecifier.h"
-#include "IrArrayDeclarator.h"
 #include "IrSubscriptExpr.h"
+#include "IrDeclarator.h"
 
 #include "main.h"
 
@@ -33,6 +33,9 @@ public:
     ~ASTBuilder() {
         delete source_code;
     }
+
+    template <typename T>
+    T* popFromStack(); 
 
     // std::string* getNodeText(const TSNode & node) {
     //     unsigned start = ts_node_start_byte(node);
@@ -64,6 +67,7 @@ public:
     void exitStorageClassSpecifier(const TSNode & cst_node);
     void exitArrayDeclarator(const TSNode & cst_node);
     void exitSubscriptExpression(const TSNode & cst_node);
+    void exitInitDeclarator(const TSNode & cst_node);
 
     void exitTransUnit(const TSNode & cst_node);
 
@@ -87,4 +91,6 @@ public:
         return root_node;
     }
 };
+
+#include "ASTBuilder.tpp"
 #endif

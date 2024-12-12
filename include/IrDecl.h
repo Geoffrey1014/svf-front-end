@@ -4,7 +4,7 @@
 #include "IrType.h"
 #include "IrExpr.h"
 #include "IrStorageClassSpecifier.h"
-#include "IrArrayDeclarator.h"
+#include "IrDeclarator.h"
 
 class IrParamDecl : public Ir {
 private:
@@ -79,13 +79,13 @@ public:
 };
 
 // function_declarator
-class IrFunctionDecl : public Ir {
+class IrFunctionDecl : public IrDeclarator {
 private:
     IrParamList* paramsList;
     IrIdent* name;
 public:
     IrFunctionDecl(IrIdent* name, IrParamList* paramsList,
-                  const TSNode& node) : name(name), paramsList(paramsList), Ir(node){}
+                  const TSNode& node) : name(name), paramsList(paramsList), IrDeclarator(node){}
     ~IrFunctionDecl(){
         delete name;
         delete paramsList;
@@ -133,14 +133,14 @@ public:
 
 class IrDecl : public IrStatement {
 private:
-    IrIdent* name;                      // Optional
+    IrIdent* name;                      // Choice
     IrType* type;                       // Mandatory
-    IrStorageClassSpecifier* specifier; // Optional
-    IrFunctionDecl* functionDecl;       // Optional
-    IrArrayDeclarator* arrayDeclarator; // Optional
+    IrStorageClassSpecifier* specifier; // Choice
+    IrFunctionDecl* functionDecl;       // Choice
+    IrArrayDeclarator* arrayDeclarator; // Choice
 
 public:
-    // Constructor for variable declarations
+    // Constructor for function, array, or variable declarations
     IrDecl(IrIdent* name, IrType* type, IrStorageClassSpecifier* specifier, const TSNode& node)
         : IrStatement(node), name(name), type(type), specifier(specifier), functionDecl(nullptr), arrayDeclarator(nullptr) {}
 
@@ -148,10 +148,10 @@ public:
     IrDecl(IrFunctionDecl* functionDecl, IrType* type, IrStorageClassSpecifier* specifier, const TSNode& node)
         : IrStatement(node), name(nullptr), type(type), specifier(specifier), functionDecl(functionDecl), arrayDeclarator(nullptr) {}
 
-    // Constructor for array declarators
+    // Constructor for array declarations
     IrDecl(IrArrayDeclarator* arrayDeclarator, IrType* type, IrStorageClassSpecifier* specifier, const TSNode& node)
         : IrStatement(node), name(nullptr), type(type), specifier(specifier), functionDecl(nullptr), arrayDeclarator(arrayDeclarator) {}
-
+    
     ~IrDecl() {
         delete name;
         delete type;
@@ -190,9 +190,32 @@ public:
         if (arrayDeclarator) {
             prettyString += arrayDeclarator->prettyPrint("  " + indentSpace);
         }
-
+        
         return prettyString;
     }
 };
+    
+class IrInitDecl : public IrDecl {
+private:
+    IrExpr* initValue; 
 
+public:
+    IrInitDecl(IrIdent* name, IrType* type, IrExpr* initValue, IrStorageClassSpecifier* specifier, const TSNode& node)
+        : IrDecl(name, type, specifier, node), initValue(initValue) {}
+
+    ~IrInitDecl() {
+        delete initValue;
+    }
+
+    IrExpr* getInitValue() const { return initValue; }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = IrDecl::prettyPrint(indentSpace);
+        prettyString += "  " + indentSpace + "|--init_declarator:\n";
+        if (initValue) {
+            prettyString += initValue->prettyPrint("    " + indentSpace);
+        } 
+        return prettyString;
+    }
+};
 #endif

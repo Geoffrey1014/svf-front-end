@@ -4,7 +4,6 @@
 #include <tree_sitter/api.h> 
 #include <vector>
 
-
 using namespace std;
 
 class Ir {
