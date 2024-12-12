@@ -13,6 +13,7 @@
 #include "IrTransUnit.h"
 #include "IrPreprocInclude.h"
 #include "IrStorageClassSpecifier.h"
+#include "IrArrayDeclarator.h"
 
 #include "main.h"
 
@@ -60,6 +61,7 @@ public:
     void exitLiteralString(const TSNode & cst_node);
     void exitPreprocInclude(const TSNode & cst_node);
     void exitStorageClassSpecifier(const TSNode & cst_node);
+    void exitArrayDeclarator(const TSNode & cst_node);
 
     void exitTransUnit(const TSNode & cst_node);
 

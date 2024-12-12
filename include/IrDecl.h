@@ -4,6 +4,7 @@
 #include "IrType.h"
 #include "IrExpr.h"
 #include "IrStorageClassSpecifier.h"
+#include "IrArrayDeclarator.h"
 
 class IrParamDecl : public Ir {
 private:
@@ -130,33 +131,40 @@ public:
     }
 };
 
-class IrDecl : public IrStatement {     
+class IrDecl : public IrStatement {
 private:
-    IrIdent* name;                       // Optional
+    IrIdent* name;                      // Optional
     IrType* type;                       // Mandatory
-    IrStorageClassSpecifier* specifier;   // Optional
-    IrFunctionDecl* functionDecl;        // Optional                  
+    IrStorageClassSpecifier* specifier; // Optional
+    IrFunctionDecl* functionDecl;       // Optional
+    IrArrayDeclarator* arrayDeclarator; // Optional
 
 public:
     // Constructor for variable declarations
     IrDecl(IrIdent* name, IrType* type, IrStorageClassSpecifier* specifier, const TSNode& node)
-        : IrStatement(node), name(name), type(type), specifier(specifier), functionDecl(nullptr) {}
+        : IrStatement(node), name(name), type(type), specifier(specifier), functionDecl(nullptr), arrayDeclarator(nullptr) {}
 
     // Constructor for function declarations
-    IrDecl(IrFunctionDecl* functionDecl, IrStorageClassSpecifier* specifier, const TSNode& node)
-        : IrStatement(node), name(nullptr), type(nullptr), specifier(specifier), functionDecl(functionDecl) {}
+    IrDecl(IrFunctionDecl* functionDecl, IrType* type, IrStorageClassSpecifier* specifier, const TSNode& node)
+        : IrStatement(node), name(nullptr), type(type), specifier(specifier), functionDecl(functionDecl), arrayDeclarator(nullptr) {}
+
+    // Constructor for array declarators
+    IrDecl(IrArrayDeclarator* arrayDeclarator, IrType* type, IrStorageClassSpecifier* specifier, const TSNode& node)
+        : IrStatement(node), name(nullptr), type(type), specifier(specifier), functionDecl(nullptr), arrayDeclarator(arrayDeclarator) {}
 
     ~IrDecl() {
         delete name;
         delete type;
         delete specifier;
         delete functionDecl;
+        delete arrayDeclarator;
     }
 
     IrIdent* getIdentName() const { return name; }
     IrType* getType() const { return type; }
     IrStorageClassSpecifier* getSpecifier() const { return specifier; }
     IrFunctionDecl* getFunctionDecl() const { return functionDecl; }
+    IrArrayDeclarator* getArrayDeclarator() const { return arrayDeclarator; }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--declaration:\n";
@@ -171,13 +179,20 @@ public:
 
         if (type) {
             prettyString += type->prettyPrint("  " + indentSpace);
+        } else {
+            std::cout << "Warning: Missing type specifier in declaration" << std::endl;
         }
 
         if (functionDecl) {
             prettyString += functionDecl->prettyPrint("  " + indentSpace);
         }
 
+        if (arrayDeclarator) {
+            prettyString += arrayDeclarator->prettyPrint("  " + indentSpace);
+        }
+
         return prettyString;
     }
 };
+
 #endif

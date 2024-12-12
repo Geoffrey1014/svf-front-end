@@ -73,19 +73,47 @@ void ASTBuilder::exitParameter(const TSNode & cst_node) {
     this->ast_stack.push(node);
 }
 
+/////// Grammar rules of Declaration ////////
+// declaration: $ => seq(
+//   $._declaration_specifiers,
+//   commaSep1(field('declarator', choice(
+//     seq(
+//       optional($.ms_call_modifier),
+//       $._declaration_declarator,
+//       optional($.gnu_asm_expression),
+//     ),
+//     $.init_declarator,
+//   ))),
+//   ';',
+// ),
+    // Pop the declarator (_declaration_declarator: function, array, or variable)
+    // _declaration_declarator: $ => choice(
+    //   $.attributed_declarator,
+    //   $.pointer_declarator,
+    //   alias($._function_declaration_declarator, $.function_declarator),
+    //   $.array_declarator,
+    //   $.parenthesized_declarator,
+    //   $.identifier,
+    // ),
 void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
     IrIdent* declName = nullptr;                      // Optional
     IrStorageClassSpecifier* storageClassSpecifier = nullptr; // Optional
     IrType* typeSpecifier = nullptr;                  // Mandatory
     IrFunctionDecl* functionDecl = nullptr;           // Optional
+    IrArrayDeclarator* arrayDeclarator = nullptr;     // Optional
 
-    // Pop the declarator (function or variable name)
-    if (!this->ast_stack.empty() && dynamic_cast<IrFunctionDecl*>(this->ast_stack.top())) {
-        functionDecl = dynamic_cast<IrFunctionDecl*>(this->ast_stack.top());
-        this->ast_stack.pop();
-    } else if (!this->ast_stack.empty() && dynamic_cast<IrIdent*>(this->ast_stack.top())) {
-        declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
-        this->ast_stack.pop();
+    // declarator (function, array, or indentifer)
+    if (!this->ast_stack.empty()) {
+        if (auto* funcDecl = dynamic_cast<IrFunctionDecl*>(this->ast_stack.top())) {
+            functionDecl = funcDecl;
+            this->ast_stack.pop();
+        } else if (auto* arrDecl = dynamic_cast<IrArrayDeclarator*>(this->ast_stack.top())) {
+            arrayDeclarator = arrDecl;
+            this->ast_stack.pop();
+        } else if (auto* ident = dynamic_cast<IrIdent*>(this->ast_stack.top())) {
+            declName = ident;
+            this->ast_stack.pop();
+        }
     }
 
     // Pop the mandatory type specifier
@@ -105,13 +133,21 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
 
     // Handle function declarations
     if (functionDecl) {
-        Ir* node = new IrDecl(new IrIdent(functionDecl->getValue(), cst_node), typeSpecifier, storageClassSpecifier, cst_node);
+        Ir* node = new IrDecl(functionDecl, typeSpecifier, storageClassSpecifier, cst_node);
         this->ast_stack.push(node);
-    } else if (declName || storageClassSpecifier) {
-        // Handle variable declarations
+    }
+    // Handle array declarations
+    else if (arrayDeclarator) {
+        Ir* node = new IrDecl(arrayDeclarator, typeSpecifier, storageClassSpecifier, cst_node);
+        this->ast_stack.push(node);
+    }
+    // Handle variable declarations
+    else if (declName) {
         Ir* node = new IrDecl(declName, typeSpecifier, storageClassSpecifier, cst_node);
         this->ast_stack.push(node);
-    } else {
+    }
+    // If none of the above, it's an error
+    else {
         std::cerr << "Error: Insufficient information to create a declaration node" << std::endl;
     }
 }
@@ -157,27 +193,6 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode &cst_node) {
 }
 
 
-// void ASTBuilder::exitFunctionDeclarator(const TSNode & cst_node){
-//     Ir* node = nullptr;
-//     // Use stack to get the type and name
-//     if (this->ast_stack.size() < 2) {
-//         std::cerr << "Error: Not enough elements on the stack for function declaration" << std::endl;
-//     }
-
-//     IrParamList* paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
-//     this->ast_stack.pop();
-
-//     IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
-//     this->ast_stack.pop();
-
-//     if (declName && paramList) {
-//         node = new IrFunctionDecl(declName, paramList, cst_node);
-//         this->ast_stack.push(node);
-//     } else {
-//         std::cerr << "Error: Invalid function declaration type or name" << std::endl;
-//     }
-// }
-
 void ASTBuilder::exitFunctionDefinition(const TSNode &cst_node) {
     IrCompoundStmt* compoundStmt = nullptr;
     IrFunctionDecl* functionDecl = nullptr;
@@ -214,30 +229,6 @@ void ASTBuilder::exitFunctionDefinition(const TSNode &cst_node) {
     Ir* node = new IrFunctionDef(returnType, functionDecl, compoundStmt, cst_node);
     this->ast_stack.push(node);
 }
-
-// void ASTBuilder::exitFunctionDefinition(const TSNode & cst_node){
-//     Ir* node = nullptr;
-
-//     if (this->ast_stack.size() < 3) {
-//         std::cerr << "Error: Not enough elements on the stack for function definition" << std::endl;
-//     }
-
-//     IrCompoundStmt* compoundStmt = dynamic_cast<IrCompoundStmt*>(this->ast_stack.top());
-//     this->ast_stack.pop();
-
-//     IrFunctionDecl* functionDecl = dynamic_cast<IrFunctionDecl*>(this->ast_stack.top());
-//     this->ast_stack.pop();
-
-//     IrType* returnType = dynamic_cast<IrType*>(this->ast_stack.top());
-//     this->ast_stack.pop();
-
-//     if (returnType && functionDecl && compoundStmt) {
-//         node = new IrFunctionDef(returnType, functionDecl, compoundStmt, cst_node);
-//         this->ast_stack.push(node);
-//     } else {
-//         std::cerr << "Error: Invalid function definition" << std::endl;
-//     }
-// }
 
 void ASTBuilder::exitBinaryExpr(const TSNode & cst_node){
     Ir* node = nullptr;
@@ -481,6 +472,38 @@ void ASTBuilder::exitStorageClassSpecifier(const TSNode & cst_node) {
     }
 }
 
+void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) { 
+    IrExpr* sizeExpr = nullptr;
+    IrExpr* baseDeclarator = nullptr;
+
+    // Pop the size expression if present
+    if (!this->ast_stack.empty() && dynamic_cast<IrExpr*>(this->ast_stack.top())) {
+        sizeExpr = dynamic_cast<IrExpr*>(this->ast_stack.top());
+        this->ast_stack.pop();
+    }
+
+    // Pop the base declarator (can be another array declarator or an identifier)
+    if (!this->ast_stack.empty()) {
+        if (auto* arrayDecl = dynamic_cast<IrArrayDeclarator*>(this->ast_stack.top())) {
+            baseDeclarator = arrayDecl;
+            this->ast_stack.pop();
+        } else if (auto* ident = dynamic_cast<IrIdent*>(this->ast_stack.top())) {
+            baseDeclarator = ident;
+            this->ast_stack.pop();
+        }
+    }
+
+    // Create the new array declarator node
+    if (baseDeclarator && sizeExpr) {
+        Ir* node = new IrArrayDeclarator(baseDeclarator, sizeExpr, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid array declarator components" << std::endl;
+        delete sizeExpr;
+        delete baseDeclarator;
+    }
+}
+
 
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
@@ -555,7 +578,10 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 242: // storage_class_specifier
             exitStorageClassSpecifier(cst_node);
             break;
-        case 161:
+        case 236: // array_declarator
+            exitArrayDeclarator(cst_node);
+            break;
+        case 161: // translation_unit
             exitTransUnit(cst_node);
             break;
         default:
