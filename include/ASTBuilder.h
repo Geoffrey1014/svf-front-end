@@ -3,14 +3,14 @@
 #ifndef AST_BUILDER_H
 #define AST_BUILDER_H
 #include <stack>
-#include "IrDecl.h"
-#include "IrExpr.h"
-#include "IrLiteral.h"
-#include "IrBinaryExpr.h"
-#include "IrArg.h"
-#include "IrStatement.h"
-#include "IrNonBinaryExpr.h"
-#include "IrTransUnit.h"
+#include "Ir/IrDecl.h"
+#include "Ir/IrExpr.h"
+#include "Ir/IrLiteral.h"
+#include "Ir/IrBinaryExpr.h"
+#include "Ir/IrArg.h"
+#include "Ir/IrStatement.h"
+#include "Ir/IrNonBinaryExpr.h"
+#include "Ir/IrTransUnit.h"
 #include "main.h"
 
 
