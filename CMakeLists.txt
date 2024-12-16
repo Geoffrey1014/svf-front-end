@@ -61,6 +61,3 @@ add_executable(svf_frontend ${SOURCES})
 
 
 target_link_libraries(svf_frontend ${Tree_Sitter_LIB})
-
-# 禁用特定警告
-# target_compile_options(my_program PRIVATE -Wno-c99-designator -Wno-reorder-init-list)

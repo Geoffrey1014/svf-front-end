@@ -21,8 +21,8 @@ public:
     LlStatement (){};
     ~LlStatement ()=default;
     virtual std::string toString();
-    bool operator==(const LlStatement& other) const;
-    std::size_t hashCode() const;
+    virtual bool operator==(const LlStatement& other) const;
+    virtual std::size_t hashCode() const;
 };
 
 class LlEmptyStmt : public LlStatement {
@@ -32,7 +32,10 @@ public:
     }
 
    bool operator==(const LlEmptyStmt& other) const {
-        return true;
+        if (dynamic_cast<const LlEmptyStmt*>(&other) == nullptr) 
+            return false;
+        else
+            return true;
     }
 
     std::size_t hashCode() const {
@@ -56,9 +59,9 @@ class LlLiteral: public LlComponent{
 public:
     LlLiteral (/* args */);
     ~LlLiteral ();
-    std::string toString();
+    std::string toString() override;
     bool operator==(const LlLiteral& other) const;
-    std::size_t hashCode() const;
+    std::size_t hashCode() const override;
 };
 
 class LlLocation: public LlComponent{
@@ -68,11 +71,11 @@ public:
     LlLocation (const std::string* varName): varName(varName){};
     ~LlLocation (){};
     const std::string* getVarName() const;
-    std::string toString(){
+    std::string toString() override{
         return *(this->varName);
     };
     virtual bool operator==(const LlLocation& other) const;
-    virtual std::size_t hashCode() const;
+    virtual std::size_t hashCode() const override;
 };
 
 class LlAssignStmt : public LlStatement {
@@ -85,8 +88,11 @@ public:
     LlLocation getStoreLocation() {
         return this->storeLocation;
     }
+    std::string toString() override{
+        return this->storeLocation.toString() + " = ";
+    }
     bool operator==(const LlAssignStmt& other) const;
-    std::size_t hashCode() const;
+    std::size_t hashCode() const override;
 };
 
 
@@ -112,12 +118,12 @@ public:
         return this->rightOperand;
     }
 
-    std::string toString() {
+    std::string toString() override{
         return this->storeLocation.toString() + " = " + this->leftOperand.toString() + " " + *(this->operation)  + " " + this->rightOperand.toString();
     }
 
     bool operator==(const LlAssignStmtBinaryOp& other) const;
-    std::size_t hashCode() const;
+    std::size_t hashCode() const override;
 
 };
 
@@ -138,12 +144,12 @@ public:
         return this->operator_;
     }
 
-    std::string toString() {
+    std::string toString() override{
         return this->storeLocation.toString() + " = " + *(operator_) + " " + operand.toString();
     }
 
     bool operator==(const LlAssignStmtUnaryOp& other) const;
-    std::size_t hashCode() const;
+    std::size_t hashCode() const override;
 };
 
 class LlJump : public LlStatement {
@@ -157,11 +163,11 @@ public:
         return jumpToLabel;
     }
     
-    std::string toString() {
+    std::string toString() override{
         return "goto " + *(this->jumpToLabel);
     }
     bool operator==(const LlJump& other) const;
-    std::size_t hashCode() const;
+    std::size_t hashCode() const override;
 };
 
 
@@ -177,24 +183,24 @@ public:
         return this->condition;
     }
 
-    std::string toString() {
+    std::string toString() override{
         return "if " + condition.toString() + " goto " + *(this->jumpToLabel);
     }
 
     bool operator==(const LlJumpConditional& other) const;
-    std::size_t hashCode() const;
+    std::size_t hashCode() const override;
 };
 
 class LlJumpUnconditional : public LlJump {
 public:
     LlJumpUnconditional(std::string* jumpToLabel) : LlJump(jumpToLabel) {}
 
-    std::string toString() {
+    std::string toString() override{
         return "goto " + *(this->jumpToLabel);
     }
 
     bool operator==(const LlJumpUnconditional& other) const;
-    std::size_t hashCode() const;
+    std::size_t hashCode() const override;
 };
 
 
@@ -209,12 +215,12 @@ public:
         return this->boolValue;
     }
 
-    std::string toString() {
+    std::string toString() override{
         return this->boolValue ? "true" : "false";
     }
 
     bool operator==(const LlLiteralBool& other) const;
-    std::size_t hashCode() const;
+    std::size_t hashCode() const override;
 };
 
 
@@ -229,12 +235,12 @@ public:
         return this->intValue;
     }
 
-    std::string toString() {
+    std::string toString() override{
         return std::to_string(this->intValue);
     }
 
     bool operator==(const LlLiteralInt& other) const;
-    std::size_t hashCode() const;
+    std::size_t hashCode() const override;
 };
 
 
@@ -249,12 +255,12 @@ public:
         return this->elementIndex;
     }
 
-    std::string toString() {
+    std::string toString() override{
         return *(this->getVarName()) + "[" + elementIndex.toString() + "] ";
     }
 
     bool operator==(const LlLocationArray& other) const;
-    std::size_t hashCode() const;
+    std::size_t hashCode() const override;
 
     std::string getArrayHead(std::string arrayLocation) {
         int arrayHead = std::stoi(arrayLocation.substr(0, arrayLocation.length() - 6)) / 8;
@@ -266,7 +272,7 @@ class LlLocationVar : public LlLocation {
 public:
     LlLocationVar(const std::string* varName) : LlLocation(varName) {}
 
-    std::string toString() {
+    std::string toString() override{
         return *(this->getVarName());
     }
 
@@ -280,7 +286,7 @@ public:
         return *(other.getVarName()) == *(this->getVarName());
     }
 
-    std::size_t hashCode() const {
+    std::size_t hashCode() const override{
         std::hash<std::string> hasher;
         return hasher(*(this->getVarName()));
     }

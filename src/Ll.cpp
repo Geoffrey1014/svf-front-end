@@ -22,8 +22,6 @@ const std::string* LlLocation::getVarName() const {
     return varName;
 }
 
-
-
 bool LlLocation::operator==(const LlLocation& other) const {
     return *varName == *other.varName;
 }
