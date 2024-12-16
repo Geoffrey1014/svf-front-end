@@ -4,16 +4,6 @@
 #include "Ir.h"
 #include "IrDecl.h"
 
-// Though this is not the named node, but it's kind of necessary to have this
-// Pop the declarator (_declaration_declarator: function, array, or variable)
-// _declaration_declarator: $ => choice(
-//   $.attributed_declarator,
-//   $.pointer_declarator,  --- done
-//   alias($._function_declaration_declarator, $.function_declarator),
-//   $.array_declarator,  --- done
-//   $.parenthesized_declarator,
-//   $.identifier,   --- done
-// ),
 class IrDeclarator : public virtual Ir {
 public:
     IrDeclarator(const TSNode& node) : Ir(node) {}};
@@ -99,3 +89,14 @@ public:
 };
 
 #endif
+
+// Though this is not the named node, but it's kind of necessary to have this
+// Pop the declarator (_declaration_declarator: function, array, or variable)
+// _declaration_declarator: $ => choice(
+//   $.attributed_declarator,
+//   $.pointer_declarator,  --- done
+//   alias($._function_declaration_declarator, $.function_declarator),
+//   $.array_declarator,  --- done
+//   $.parenthesized_declarator,
+//   $.identifier,   --- done
+// ),

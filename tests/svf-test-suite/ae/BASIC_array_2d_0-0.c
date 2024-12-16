@@ -3,10 +3,11 @@
 //
 
 // #include "stdbool.h"
-// extern void svf_assert(bool);
+extern void svf_assert(bool);
 
 int main() 
 {   
+    // int b = 2;
     int a[3][3];
     a[0][0] = 0;
     a[0][0] = 0;
@@ -20,7 +21,7 @@ int main()
     a[2][2] = 8;
     return 0;
 }
-    // int b = 2;
+
 
     // int b = 2, c = 2;
 // svf_assert(a[b][c] == 8);

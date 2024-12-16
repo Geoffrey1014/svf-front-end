@@ -21,6 +21,10 @@ class Ir {
         return ts_node_start_point(node).column;
     }
 
+    virtual bool operator==(const Ir& other) const {
+        return this == &other;
+    }
+
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
     // virtual LlLocation generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) = 0;
 

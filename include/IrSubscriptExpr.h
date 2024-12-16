@@ -8,14 +8,14 @@
     //   field('index', $.expression),
     //   ']',
     // )),
-class IrSubscriptExpr : public IrExpr {
+class IrSubscriptExpr : public IrNonBinaryExpr {
 private:
     IrExpr* baseExpr;   // The array or object being indexed
     IrExpr* indexExpr;  // The index expression
 
 public:
     IrSubscriptExpr(IrExpr* baseExpr, IrExpr* indexExpr, const TSNode& node)
-        : Ir(node), IrExpr(node), baseExpr(baseExpr), indexExpr(indexExpr) {}
+        : Ir(node), IrNonBinaryExpr(node), baseExpr(baseExpr), indexExpr(indexExpr) {}
 
     ~IrSubscriptExpr() {
         delete baseExpr;

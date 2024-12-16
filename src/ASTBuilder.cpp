@@ -88,74 +88,34 @@ void ASTBuilder::exitParameter(const TSNode & cst_node) {
 //   ))),
 //   ';',
 // ),
+// extern void svf_assert(bool);
 void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
-    IrIdent* declName = nullptr;                      
-    IrStorageClassSpecifier* storageClassSpecifier = nullptr; 
-    IrType* typeSpecifier = nullptr;                  // Mandatory
-    IrFunctionDecl* functionDecl = nullptr;           
-    IrArrayDeclarator* arrayDeclarator = nullptr;     
-    IrInitDecl* initDecl = nullptr;                   
-
-    // Pop the declarator (_declaration_declarator or init_declarator)
-    if (!this->ast_stack.empty()) {
-        if (auto* funcDecl = dynamic_cast<IrFunctionDecl*>(this->ast_stack.top())) {
-            functionDecl = funcDecl;
-            this->ast_stack.pop();
-        } else if (auto* arrDecl = dynamic_cast<IrArrayDeclarator*>(this->ast_stack.top())) {
-            arrayDeclarator = arrDecl;
-            this->ast_stack.pop();
-        } else if (auto* ident = dynamic_cast<IrIdent*>(this->ast_stack.top())) {
-            declName = ident;
-            this->ast_stack.pop();
-        } else if (auto* initDecl = dynamic_cast<IrInitDecl*>(this->ast_stack.top())) {
-            initDecl = initDecl;
-            this->ast_stack.pop();
-        } else {
-            std::cerr << "Error: Missing or invalid declarator in declaration" << std::endl;
-            return;
-        }
-    } else {
-        std::cerr << "Error: Missing or invalid declarator in declaration" << std::endl;
-        return;
-    }
-
-    // Pop the mandatory type specifier
-    if (!this->ast_stack.empty() && dynamic_cast<IrType*>(this->ast_stack.top())) {
-        typeSpecifier = dynamic_cast<IrType*>(this->ast_stack.top());
-        this->ast_stack.pop();
-    } else {
-        std::cerr << "Error: Missing or invalid type specifier in declaration" << std::endl;
-        return;
-    }
-
-    // Pop the optional storage class specifier
+    
+    // for future consideration as there must some other cases need multiple specifiers
+    // currently, we only consider the test case
+    IrStorageClassSpecifier* storageClassSpecifier = nullptr;
     if (!this->ast_stack.empty() && dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top())) {
         storageClassSpecifier = dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top());
         this->ast_stack.pop();
     }
 
-    // Handle function declarations
-    if (functionDecl) {
-        Ir* node = new IrDecl(functionDecl, typeSpecifier, storageClassSpecifier, cst_node);
-        this->ast_stack.push(node);
-    }
-    // Handle array declarations
-    else if (arrayDeclarator) {
-        Ir* node = new IrDecl(arrayDeclarator, typeSpecifier, storageClassSpecifier, cst_node);
-        this->ast_stack.push(node);
-    }
-    // Handle variable declarations
-    else if (declName) {
-        Ir* node = new IrDecl(declName, typeSpecifier, storageClassSpecifier, cst_node);
-        this->ast_stack.push(node);
-    }
-    else if (!this->ast_stack.empty() && dynamic_cast<IrInitDecl*>(this->ast_stack.top())) {
-        initDecl = dynamic_cast<IrInitDecl*>(this->ast_stack.top());
+    IrDeclarator* declarator = popFromStack<IrDeclarator>();
+
+    if (!this->ast_stack.empty() && dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top())) {
+        storageClassSpecifier = dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top());
         this->ast_stack.pop();
     }
-    else {
-        std::cerr << "Error: Insufficient information to create a declaration node" << std::endl;
+
+    IrType* typeSpecifier = popFromStack<IrType>();
+    
+    if (!this->ast_stack.empty() && dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top())) {
+        storageClassSpecifier = dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top());
+        this->ast_stack.pop();
     }
+
+    IrDecl* node = new IrDecl(declarator, typeSpecifier, storageClassSpecifier, cst_node);
+    
+    this->ast_stack.push(node);
 }
 
 void ASTBuilder::exitParamList(const TSNode & cst_node){
