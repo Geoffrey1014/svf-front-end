@@ -9,8 +9,8 @@ class Ll{
 private:
     /* data */
 public:
-    Ll (/* args */);
-    ~Ll();
+    Ll (){};
+    ~Ll()=default;
     virtual std::string toString()=0;
 };
 
@@ -18,9 +18,9 @@ class LlStatement: public Ll{
 private:
     /* data */
 public:
-    LlStatement (/* args */);
-    ~LlStatement ();
-    std::string toString();
+    LlStatement (){};
+    ~LlStatement ()=default;
+    virtual std::string toString();
     bool operator==(const LlStatement& other) const;
     std::size_t hashCode() const;
 };
@@ -45,11 +45,11 @@ class LlComponent: public Ll{
 private:
     /* data */
 public:
-    LlComponent (/* args */);
-    ~LlComponent ();
-    std::string toString();
-    bool operator==(const LlComponent& other) const;
-    std::size_t hashCode() const;
+    LlComponent (){};
+    ~LlComponent ()=default;
+    virtual std::string toString();
+    virtual bool operator==(const LlComponent& other) const;
+    virtual std::size_t hashCode() const;
 };
 
 class LlLiteral: public LlComponent{
@@ -63,14 +63,16 @@ public:
 
 class LlLocation: public LlComponent{
 private:
-    std::string varName;
+    const std::string* varName;
 public:
-    LlLocation (std::string varName): varName(varName){};
-    ~LlLocation ();
-    std::string getVarName() const;
-    std::string toString();
-    bool operator==(const LlLocation& other) const;
-    std::size_t hashCode() const;
+    LlLocation (const std::string* varName): varName(varName){};
+    ~LlLocation (){};
+    const std::string* getVarName() const;
+    std::string toString(){
+        return *(this->varName);
+    };
+    virtual bool operator==(const LlLocation& other) const;
+    virtual std::size_t hashCode() const;
 };
 
 class LlAssignStmt : public LlStatement {
@@ -91,18 +93,18 @@ public:
 class LlAssignStmtBinaryOp : public LlAssignStmt {
 private:
     LlComponent leftOperand;
-    std::string operation;
+    std::string* operation;
     LlComponent rightOperand;
 
 public:
-    LlAssignStmtBinaryOp(LlLocation storeLocation, LlComponent leftOperand, std::string operation, LlComponent rightOperand)
+    LlAssignStmtBinaryOp(LlLocation storeLocation, LlComponent leftOperand, std::string* operation, LlComponent rightOperand)
         : LlAssignStmt(storeLocation), leftOperand(leftOperand), operation(operation), rightOperand(rightOperand) {}
 
     LlComponent getLeftOperand() {
         return this->leftOperand;
     }
 
-    std::string getOperation() {
+    std::string* getOperation() {
         return this->operation;
     }
 
@@ -111,7 +113,7 @@ public:
     }
 
     std::string toString() {
-        return this->storeLocation.toString() + " = " + this->leftOperand.toString() + " " + this->operation  + " " + this->rightOperand.toString();
+        return this->storeLocation.toString() + " = " + this->leftOperand.toString() + " " + *(this->operation)  + " " + this->rightOperand.toString();
     }
 
     bool operator==(const LlAssignStmtBinaryOp& other) const;
@@ -122,22 +124,22 @@ public:
 class LlAssignStmtUnaryOp : public LlAssignStmt {
 private:
     LlComponent operand;
-    std::string operator_;
+    std::string* operator_;
 
 public:
-    LlAssignStmtUnaryOp(LlLocation storeLocation, LlComponent operand, std::string operator_)
+    LlAssignStmtUnaryOp(LlLocation storeLocation, LlComponent operand, std::string* operator_)
         : LlAssignStmt(storeLocation), operand(operand), operator_(operator_) {}
 
     LlComponent getOperand() {
         return this->operand;
     }
 
-    std::string getOperator() {
+    std::string* getOperator() {
         return this->operator_;
     }
 
     std::string toString() {
-        return this->storeLocation.toString() + " = " + operator_ + " " + operand.toString();
+        return this->storeLocation.toString() + " = " + *(operator_) + " " + operand.toString();
     }
 
     bool operator==(const LlAssignStmtUnaryOp& other) const;
@@ -146,17 +148,17 @@ public:
 
 class LlJump : public LlStatement {
 protected:
-    std::string jumpToLabel;
+    std::string* jumpToLabel;
 
 public:
-    LlJump(std::string jumpToLabel) : jumpToLabel(jumpToLabel) {}
+    LlJump(std::string* jumpToLabel) : jumpToLabel(jumpToLabel) {}
 
-    std::string getJumpToLabel() {
+    std::string* getJumpToLabel() {
         return jumpToLabel;
     }
     
     std::string toString() {
-        return "goto " + this->jumpToLabel;
+        return "goto " + *(this->jumpToLabel);
     }
     bool operator==(const LlJump& other) const;
     std::size_t hashCode() const;
@@ -168,7 +170,7 @@ private:
     LlComponent condition;
 
 public:
-    LlJumpConditional(std::string jumpToLabel, LlComponent condition) 
+    LlJumpConditional(std::string* jumpToLabel, LlComponent condition) 
         : LlJump(jumpToLabel), condition(condition) {}
 
     LlComponent getCondition() {
@@ -176,7 +178,7 @@ public:
     }
 
     std::string toString() {
-        return "if " + condition.toString() + " goto " + this->jumpToLabel;
+        return "if " + condition.toString() + " goto " + *(this->jumpToLabel);
     }
 
     bool operator==(const LlJumpConditional& other) const;
@@ -185,10 +187,10 @@ public:
 
 class LlJumpUnconditional : public LlJump {
 public:
-    LlJumpUnconditional(std::string jumpToLabel) : LlJump(jumpToLabel) {}
+    LlJumpUnconditional(std::string* jumpToLabel) : LlJump(jumpToLabel) {}
 
     std::string toString() {
-        return "goto " + this->jumpToLabel;
+        return "goto " + *(this->jumpToLabel);
     }
 
     bool operator==(const LlJumpUnconditional& other) const;
@@ -241,14 +243,14 @@ private:
     LlComponent elementIndex;
 
 public:
-    LlLocationArray(std::string varName, LlComponent elementIndex) : LlLocation(varName), elementIndex(elementIndex) {}
+    LlLocationArray(std::string* varName, LlComponent elementIndex) : LlLocation(varName), elementIndex(elementIndex) {}
 
     LlComponent getElementIndex() {
         return this->elementIndex;
     }
 
     std::string toString() {
-        return this->getVarName() + "[" + elementIndex.toString() + "] ";
+        return *(this->getVarName()) + "[" + elementIndex.toString() + "] ";
     }
 
     bool operator==(const LlLocationArray& other) const;
@@ -262,10 +264,10 @@ public:
 
 class LlLocationVar : public LlLocation {
 public:
-    LlLocationVar(std::string varName) : LlLocation(varName) {}
+    LlLocationVar(const std::string* varName) : LlLocation(varName) {}
 
     std::string toString() {
-        return this->getVarName();
+        return *(this->getVarName());
     }
 
     bool operator==(const LlLocationVar& other) const {
@@ -275,16 +277,16 @@ public:
         else if (dynamic_cast<const LlLocationVar*>(&other) == nullptr) {
             return false;
         }
-        return other.getVarName() == this->getVarName();
+        return *(other.getVarName()) == *(this->getVarName());
     }
 
     std::size_t hashCode() const {
         std::hash<std::string> hasher;
-        return hasher(this->getVarName());
+        return hasher(*(this->getVarName()));
     }
 
     bool isStringLoc() {
-        return this->getVarName().find("str") != std::string::npos;
+        return this->getVarName()->find("str") != std::string::npos;
     }
 };
 

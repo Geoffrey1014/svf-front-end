@@ -143,6 +143,10 @@ public:
         delete functionDecl;
         delete compoundStmt;
     }
+    std::string toString() {
+        return "IrFunctionDef: " + functionDecl->toString();
+    }
+
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_definition\n";
         prettyString += returnType->prettyPrint("  " + indentSpace);

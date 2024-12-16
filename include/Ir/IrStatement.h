@@ -2,6 +2,7 @@
 #define IR_STATEMENT_H
 #include "Ir.h"
 #include "IrExpr.h"
+#include <deque>
 
 class IrStatement : public Ir {
 public:

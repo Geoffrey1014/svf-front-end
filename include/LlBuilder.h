@@ -52,11 +52,13 @@ public:
     }
 
     LlLocationVar generateTemp(){
-        return LlLocationVar("#_t" + std::to_string(tempCounter++));
+        std::string t = "#_t" + std::to_string(tempCounter++);
+        return LlLocationVar(&t);
     }
 
     LlLocationVar generateStrTemp(){
-        return LlLocationVar("#str_t" + std::to_string(tempCounter++));
+        std::string t = "#str_t" + std::to_string(tempCounter++);
+        return LlLocationVar(&t);
     }
 
     // void putInPocket(std::any o){

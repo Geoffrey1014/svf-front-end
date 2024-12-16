@@ -9,12 +9,6 @@ project(SVF_Frontend
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(SOURCES
-    src/main.cpp
-    src/ASTBuilder.cpp
-    tree-sitter-c/src/parser.c
-)
-
 # Set default build type to Debug if not specified
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type (Debug, Release, RelWithDebInfo, MinSizeRel)" FORCE)
@@ -59,6 +53,9 @@ include_directories(
   ${Tree_Sitter_HEADER}
   include 
   argparse/include)
+
+# Automatically add all .cpp files in the src directory to the SOURCES list
+file(GLOB SOURCES "src/*.cpp" "tree-sitter-c/src/parser.c")
 
 add_executable(svf_frontend ${SOURCES})
 
