@@ -1,3 +1,6 @@
+#ifndef LLSYMBOLTABLE_H
+#define LLSYMBOLTABLE_H
+
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -101,3 +104,5 @@ public:
         return false;
     }
 };
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef LL_H
+#define LL_H
+
 #include <string>
 #include <iostream>
 #include <vector>
@@ -18,6 +21,8 @@ public:
     LlStatement (/* args */);
     ~LlStatement ();
     std::string toString();
+    bool operator==(const LlStatement& other) const;
+    std::size_t hashCode() const;
 };
 
 class LlEmptyStmt : public LlStatement {
@@ -26,7 +31,13 @@ public:
         return "EMPTY_STATEMENT";
     }
 
-    // ... equals and hashCode methods
+   bool operator==(const LlEmptyStmt& other) const {
+        return true;
+    }
+
+    std::size_t hashCode() const {
+        return 0;
+    }
 
 };
 
@@ -37,6 +48,8 @@ public:
     LlComponent (/* args */);
     ~LlComponent ();
     std::string toString();
+    bool operator==(const LlComponent& other) const;
+    std::size_t hashCode() const;
 };
 
 class LlLiteral: public LlComponent{
@@ -44,6 +57,8 @@ public:
     LlLiteral (/* args */);
     ~LlLiteral ();
     std::string toString();
+    bool operator==(const LlLiteral& other) const;
+    std::size_t hashCode() const;
 };
 
 class LlLocation: public LlComponent{
@@ -52,8 +67,10 @@ private:
 public:
     LlLocation (std::string varName): varName(varName){};
     ~LlLocation ();
-    std::string getVarName();
+    std::string getVarName() const;
     std::string toString();
+    bool operator==(const LlLocation& other) const;
+    std::size_t hashCode() const;
 };
 
 class LlAssignStmt : public LlStatement {
@@ -66,6 +83,8 @@ public:
     LlLocation getStoreLocation() {
         return this->storeLocation;
     }
+    bool operator==(const LlAssignStmt& other) const;
+    std::size_t hashCode() const;
 };
 
 
@@ -95,6 +114,9 @@ public:
         return this->storeLocation.toString() + " = " + this->leftOperand.toString() + " " + this->operation  + " " + this->rightOperand.toString();
     }
 
+    bool operator==(const LlAssignStmtBinaryOp& other) const;
+    std::size_t hashCode() const;
+
 };
 
 class LlAssignStmtUnaryOp : public LlAssignStmt {
@@ -117,6 +139,9 @@ public:
     std::string toString() {
         return this->storeLocation.toString() + " = " + operator_ + " " + operand.toString();
     }
+
+    bool operator==(const LlAssignStmtUnaryOp& other) const;
+    std::size_t hashCode() const;
 };
 
 class LlJump : public LlStatement {
@@ -129,6 +154,12 @@ public:
     std::string getJumpToLabel() {
         return jumpToLabel;
     }
+    
+    std::string toString() {
+        return "goto " + this->jumpToLabel;
+    }
+    bool operator==(const LlJump& other) const;
+    std::size_t hashCode() const;
 };
 
 
@@ -148,7 +179,8 @@ public:
         return "if " + condition.toString() + " goto " + this->jumpToLabel;
     }
 
-    // ... equals and hashCode methods 
+    bool operator==(const LlJumpConditional& other) const;
+    std::size_t hashCode() const;
 };
 
 class LlJumpUnconditional : public LlJump {
@@ -159,7 +191,8 @@ public:
         return "goto " + this->jumpToLabel;
     }
 
-    // ... equals and hashCode methods 
+    bool operator==(const LlJumpUnconditional& other) const;
+    std::size_t hashCode() const;
 };
 
 
@@ -178,7 +211,8 @@ public:
         return this->boolValue ? "true" : "false";
     }
 
-    // ... equals and hashCode methods 
+    bool operator==(const LlLiteralBool& other) const;
+    std::size_t hashCode() const;
 };
 
 
@@ -197,7 +231,8 @@ public:
         return std::to_string(this->intValue);
     }
 
-    // ... equals and hashCode methods 
+    bool operator==(const LlLiteralInt& other) const;
+    std::size_t hashCode() const;
 };
 
 
@@ -216,7 +251,8 @@ public:
         return this->getVarName() + "[" + elementIndex.toString() + "] ";
     }
 
-    // ... equals and hashCode methods.
+    bool operator==(const LlLocationArray& other) const;
+    std::size_t hashCode() const;
 
     std::string getArrayHead(std::string arrayLocation) {
         int arrayHead = std::stoi(arrayLocation.substr(0, arrayLocation.length() - 6)) / 8;
@@ -232,12 +268,42 @@ public:
         return this->getVarName();
     }
 
-    // ... equals and hashCode methods are not typically overridden in C++ ...
+    bool operator==(const LlLocationVar& other) const {
+        if (&other == this) {
+            return true;
+        }
+        else if (dynamic_cast<const LlLocationVar*>(&other) == nullptr) {
+            return false;
+        }
+        return other.getVarName() == this->getVarName();
+    }
+
+    std::size_t hashCode() const {
+        std::hash<std::string> hasher;
+        return hasher(this->getVarName());
+    }
 
     bool isStringLoc() {
         return this->getVarName().find("str") != std::string::npos;
     }
 };
+
+// Specialize std::hash for LlComponent
+namespace std {
+    template <>
+    struct hash<LlComponent> {
+        std::size_t operator()(const LlComponent& k) const {
+            return k.hashCode();
+        }
+    };
+    
+    template <>
+    struct hash<LlLocationVar> {
+        std::size_t operator()(const LlLocationVar& k) const {
+            return  k.hashCode();
+        }
+    };
+}
 
 class LlMethodCallStmt : public LlStatement {
 private:
@@ -269,10 +335,10 @@ public:
         return this->returnLocation.toString() + " = " + this->methodName + "(" + argsString +")" ;
     }
 
-    // ... equals and hashCode methods are not typically overridden in C++ ...
+    bool operator==(const LlMethodCallStmt& other) const;
+    std::size_t hashCode() const;
 };
 
-#include <string>
 
 class LlParallelMethodStmt : public LlStatement {
 private:
@@ -284,10 +350,11 @@ public:
     std::string toString() {
         return "create_and_run_threads(" + this->parallelMethodName + ")";
     }
+
+    bool operator==(const LlParallelMethodStmt& other) const;
+    std::size_t hashCode() const;
 };
 
-
-#include <string>
 
 class LlReturn : public LlStatement {
 private:
@@ -307,6 +374,8 @@ public:
         return "return " + this->returnValue->toString();
     }
 
-    // ... equals and hashCode methods 
+    bool operator==(const LlReturn& other) const;
+    std::size_t hashCode() const;
 };
 
+#endif

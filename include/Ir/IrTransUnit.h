@@ -2,6 +2,7 @@
 #define IR_TRANS_UNIT_H
 #include "Ir.h"
 #include "IrDecl.h"
+#include "LlBuilderList.h"
 
 class IrTransUnit : public Ir {
 private:
@@ -37,6 +38,10 @@ public:
         }
 
         return prettyString;
+    }
+
+    LlBuildersList* getLlBuilder() {
+        return new LlBuildersList();
     }
 };
 

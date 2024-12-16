@@ -1,8 +1,10 @@
+#ifndef LL_BUILDER_H
+#define LL_BUILDER_H
+
 #include <unordered_map>
 #include <string>
 #include <vector>
 #include <stack>
-#include "Ll.h"
 #include <sstream> // Include this header for std::stringstream
 
 class LlBuilder {
@@ -105,3 +107,5 @@ public:
         return st.str();
     }
 };
+
+#endif
