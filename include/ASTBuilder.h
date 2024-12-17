@@ -38,7 +38,6 @@ public:
     T* popFromStack(const TSNode& cst_node);
     
     std::string getNodeText(const TSNode &cst_node);
-    bool isAncestorFunctionDefinition(const TSNode &node);
 
     void exitIdentifier(const TSNode & cst_node);
     void exitPrimitiveType(const TSNode & cst_node);

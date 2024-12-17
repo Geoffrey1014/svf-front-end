@@ -224,7 +224,6 @@ void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
 
     // Push the compound statement onto the stack
     this->ast_stack.push(compoundStmt);
-    std::cout << "Pushed IrCompoundStmt onto stack.\n";
 }
 
 void ASTBuilder::exitLiteralNumber(const TSNode & cst_node){
@@ -442,7 +441,7 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
 
 void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
     try {
-        this->debugStackState();
+        // this->debugStackState();
         IrStorageClassSpecifier* specifier = nullptr;
         std::vector<IrInitDeclarator*> initDecls;
 
