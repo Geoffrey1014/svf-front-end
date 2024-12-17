@@ -35,15 +35,10 @@ public:
     }
 
     template <typename T>
-    T* popFromStack(); 
-
-    // std::string* getNodeText(const TSNode & node) {
-    //     unsigned start = ts_node_start_byte(node);
-    //     unsigned end = ts_node_end_byte(node);
-    //     return new std::string(source_code->substr(start, end - start));
-    // }
-
-    std::string getNodeText(const TSNode &node);
+    T* popFromStack(const TSNode& cst_node);
+    
+    std::string getNodeText(const TSNode &cst_node);
+    bool isAncestorFunctionDefinition(const TSNode &node);
 
     void exitIdentifier(const TSNode & cst_node);
     void exitPrimitiveType(const TSNode & cst_node);

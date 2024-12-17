@@ -2,12 +2,11 @@
 // Created by Jiawei Wang on 1/27/22.
 //
 
-// #include "stdbool.h"
+#include "stdbool.h"
 extern void svf_assert(bool);
 
 int main() 
 {   
-    // int b = 2;
     int a[3][3];
     a[0][0] = 0;
     a[0][0] = 0;
@@ -19,9 +18,10 @@ int main()
     a[2][0] = 6;
     a[2][1] = 7;
     a[2][2] = 8;
+    int b = 2;
     return 0;
 }
 
 
     // int b = 2, c = 2;
-// svf_assert(a[b][c] == 8);
+// svf_assert(a[b][c] == 8);    

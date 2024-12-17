@@ -81,31 +81,31 @@ public:
 // function_declarator
 class IrFunctionDecl : public IrDeclarator {
 private:
-    IrParamList* paramsList;
-    IrIdent* name;
+    IrDeclarator* declarator;  // The base declarator (e.g., function name, could include pointers)
+    IrParamList* paramsList;   // List of function parameters
+
 public:
-    IrFunctionDecl(IrIdent* name, IrParamList* paramsList, const TSNode& node) 
-        : Ir(node), IrDeclarator(node), name(name), paramsList(paramsList) {}
-        
-    ~IrFunctionDecl(){
-        delete name;
+    // Constructor
+    IrFunctionDecl(IrDeclarator* declarator, IrParamList* paramsList, const TSNode& node)
+        : Ir(node), IrDeclarator(node), declarator(declarator), paramsList(paramsList) {}
+
+    // Destructor
+    ~IrFunctionDecl() override {
+        delete declarator;
         delete paramsList;
     }
 
-    // Method to get the name of the function
-    const std::string& getValue() const {
-        return name->getValue();
-    }
+    // Getter for the declarator (function name or base)
+    IrDeclarator* getDeclarator() const { return declarator; }
 
-    // Accessor for the parameter list
-    IrParamList* getParamsList() const {
-        return paramsList;
-    }
+    // Getter for the parameter list
+    IrParamList* getParamsList() const { return paramsList; }
 
+    // Pretty print the function declarator
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_declarator\n";
-        prettyString += name->prettyPrint("  " + indentSpace);
-        prettyString += paramsList->prettyPrint("  " + indentSpace);
+        prettyString += declarator->prettyPrint(indentSpace + "  ");
+        prettyString += paramsList->prettyPrint(indentSpace + "  ");
         return prettyString;
     }
 };
@@ -132,63 +132,78 @@ public:
     }
 };
 
-class IrDecl : public IrStatement {
+class IrInitDeclarator : public Ir {
 private:
-    IrType* type;                     
-    IrStorageClassSpecifier* specifier; 
-    IrDeclarator* declarator;          
+    IrDeclarator* declarator;  // Variable name or declarator
+    IrExpr* initializer;       // Expression (e.g., value 2)
 
 public:
-    // Constructor for declarations with declarator and type
-    IrDecl(IrDeclarator* declarator, IrType* type, IrStorageClassSpecifier* specifier, const TSNode& node)
-        : IrStatement(node), declarator(declarator), type(type), specifier(specifier) {}
-    
-    ~IrDecl() {
+    IrInitDeclarator(IrDeclarator* declarator, IrExpr* initializer, const TSNode& node)
+        : Ir(node), declarator(declarator), initializer(initializer) {}
+
+    ~IrInitDeclarator() override {
         delete declarator;
-        delete type;
-        delete specifier;
+        delete initializer;
     }
 
     IrDeclarator* getDeclarator() const { return declarator; }
+    IrExpr* getInitializer() const { return initializer; }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--init_declarator:\n";
+        prettyString += declarator->prettyPrint(indentSpace + "  ");
+        prettyString += initializer->prettyPrint(indentSpace + "  ");
+        return prettyString;
+    }
+};
+
+// declaration
+class IrDecl : public IrStatement {
+private:
+    IrType* type;                        
+    IrStorageClassSpecifier* specifier;   
+    IrInitDeclarator* initDeclarator;     
+    IrDeclarator* simpleDeclarator;      
+
+public:
+    // Constructor for initialized declarations
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrInitDeclarator* initDeclarator, const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier), initDeclarator(initDeclarator), simpleDeclarator(nullptr) {}
+
+    // Constructor for simple declarations
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrDeclarator* declarator, const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier), initDeclarator(nullptr), simpleDeclarator(declarator) {}
+
+    ~IrDecl() override {
+        delete type;
+        delete specifier;
+        delete initDeclarator;
+        delete simpleDeclarator;
+    }
+
+    // Getter methods
     IrType* getType() const { return type; }
     IrStorageClassSpecifier* getSpecifier() const { return specifier; }
+    IrInitDeclarator* getInitDeclarator() const { return initDeclarator; }
+    IrDeclarator* getSimpleDeclarator() const { return simpleDeclarator; }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--declaration:\n";
-        
-        if(specifier){
-            prettyString += specifier->prettyPrint("  " + indentSpace);
+
+        if (specifier) {
+            prettyString += specifier->prettyPrint(indentSpace + "  ");
         }
-            
-        prettyString += type->prettyPrint("  " + indentSpace);
-        
-        prettyString += declarator->prettyPrint("  " + indentSpace);
-        
+
+        prettyString += type->prettyPrint(indentSpace + "  ");
+
+        if (initDeclarator) {
+            prettyString += initDeclarator->prettyPrint(indentSpace + "  ");
+        } else if (simpleDeclarator) {
+            prettyString += simpleDeclarator->prettyPrint(indentSpace + "  ");
+        }
+
         return prettyString;
     }
 };
-    
-class IrInitDecl : public IrDecl {
-private:
-    IrExpr* initValue; 
 
-public:
-    IrInitDecl(IrIdent* name, IrType* type, IrExpr* initValue, IrStorageClassSpecifier* specifier, const TSNode& node)
-        : IrDecl(name, type, specifier, node), initValue(initValue) {}
-
-    ~IrInitDecl() {
-        delete initValue;
-    }
-
-    IrExpr* getInitValue() const { return initValue; }
-
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = IrDecl::prettyPrint(indentSpace);
-        prettyString += "  " + indentSpace + "|--init_declarator:\n";
-        if (initValue) {
-            prettyString += initValue->prettyPrint("    " + indentSpace);
-        } 
-        return prettyString;
-    }
-};
-#endif
+#endif // IR_INIT_DECL_H
