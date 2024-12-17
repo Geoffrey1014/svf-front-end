@@ -63,6 +63,7 @@ public:
     void exitArrayDeclarator(const TSNode & cst_node);
     void exitSubscriptExpression(const TSNode & cst_node);
     void exitInitDeclarator(const TSNode & cst_node);
+    void debugStackState() const;
 
     void exitTransUnit(const TSNode & cst_node);
 

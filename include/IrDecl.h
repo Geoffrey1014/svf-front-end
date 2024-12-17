@@ -162,29 +162,31 @@ class IrDecl : public IrStatement {
 private:
     IrType* type;                        
     IrStorageClassSpecifier* specifier;   
-    IrInitDeclarator* initDeclarator;     
+    std::vector<IrInitDeclarator*> initDeclarators;      
     IrDeclarator* simpleDeclarator;      
 
 public:
-    // Constructor for initialized declarations
-    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrInitDeclarator* initDeclarator, const TSNode& node)
-        : IrStatement(node), type(type), specifier(specifier), initDeclarator(initDeclarator), simpleDeclarator(nullptr) {}
+    // Constructor for multiple initialized declarators
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, const std::vector<IrInitDeclarator*>& initDecls, const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier), initDeclarators(initDecls), simpleDeclarator(nullptr) {}
 
-    // Constructor for simple declarations
+    // Constructor for a simple single declarator
     IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrDeclarator* declarator, const TSNode& node)
-        : IrStatement(node), type(type), specifier(specifier), initDeclarator(nullptr), simpleDeclarator(declarator) {}
+        : IrStatement(node), type(type), specifier(specifier), simpleDeclarator(declarator) {}
 
     ~IrDecl() override {
         delete type;
         delete specifier;
-        delete initDeclarator;
+        for (auto* initDecl : initDeclarators) {
+            delete initDecl;
+        }
         delete simpleDeclarator;
     }
 
     // Getter methods
     IrType* getType() const { return type; }
     IrStorageClassSpecifier* getSpecifier() const { return specifier; }
-    IrInitDeclarator* getInitDeclarator() const { return initDeclarator; }
+    const std::vector<IrInitDeclarator*>& getInitDeclarators() const { return initDeclarators; }
     IrDeclarator* getSimpleDeclarator() const { return simpleDeclarator; }
 
     std::string prettyPrint(std::string indentSpace) const override {
@@ -196,9 +198,12 @@ public:
 
         prettyString += type->prettyPrint(indentSpace + "  ");
 
-        if (initDeclarator) {
-            prettyString += initDeclarator->prettyPrint(indentSpace + "  ");
+        if (!initDeclarators.empty()) {
+            for (auto* initDecl : initDeclarators) {
+                prettyString += initDecl->prettyPrint(indentSpace + "  ");
+            }
         } else if (simpleDeclarator) {
+            // If no initDecls, print the simpleDeclarator
             prettyString += simpleDeclarator->prettyPrint(indentSpace + "  ");
         }
 
