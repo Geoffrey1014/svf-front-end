@@ -9,8 +9,8 @@
 #include <memory>
 #include "ASTBuilder.h"
 
-// Include the C parser header
-extern "C" const TSLanguage *tree_sitter_c();
+// Include the rust parser header
+extern "C" const TSLanguage *tree_sitter_rust();
 
 argparse::ArgumentParser program("svf_frontend");
 
@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
   // Parse command line arguments
   parse_command_line(program, argc, argv);
 
-   // Read C++ code from file
+   // Read rust code from file
   std::string *source_code = read_file(program.get<std::string>("filename"));
   if (source_code == nullptr) {
     return 1;
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
   // Create a new parser
   TSParser *parser = ts_parser_new();
   // Get the language from the parser
-  const TSLanguage *language = tree_sitter_c();
+  const TSLanguage *language = tree_sitter_rust();
   ts_parser_set_language(parser, language);
 
   const char * source_code_ptr = source_code->c_str();

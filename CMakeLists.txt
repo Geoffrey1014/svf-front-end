@@ -12,7 +12,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(SOURCES
     src/main.cpp
     src/ASTBuilder.cpp
-    tree-sitter-c/src/parser.c
+    # tree-sitter-c/src/parser.c
+    tree-sitter-rust/src/parser.c
+    tree-sitter-rust/src/scanner.c
 )
 
 # Set default build type to Debug if not specified
@@ -59,6 +61,9 @@ include_directories(
   ${Tree_Sitter_HEADER}
   include 
   argparse/include)
+
+# Add the Rust parser's source code directory
+include_directories(${Tree_Sitter_RUST_DIR}/src)
 
 add_executable(svf_frontend ${SOURCES})
 

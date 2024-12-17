@@ -4,3 +4,7 @@ argparse/
 tree-sitter-cpp/
 tree-sitter-c/
 tree-sitter/
+tree-sitter-rust/
+z3/
+.idea/
+cmake-build-debug/

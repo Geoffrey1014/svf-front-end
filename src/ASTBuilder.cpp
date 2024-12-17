@@ -8,12 +8,31 @@
 void ASTBuilder::exitPrimitiveType(const TSNode & cst_node) {
     std::string* node_text = getNodeText(cst_node);
     Ir* node =nullptr;
-    if (*node_text == "int") {
-        node = new IrTypeInt(cst_node);
+    if (*node_text == "i8" || *node_text == "i16" || *node_text == "i32" || *node_text == "i64" || *node_text == "i128") {
+        node = new IrTypeInt(cst_node); // Assuming IrTypeInt can be reused for Rust's int types
         this->ast_stack.push(node);
     } 
-    else if (*node_text == "void")
-    {
+    else if (*node_text == "u8" || *node_text == "u16" || *node_text == "u32" || *node_text == "u64" || *node_text == "u128") {
+        node = new IrTypeUInt(cst_node); // Assuming IrTypeUInt for unsigned int types
+        this->ast_stack.push(node);
+    }
+    else if (*node_text == "f32" || *node_text == "f64") {
+        node = new IrTypeFloat(cst_node); // Assuming IrTypeFloat for floating-point types
+        this->ast_stack.push(node);
+    }
+    else if (*node_text == "bool") {
+        node = new IrTypeBool(cst_node); // Assuming IrTypeBool for boolean types
+        this->ast_stack.push(node);
+    }
+    else if (*node_text == "char") {
+        node = new IrTypeChar(cst_node);
+        this->ast_stack.push(node);
+    }
+    else if (*node_text == "str") {
+        node = new IrTypeString(cst_node);
+        this->ast_stack.push(node);
+    }
+    else if (*node_text == "void") {
         node = new IrTypeVoid(cst_node);
         this->ast_stack.push(node);
     }
@@ -232,6 +251,28 @@ void ASTBuilder::exitCallExpr(const TSNode & cst_node){
         this->ast_stack.push(node);
     } else {
         std::cerr << "Error: Invalid call expression" << std::endl;
+    }
+}
+
+// Add methods to handle Rust-specific constructs
+void ASTBuilder::exitLetStmt(const TSNode & cst_node) {
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for let statement" << std::endl;
+    }
+
+    IrExpr* rhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrIdent* lhs = dynamic_cast<IrIdent*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (lhs && rhs) {
+        node = new IrLetStmt(lhs, rhs, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid let statement" << std::endl;
     }
 }
 
