@@ -30,26 +30,4 @@ T* ASTBuilder::popFromStack(const TSNode& node) {
     }
 }
 
-//////// Direct Message Print Template ////////
-// template <typename T>
-// T* ASTBuilder::popFromStack(const TSNode& node) {
-//     if (this->ast_stack.empty()) {
-//         std::cerr << "Error: AST stack is empty while attempting to pop node: " 
-//                   << getNodeText(node) << std::endl;
-//         return nullptr;
-//     }
-
-//     Ir* top = this->ast_stack.top();
-//     this->ast_stack.pop();
-
-//     if (T* casted = dynamic_cast<T*>(top)) {
-//         return casted;
-//     } else {
-//         std::cerr << "Error: Invalid type on AST stack. Expected " 
-//                   << typeid(T).name() << " for node: " << getNodeText(node) << std::endl;
-//         delete top;  // Clean up invalid node
-//         return nullptr;
-//     }
-// }
-
 #endif // AST_BUILDER_TPP

@@ -41,7 +41,6 @@ public:
 
     void exitIdentifier(const TSNode & cst_node);
     void exitPrimitiveType(const TSNode & cst_node);
-    void exitParameter(const TSNode & cst_node);
     void exitDeclaration(const TSNode & cst_node);
     void exitParamList(const TSNode & cst_node);
     void exitFunctionDeclarator(const TSNode & cst_node);
@@ -62,6 +61,9 @@ public:
     void exitArrayDeclarator(const TSNode & cst_node);
     void exitSubscriptExpression(const TSNode & cst_node);
     void exitInitDeclarator(const TSNode & cst_node);
+    void exitParameter(const TSNode & cst_node);
+    void exitAbstractPointerDeclarator(const TSNode & cst_node);
+
     void debugStackState() const;
 
     void exitTransUnit(const TSNode & cst_node);

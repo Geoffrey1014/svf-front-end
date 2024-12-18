@@ -4,19 +4,18 @@
 #include "Ir.h"
 #include "IrDecl.h"
 
-class IrDeclarator : public virtual Ir {
+class IrDeclDeclarator : public virtual Ir {
 public:
-    IrDeclarator(const TSNode& node) : Ir(node) {}};
+    IrDeclDeclarator(const TSNode& node) : Ir(node) {}};
 
-
-class IrArrayDeclarator : public IrDeclarator {
+class IrArrayDeclarator : public IrDeclDeclarator {
 private:
-    IrDeclarator* baseDeclarator; // Base declarator for the array
+    IrDeclDeclarator* baseDeclarator; // Base declarator for the array
     IrExpr* sizeExpr;       // Size expression for the current dimension
 
 public:
-    IrArrayDeclarator(IrDeclarator* baseDeclarator, IrExpr* sizeExpr, const TSNode& node)
-        : Ir(node), IrDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
+    IrArrayDeclarator(IrDeclDeclarator* baseDeclarator, IrExpr* sizeExpr, const TSNode& node)
+        : Ir(node), IrDeclDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
 
     ~IrArrayDeclarator() {
         delete baseDeclarator;
@@ -24,7 +23,7 @@ public:
     }
 
     // Getter for the base declarator
-    IrDeclarator* getBaseDeclarator() const {
+    IrDeclDeclarator* getBaseDeclarator() const {
         return baseDeclarator;
     }
 
@@ -51,12 +50,46 @@ public:
     }
 };
 
-class IrIdent : public IrDeclarator, public IrExpr {
+class IrAbstractPointerDeclarator : public IrDeclDeclarator {
+private:
+    IrDeclDeclarator* baseDeclarator;
+public:
+    IrAbstractPointerDeclarator(IrDeclDeclarator* base, const TSNode& node)
+        : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
+
+    ~IrAbstractPointerDeclarator() {
+        delete baseDeclarator;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string str = indentSpace + "|--abstract_pointer_declarator: *\n";
+        if(baseDeclarator){
+            str += baseDeclarator->prettyPrint(indentSpace + "  ");
+        }
+        return str;
+    }
+};
+
+// class IrPointerDeclarator : public IrDeclDeclarator {
+// private:
+//     IrDeclDeclarator* baseDeclarator;
+// public:
+//     IrPointerDeclarator(IrDeclDeclarator* base, const TSNode& node) : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
+//     ~IrPointerDeclarator() { delete baseDeclarator; }
+
+//     std::string prettyPrint(std::string indentSpace) const override {
+//         std::string str = indentSpace + "|--pointer_declarator\n";
+//         str += baseDeclarator->prettyPrint(indentSpace + "  ");
+//         return str;
+//     }
+// };
+
+class IrIdent : public IrDeclDeclarator, public IrExpr {
 private:
     const std::string name;
 
 public:
-    IrIdent(const std::string& name, const TSNode & node) : Ir(node), IrDeclarator(node), IrExpr(node), name(name) {}
+    IrIdent(const std::string& name, const TSNode & node) : Ir(node), IrDeclDeclarator(node), IrExpr(node), name(name) {}
     ~IrIdent() = default;
 
     // Getter for name
