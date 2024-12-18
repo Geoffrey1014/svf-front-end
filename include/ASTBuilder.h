@@ -63,6 +63,7 @@ public:
     void exitInitDeclarator(const TSNode & cst_node);
     void exitParameter(const TSNode & cst_node);
     void exitAbstractPointerDeclarator(const TSNode & cst_node);
+    void exitPointerDeclarator(const TSNode & cst_node);
 
     void debugStackState() const;
 

@@ -70,19 +70,19 @@ public:
     }
 };
 
-// class IrPointerDeclarator : public IrDeclDeclarator {
-// private:
-//     IrDeclDeclarator* baseDeclarator;
-// public:
-//     IrPointerDeclarator(IrDeclDeclarator* base, const TSNode& node) : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
-//     ~IrPointerDeclarator() { delete baseDeclarator; }
+class IrPointerDeclarator : public IrDeclDeclarator {
+private:
+    IrDeclDeclarator* baseDeclarator;
+public:
+    IrPointerDeclarator(IrDeclDeclarator* base, const TSNode& node) : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
+    ~IrPointerDeclarator() { delete baseDeclarator; }
 
-//     std::string prettyPrint(std::string indentSpace) const override {
-//         std::string str = indentSpace + "|--pointer_declarator\n";
-//         str += baseDeclarator->prettyPrint(indentSpace + "  ");
-//         return str;
-//     }
-// };
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string str = indentSpace + "|--pointer_declarator(*)\n";
+        str += baseDeclarator->prettyPrint(indentSpace + "  ");
+        return str;
+    }
+};
 
 class IrIdent : public IrDeclDeclarator, public IrExpr {
 private:

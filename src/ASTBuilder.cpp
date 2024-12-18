@@ -518,6 +518,19 @@ void ASTBuilder::exitAbstractPointerDeclarator(const TSNode &cst_node) {
     }
 }
 
+void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
+    try {
+        IrDeclDeclarator* baseDeclarator = nullptr;
+        baseDeclarator = popFromStack<IrDeclDeclarator>(cst_node);
+ 
+        IrPointerDeclarator* pointerDeclarator = new IrPointerDeclarator(baseDeclarator, cst_node);
+
+        this->ast_stack.push(pointerDeclarator);
+    } catch (const std::exception &e) {
+        std::cerr << "Error in exitPointerDeclarator: " << e.what() << std::endl;
+    }
+}
+
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
@@ -602,6 +615,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 229: // abstract_pointer_declarator
             exitAbstractPointerDeclarator(cst_node);
+            break;
+        case 226: // pointer_declarator
+            exitPointerDeclarator(cst_node);
             break;
         case 161: // translation_unit
             exitTransUnit(cst_node);
