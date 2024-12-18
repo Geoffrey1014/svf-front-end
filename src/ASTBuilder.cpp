@@ -71,27 +71,44 @@ void ASTBuilder::exitParameter(const TSNode & cst_node) {
 
 void ASTBuilder::exitDeclaration(const TSNode & cst_node){
     Ir* node = nullptr;
-    // Use stack to get the type and name
-    if (this->ast_stack.size() < 2) {
+    // Use stack to get the type and name/pattern
+    if (this->ast_stack.size() < 1) {
         std::cerr << "Error: Not enough elements on the stack for declaration" << std::endl;
+        return;
     }
 
+    // Check for mutable binding
+    bool is_mutable = false;
+    TSNode mut_node = ts_node_child_by_field_name(cst_node, "mut", 3);
+    if (!ts_node_is_null(mut_node)) {
+        is_mutable = true;
+    }
+
+    // Get the name/pattern
     IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
-    if (declName){
+    if (declName) {
         this->ast_stack.pop();
-        IrType* declType = dynamic_cast<IrType*>( this->ast_stack.top());
-        if (declType){
+    } else {
+        std::cerr << "Error: Invalid declaration name/pattern" << std::endl;
+        return;
+    }
+
+    // Get the type if specified
+    IrType* declType = nullptr;
+    TSNode type_node = ts_node_child_by_field_name(cst_node, "type", 4);
+    if (!ts_node_is_null(type_node)) {
+        declType = dynamic_cast<IrType*>(this->ast_stack.top());
+        if (declType) {
             this->ast_stack.pop();
-            node = new IrDecl(declName, declType, cst_node);
-            this->ast_stack.push(node);
-        }
-        else{
+        } else {
             std::cerr << "Error: Invalid declaration type" << std::endl;
+            return;
         }
     }
-    else {
-        std::cerr << "Error: Invalid declaration name" << std::endl;
-    }
+
+    // Create the declaration node
+    node = new IrDecl(declName, declType, is_mutable, cst_node);
+    this->ast_stack.push(node);
 }
 
 void ASTBuilder::exitParamList(const TSNode & cst_node){
@@ -254,12 +271,13 @@ void ASTBuilder::exitCallExpr(const TSNode & cst_node){
     }
 }
 
-// Add methods to handle Rust-specific constructs
-void ASTBuilder::exitLetStmt(const TSNode & cst_node) {
+// Methods to handle Rust-specific constructs
+
+void ASTBuilder::exitMatchExpr(const TSNode & cst_node) {
     Ir* node = nullptr;
     // Use stack to get the type and name
     if (this->ast_stack.size() < 2) {
-        std::cerr << "Error: Not enough elements on the stack for let statement" << std::endl;
+        std::cerr << "Error: Not enough elements on the stack for match expression" << std::endl;
     }
 
     IrExpr* rhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
@@ -269,10 +287,31 @@ void ASTBuilder::exitLetStmt(const TSNode & cst_node) {
     this->ast_stack.pop();
 
     if (lhs && rhs) {
-        node = new IrLetStmt(lhs, rhs, cst_node);
+        node = new IrMatchExpr(lhs, rhs, cst_node);
         this->ast_stack.push(node);
     } else {
-        std::cerr << "Error: Invalid let statement" << std::endl;
+        std::cerr << "Error: Invalid match expression" << std::endl;
+    }
+}
+
+void ASTBuilder::exitLoopExpr(const TSNode & cst_node) {
+    Ir* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for loop expression" << std::endl;
+    }
+
+    IrExpr* rhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrIdent* lhs = dynamic_cast<IrIdent*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (lhs && rhs) {
+        node = new IrLoopExpr(lhs, rhs, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid loop expression" << std::endl;
     }
 }
 

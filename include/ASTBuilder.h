@@ -51,7 +51,8 @@ public:
     void exitLiteralNumber(const TSNode & cst_node);    
     void exitArgList(const TSNode & cst_node);
     void exitCallExpr(const TSNode & cst_node);
-    void exitLetStmt(const TSNode &cst_node);
+    void exitMatchExpr(const TSNode &cst_node);
+    void exitLoopExpr(const TSNode &cst_node);
     void exitAssignExpr(const TSNode &cst_node);
     void exitExprStmt(const TSNode & cst_node);
     void exitTransUnit(const TSNode & cst_node);

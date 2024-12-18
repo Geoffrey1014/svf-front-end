@@ -8,9 +8,10 @@ class IrDecl : public Ir {
 private:
     IrIdent* name;
     IrType* type;
+    bool is_mutable;
 
 public:
-    IrDecl(IrIdent* name, IrType* type, const TSNode & node) : Ir(node), name(name), type(type) {}
+    IrDecl(IrIdent* name, IrType* type, bool is_mutable, const TSNode & node) : Ir(node), name(name), type(type) {}
     ~IrDecl() {
         delete name;
         delete type;
@@ -27,14 +28,25 @@ public:
         return this->type;
     }
 
+    bool getIsMutable() const {
+        return this->is_mutable;
+    }
+
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--declaration:\n";
+
+        // Print the mutability
+        prettyString += ("  " + indentSpace + "|--mutable: " + (this->is_mutable ? "true" : "false") + "\n");
 
         // print the parameter's name
         prettyString += ("  " + indentSpace + "|--name: " + *(this->name->getValue()) + "\n");
 
         // print the parameter's type
-        prettyString += this->type->prettyPrint("  " + indentSpace);
+        if (this->type) {
+            prettyString += this->type->prettyPrint("  " + indentSpace);
+        } else {
+            prettyString += ("  " + indentSpace + "|--type: inferred\n");
+        }
 
         return prettyString;
     }

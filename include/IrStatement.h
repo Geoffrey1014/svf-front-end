@@ -113,39 +113,4 @@ public:
     }
 };
 
-class IrLetStmt : public IrStatement {
-private:
-    IrIdent* lhs;
-    IrExpr* rhs;
-public:
-    IrLetStmt(IrIdent* lhs, IrExpr* rhs, const TSNode& node) : IrStatement(node), lhs(lhs), rhs(rhs) {}
-    ~IrLetStmt() {
-        delete lhs;
-        delete rhs;
-    }
-
-    IrIdent* getLhs() {
-        return this->lhs;
-    }
-
-    IrExpr* getRhs() {
-        return this->rhs;
-    }
-
-    std::string prettyPrint(std::string indentSpace)const override  {
-        std::string prettyString = indentSpace + "|--letStmt\n";
-
-        // pretty print the lhs
-        prettyString += this->lhs->prettyPrint("  " + indentSpace);
-
-        // pretty print the rhs
-        prettyString += this->rhs->prettyPrint("  " + indentSpace);
-
-        return prettyString;
-    }
-    std::string toString() {
-        return "IrLetStmt";
-    }
-};
-
 #endif
