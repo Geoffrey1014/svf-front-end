@@ -53,6 +53,8 @@ public:
     void exitCallExpr(const TSNode & cst_node);
     void exitMatchExpr(const TSNode &cst_node);
     void exitLoopExpr(const TSNode &cst_node);
+    void exitWhileExpr(const TSNode &cst_node);
+    void exitForExpr(const TSNode &cst_node);
     void exitAssignExpr(const TSNode &cst_node);
     void exitExprStmt(const TSNode & cst_node);
     void exitTransUnit(const TSNode & cst_node);

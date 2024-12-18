@@ -111,50 +111,171 @@ public:
 
 class IrLoopExpr : public IrExpr {
 private:
-    IrIdent* lhs;
-    IrExpr* rhs;
+    Ir* body;
+
 public:
-    IrLoopExpr(IrIdent* lhs, IrExpr* rhs, const TSNode & node) : IrExpr(node), lhs(lhs), rhs(rhs) {}
+    IrLoopExpr(Ir* body, const TSNode & node)
+        : IrExpr(node), body(body) {}
+
     ~IrLoopExpr() {
-        delete lhs;
-        delete rhs;
+        delete body;
     }
 
-    IrIdent* getLhs() {
-        return lhs;
+    Ir* getBody() const {
+        return this->body;
     }
 
-    IrExpr* getRhs() {
-        return rhs;
-    }
-
-    bool operator==(const Ir & that) const {
-        if (&that == this) {
-            return true;
-        }
-        if (auto thatLoopExpr = dynamic_cast<const IrLoopExpr*>(&that)) {
-            return *(this->getLhs()) == *(thatLoopExpr->getLhs()) && *(this->getRhs()) == *(thatLoopExpr->getRhs());
-        }
-        return false;
-    }
-
-    int hashCode() const {
-        return 19; // some arbitrary prime
-    }
-
-    std::string prettyPrint(std::string indentSpace) const {
-        std::string prettyString = indentSpace + "|--loopExpr\n";
-
-        // pretty print the lhs
-        prettyString += this->lhs->prettyPrint("  " + indentSpace);
-
-        // pretty print the rhs
-        prettyString += this->rhs->prettyPrint("  " + indentSpace);
-
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--loop expression:\n";
+        prettyString += this->body->prettyPrint("  " + indentSpace);
         return prettyString;
     }
-    std::string toString() {
-        return "IrLoopExpr";
+};
+
+class IrWhileExpr : public IrExpr {
+private:
+    Ir* condition;
+    Ir* body;
+
+public:
+    IrWhileExpr(Ir* condition, Ir* body, const TSNode & node)
+        : IrExpr(node), condition(condition), body(body) {}
+
+    ~IrWhileExpr() {
+        delete condition;
+        delete body;
+    }
+
+    Ir* getCondition() const {
+        return this->condition;
+    }
+
+    Ir* getBody() const {
+        return this->body;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--while expression:\n";
+        prettyString += this->condition->prettyPrint("  " + indentSpace);
+        prettyString += this->body->prettyPrint("  " + indentSpace);
+        return prettyString;
+    }
+};
+
+class IrForExpr : public IrExpr {
+private:
+    Ir* initialization;
+    Ir* condition;
+    Ir* increment;
+    Ir* body;
+
+public:
+    IrForExpr(Ir* initialization, Ir* condition, Ir* increment, Ir* body, const TSNode & node)
+        : IrExpr(node), initialization(initialization), condition(condition), increment(increment), body(body) {}
+
+    ~IrForExpr() {
+        delete initialization;
+        delete condition;
+        delete increment;
+        delete body;
+    }
+
+    Ir* getInitialization() const {
+        return this->initialization;
+    }
+
+    Ir* getCondition() const {
+        return this->condition;
+    }
+
+    Ir* getIncrement() const {
+        return this->increment;
+    }
+
+    Ir* getBody() const {
+        return this->body;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--for expression:\n";
+        prettyString += this->initialization->prettyPrint("  " + indentSpace);
+        prettyString += this->condition->prettyPrint("  " + indentSpace);
+        prettyString += this->increment->prettyPrint("  " + indentSpace);
+        prettyString += this->body->prettyPrint("  " + indentSpace);
+        return prettyString;
+    }
+};
+
+class IrMatchArm : public IrExpr {
+private:
+    Ir* pattern;
+    Ir* guard;
+    Ir* body;
+
+public:
+    IrMatchArm(Ir* pattern, Ir* guard, Ir* body, const TSNode & node)
+        : IrExpr(node), pattern(pattern), guard(guard), body(body) {}
+
+    ~IrMatchArm() {
+        delete pattern;
+        delete guard;
+        delete body;
+    }
+
+    Ir* getPattern() const {
+        return this->pattern;
+    }
+
+    Ir* getGuard() const {
+        return this->guard;
+    }
+
+    Ir* getBody() const {
+        return this->body;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--match arm:\n";
+        prettyString += this->pattern->prettyPrint("  " + indentSpace);
+        if (this->guard) {
+            prettyString += this->guard->prettyPrint("  " + indentSpace);
+        }
+        prettyString += this->body->prettyPrint("  " + indentSpace);
+        return prettyString;
+    }
+};
+
+class IrMatchExpr : public IrExpr {
+private:
+    Ir* matchExpr;
+    std::vector<IrMatchArm*> arms;
+
+public:
+    IrMatchExpr(Ir* matchExpr, const std::vector<IrMatchArm*>& arms, const TSNode & node)
+        : IrExpr(node), matchExpr(matchExpr), arms(arms) {}
+
+    ~IrMatchExpr() {
+        delete matchExpr;
+        for (auto arm : arms) {
+            delete arm;
+        }
+    }
+
+    Ir* getMatchExpr() const {
+        return this->matchExpr;
+    }
+
+    const std::vector<IrMatchArm*>& getArms() const {
+        return this->arms;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--match expression:\n";
+        prettyString += this->matchExpr->prettyPrint("  " + indentSpace);
+        for (auto arm : arms) {
+            prettyString += arm->prettyPrint("  " + indentSpace);
+        }
+        return prettyString;
     }
 };
 

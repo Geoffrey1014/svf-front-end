@@ -274,45 +274,78 @@ void ASTBuilder::exitCallExpr(const TSNode & cst_node){
 // Methods to handle Rust-specific constructs
 
 void ASTBuilder::exitMatchExpr(const TSNode & cst_node) {
-    Ir* node = nullptr;
-    // Use stack to get the type and name
+    // Ensure there are enough elements on the stack
     if (this->ast_stack.size() < 2) {
         std::cerr << "Error: Not enough elements on the stack for match expression" << std::endl;
+        return;
     }
 
-    IrExpr* rhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
-    this->ast_stack.pop();
-
-    IrIdent* lhs = dynamic_cast<IrIdent*>(this->ast_stack.top());
-    this->ast_stack.pop();
-
-    if (lhs && rhs) {
-        node = new IrMatchExpr(lhs, rhs, cst_node);
-        this->ast_stack.push(node);
-    } else {
-        std::cerr << "Error: Invalid match expression" << std::endl;
+    // Pop the match arms from the stack
+    std::vector<IrMatchArm*> arms;
+    while (!this->ast_stack.empty() && dynamic_cast<IrMatchArm*>(this->ast_stack.top())) {
+        IrMatchArm* arm = dynamic_cast<IrMatchArm*>(this->ast_stack.top());
+        this->ast_stack.pop();
+        arms.insert(arms.begin(), arm); // Insert at the beginning to maintain order
     }
+
+    // Pop the match expression from the stack
+    Ir* matchExpr = this->ast_stack.top();
+    this->ast_stack.pop();
+
+    // Create the match expression node
+    IrMatchExpr* matchExprNode = new IrMatchExpr(matchExpr, arms, cst_node);
+    this->ast_stack.push(matchExprNode);
 }
 
 void ASTBuilder::exitLoopExpr(const TSNode & cst_node) {
-    Ir* node = nullptr;
-    // Use stack to get the type and name
-    if (this->ast_stack.size() < 2) {
+    if (this->ast_stack.size() < 1) {
         std::cerr << "Error: Not enough elements on the stack for loop expression" << std::endl;
+        return;
     }
 
-    IrExpr* rhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    Ir* body = this->ast_stack.top();
     this->ast_stack.pop();
 
-    IrIdent* lhs = dynamic_cast<IrIdent*>(this->ast_stack.top());
-    this->ast_stack.pop();
+    IrLoopExpr* loopExpr = new IrLoopExpr(body, cst_node);
+    this->ast_stack.push(loopExpr);
+}
 
-    if (lhs && rhs) {
-        node = new IrLoopExpr(lhs, rhs, cst_node);
-        this->ast_stack.push(node);
-    } else {
-        std::cerr << "Error: Invalid loop expression" << std::endl;
+void ASTBuilder::exitWhileExpr(const TSNode & cst_node) {
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for while expression" << std::endl;
+        return;
     }
+
+    Ir* body = this->ast_stack.top();
+    this->ast_stack.pop();
+
+    Ir* condition = this->ast_stack.top();
+    this->ast_stack.pop();
+
+    IrWhileExpr* whileExpr = new IrWhileExpr(condition, body, cst_node);
+    this->ast_stack.push(whileExpr);
+}
+
+void ASTBuilder::exitForExpr(const TSNode & cst_node) {
+    if (this->ast_stack.size() < 4) {
+        std::cerr << "Error: Not enough elements on the stack for for expression" << std::endl;
+        return;
+    }
+
+    Ir* body = this->ast_stack.top();
+    this->ast_stack.pop();
+
+    Ir* increment = this->ast_stack.top();
+    this->ast_stack.pop();
+
+    Ir* condition = this->ast_stack.top();
+    this->ast_stack.pop();
+
+    Ir* initialization = this->ast_stack.top();
+    this->ast_stack.pop();
+
+    IrForExpr* forExpr = new IrForExpr(initialization, condition, increment, body, cst_node);
+    this->ast_stack.push(forExpr);
 }
 
 void ASTBuilder::exitAssignExpr(const TSNode & cst_node){
