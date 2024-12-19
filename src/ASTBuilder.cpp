@@ -60,9 +60,15 @@ void ASTBuilder::exitParameter(const TSNode & cst_node) {
     IrType* paramType = dynamic_cast<IrType*>( this->ast_stack.top());
     this->ast_stack.pop();
 
+    // Check for mutable binding
+    bool is_mutable = false;
+    TSNode mut_node = ts_node_child_by_field_name(cst_node, "mut", 3);
+    if (!ts_node_is_null(mut_node)) {
+        is_mutable = true;
+    }
 
     if (paramType && paramName) {
-        node = new IrParamDecl(paramType, paramName, cst_node);
+        node = new IrParamDecl(paramType, paramName, is_mutable, cst_node);
         this->ast_stack.push(node);
     } else {
         std::cerr << "Error: Invalid parameter type or name" << std::endl;

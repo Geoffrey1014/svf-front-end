@@ -56,9 +56,10 @@ class IrParamDecl : public Ir {
 private:
     IrType* paramType;
     IrIdent* paramName;
+    bool is_mutable;
 
 public:
-    IrParamDecl(IrType* paramType, IrIdent* paramName, const TSNode& node) : Ir(node), paramType(paramType), paramName(paramName) {}
+    IrParamDecl(IrType* paramType, IrIdent* paramName, bool is_mutable, const TSNode& node) : Ir(node), paramType(paramType), paramName(paramName) {}
     ~IrParamDecl() {
         delete paramType;
         delete paramName;
@@ -75,8 +76,13 @@ public:
         return this->paramName;
     }
 
+    bool getIsMutable() const {
+        return this->is_mutable;
+    }
+
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--param:\n";
+        prettyString += "  " + indentSpace + "|--mutable: " + (this->is_mutable ? "true" : "false") + "\n";
 
         // print the parameter's name
         prettyString += ("  " + indentSpace + "|--name: " + *(this->paramName->getValue()) + "\n");

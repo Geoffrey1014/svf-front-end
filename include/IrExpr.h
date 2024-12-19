@@ -60,55 +60,6 @@ public:
 
 };
 
-class IrMatchExpr : public IrExpr {
-private:
-    IrIdent* lhs;
-    IrExpr* rhs;
-public:
-    IrMatchExpr(IrIdent* lhs, IrExpr* rhs, const TSNode & node) : IrExpr(node), lhs(lhs), rhs(rhs) {}
-    ~IrMatchExpr() {
-        delete lhs;
-        delete rhs;
-    }
-
-    IrIdent* getLhs() {
-        return lhs;
-    }
-
-    IrExpr* getRhs() {
-        return rhs;
-    }
-
-    bool operator==(const Ir & that) const {
-        if (&that == this) {
-            return true;
-        }
-        if (auto thatMatchExpr = dynamic_cast<const IrMatchExpr*>(&that)) {
-            return *(this->getLhs()) == *(thatMatchExpr->getLhs()) && *(this->getRhs()) == *(thatMatchExpr->getRhs());
-        }
-        return false;
-    }
-
-    int hashCode() const {
-        return 17; // some arbitrary prime
-    }
-
-    std::string prettyPrint(std::string indentSpace) const {
-        std::string prettyString = indentSpace + "|--matchExpr\n";
-
-        // pretty print the lhs
-        prettyString += this->lhs->prettyPrint("  " + indentSpace);
-
-        // pretty print the rhs
-        prettyString += this->rhs->prettyPrint("  " + indentSpace);
-
-        return prettyString;
-    }
-    std::string toString() {
-        return "IrMatchExpr";
-    }
-};
-
 class IrLoopExpr : public IrExpr {
 private:
     Ir* body;
