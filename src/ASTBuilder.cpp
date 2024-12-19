@@ -546,6 +546,7 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     switch (symbol_type)
     {
         case 1: // Identifier
+        case 360: // field_identifier, map field_identifier to exitIdentifier
             exitIdentifier(cst_node);
             break;
         case 93: // primitive_type

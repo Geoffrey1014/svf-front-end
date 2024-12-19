@@ -221,4 +221,4 @@ public:
     }
 };
 
-#endif // IR_INIT_DECL_H
+#endif
