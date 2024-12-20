@@ -64,6 +64,14 @@ void ASTBuilder::exitIdentifier(const TSNode & cst_node) {
     this->ast_stack.push(node);
 }
 
+    // parameter_declaration: $ => seq(
+    //   $._declaration_specifiers,
+    //   optional(field('declarator', choice(
+    //     $._declarator,
+    //     $._abstract_declarator,
+    //   ))),
+    //   repeat($.attribute_specifier),
+    // ),
 // parameter_declaration
 void ASTBuilder::exitParameter(const TSNode &cst_node) {
     try {
@@ -593,13 +601,25 @@ void ASTBuilder::exitStructSpecifier(const TSNode& cst_node) {
 
 void ASTBuilder:: exitTypeDefinition(const TSNode &cst_node) {
     try {
-        IrIdent* alias = popFromStack<IrIdent>(cst_node);
+        IrTypeIdent* alias = popFromStack<IrTypeIdent>(cst_node);
+        // IrIdent* alias = popFromStack<IrIdent>(cst_node);       
         IrType* type = popFromStack<IrType>(cst_node);
+        
+        // alias->markAsTypeAlias();
         IrTypeDef* typeDef = new IrTypeDef(type, alias, cst_node);
-
         this->ast_stack.push(typeDef);
     } catch (const std::exception &e) {
         std::cerr << "Error in exitTypeDefinition: " << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder::exitTypeIdentifier(const TSNode &cst_node) {
+    try {
+        std::string node_text = getNodeText(cst_node);
+        IrTypeIdent* typeIdenifier = new IrTypeIdent(node_text, cst_node);
+        this->ast_stack.push(typeIdenifier);
+    } catch (const std::exception &e) {
+        std::cerr << "Error in exitTypeIdentifier: " << e.what() << std::endl;
     }
 }
 
@@ -619,8 +639,10 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     {
         case 1: // Identifier
         case 360: // field_identifier, map field_identifier to exitIdentifier
-        case 362: // type_identifier, map type_identifier to exitIdentifier
             exitIdentifier(cst_node);
+            break;
+        case 362: 
+            exitTypeIdentifier(cst_node);
             break;
         case 93: // primitive_type
             exitPrimitiveType(cst_node);

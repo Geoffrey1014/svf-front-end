@@ -10,6 +10,14 @@ typedef struct {
     int b[2];
 } A;
 
+int getValue(A* arr, int x) {
+    return 0;
+}
+
+// int getValue(A* arr, int x) {
+//     return arr->b[x];
+// }
+
 // int getValue(A* arr, int x) {
 //     return arr->b[x];
 // }

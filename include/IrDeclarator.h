@@ -87,9 +87,10 @@ public:
 class IrIdent : public IrDeclDeclarator, public IrExpr {
 private:
     const std::string name;
+    bool isTypeAlias;
 
 public:
-    IrIdent(const std::string& name, const TSNode & node) : Ir(node), IrDeclDeclarator(node), IrExpr(node), name(name) {}
+    IrIdent(const std::string& name, const TSNode & node, bool isTypeAlias = false) : Ir(node), IrDeclDeclarator(node), IrExpr(node), name(name) {}
     ~IrIdent() = default;
 
     // Getter for name
@@ -111,6 +112,9 @@ public:
         std::hash<std::string> hasher;
         return hasher(this->name);
     }
+
+    bool isType() const { return isTypeAlias; }
+    void markAsTypeAlias() { isTypeAlias = true; }
 
     std::string prettyPrint(std::string indentSpace) const {
         return indentSpace + "|--id: " + name + "\n";

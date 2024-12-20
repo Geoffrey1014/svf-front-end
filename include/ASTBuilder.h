@@ -69,7 +69,7 @@ public:
     void exitFieldDeclarationList(const TSNode & cst_node);
     void exitStructSpecifier(const TSNode & cst_node);
     void exitTypeDefinition(const TSNode & cst_node);
-
+    void exitTypeIdentifier(const TSNode & cst_node);
     void debugStackState() const;
 
     void exitTransUnit(const TSNode & cst_node);
