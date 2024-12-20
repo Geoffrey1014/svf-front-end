@@ -1,10 +1,77 @@
 #ifndef IR_DECL_H
 #define IR_DECL_H
+
 #include "IrStatement.h"
 #include "IrType.h"
 #include "IrExpr.h"
 #include "IrStorageClassSpecifier.h"
 #include "IrDeclarator.h"
+
+class IrFieldDecl : public Ir {
+private:
+    IrType* type;                        // Type of the field
+    IrDeclDeclarator* declarator;        // Field name or declarator
+    //int bitfieldSize;                  // Optional bitfield size (-1 if none)
+
+public:
+    IrFieldDecl(IrType* type, IrDeclDeclarator* declarator, const TSNode& node)
+        : Ir(node), type(type), declarator(declarator){} // bitfieldSize(bitfieldSize)
+
+    ~IrFieldDecl() {
+        delete type;
+        delete declarator;
+    }
+
+    IrType* getType() const { return type; }
+    IrDeclDeclarator* getDeclarator() const { return declarator; }
+
+    // int getBitfieldSize() const { return bitfieldSize; }
+
+    // Pretty print for debugging
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string str = indentSpace + "|--field_declaration:\n";
+        str += type->prettyPrint(indentSpace + "  ");
+        if (declarator) {
+            str += declarator->prettyPrint(indentSpace + "  ");
+        }
+        // if (bitfieldSize != -1) {
+        //     str += indentSpace + "  |--bitfield_size: " + std::to_string(bitfieldSize) + "\n";
+        // }
+        return str;
+    }
+};
+
+class IrFieldDeclList : public Ir {
+private:
+    std::vector<IrFieldDecl*> fieldDeclarations; // List of field declarations
+
+public:
+    IrFieldDeclList(const TSNode& node) : Ir(node) {}
+
+    ~IrFieldDeclList() {
+        for (auto* fieldDecl : fieldDeclarations) {
+            delete fieldDecl;
+        }
+    }
+
+    // Add a field declaration to the list
+    void addField(IrFieldDecl* fieldDecl) {
+        fieldDeclarations.push_back(fieldDecl);
+    }
+
+    // Pretty print for debugging
+    std::string prettyPrint(std::string indentSpace) const override {
+        if (fieldDeclarations.empty()) {
+            return "";
+        }
+        
+        std::string str = indentSpace + "|--field_declaration_list:\n";
+        for (auto* fieldDecl : fieldDeclarations) {
+            str += fieldDecl->prettyPrint(indentSpace + "  ");
+        }
+        return str;
+    }
+};
 
 class IrParamDecl : public Ir {
 private:
@@ -85,7 +152,6 @@ public:
 
         return prettyString;
     }
-
 };
 
 // function_declarator

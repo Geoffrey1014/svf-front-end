@@ -3,12 +3,14 @@
 #include "Ir.h"
 #include "IrDecl.h"
 #include "IrPreprocInclude.h"
+#include "IrTypeComposite.h"
 
 class IrTransUnit : public Ir {
 private:
     std::vector<IrDecl*> declerationList;
     std::vector<IrFunctionDef*> functionList;
     std::vector<IrPreprocInclude*> preprocIncludeList;
+    std::vector<IrTypeDef*> typeDefList;
 public:
     IrTransUnit(const TSNode& node) : Ir(node) {}
     ~IrTransUnit() {
@@ -20,6 +22,9 @@ public:
         }
         for (Ir* p: this->preprocIncludeList) {
             delete p;
+        }
+        for (Ir* t: this->typeDefList) {
+            delete t;
         }
     }
 
@@ -35,6 +40,10 @@ public:
         this->preprocIncludeList.push_back(newPreprocInclude);
     }
 
+    void addToTypeDefList(IrTypeDef* newTypeDef) {
+        this->typeDefList.push_back(newTypeDef);
+    }
+
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--transUnit:\n";
 
@@ -48,6 +57,10 @@ public:
 
         for (Ir* transUnit: this->functionList) {
             prettyString += transUnit->prettyPrint("  " + indentSpace);
+        }
+
+        for (Ir* typeDef: this->typeDefList) {
+            prettyString += typeDef->prettyPrint("  " + indentSpace);
         }
 
         return prettyString;

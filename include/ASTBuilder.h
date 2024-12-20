@@ -15,6 +15,7 @@
 #include "IrStorageClassSpecifier.h"
 #include "IrSubscriptExpr.h"
 #include "IrDeclarator.h"
+#include "IrTypeComposite.h"
 
 #include "main.h"
 
@@ -64,7 +65,10 @@ public:
     void exitParameter(const TSNode & cst_node);
     void exitAbstractPointerDeclarator(const TSNode & cst_node);
     void exitPointerDeclarator(const TSNode & cst_node);
-    void exitFieldIdentifier(const TSNode & cst_node);
+    void exitFieldDeclaration(const TSNode & cst_node);
+    void exitFieldDeclarationList(const TSNode & cst_node);
+    void exitStructSpecifier(const TSNode & cst_node);
+    void exitTypeDefinition(const TSNode & cst_node);
 
     void debugStackState() const;
 

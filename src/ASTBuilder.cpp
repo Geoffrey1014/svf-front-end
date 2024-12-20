@@ -104,7 +104,7 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode &cst_node) {
     try {
         IrParamList* paramList = nullptr;
 
-        // Pop the parameter list (optional)
+        // Pop the parameter list
         if (!this->ast_stack.empty() && dynamic_cast<IrParamList*>(this->ast_stack.top())) {
             paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
             this->ast_stack.pop();
@@ -322,7 +322,10 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
         } else if (auto* preprocInclude = dynamic_cast<IrPreprocInclude*>(topLevelItem)) {
             this->ast_stack.pop();
             transUnitNode->addToPreprocIncludeList(preprocInclude);
-        } else {
+        } else if (auto* typeDef = dynamic_cast<IrTypeDef*>(topLevelItem)) {
+            this->ast_stack.pop();
+            transUnitNode->addToTypeDefList(typeDef);
+        }else {
             std::cerr << "Error: Unrecognized top-level item type." << std::endl;
         }
     }
@@ -531,6 +534,75 @@ void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
     }
 }
 
+void ASTBuilder::exitFieldDeclaration(const TSNode &cst_node) {
+    try {
+        // Handle optional bitfield clause for future if we need it
+        // int bitfieldSize = -1;
+        // field declarator
+        IrDeclDeclarator* declarator = nullptr;
+        if (!this->ast_stack.empty() && dynamic_cast<IrDeclDeclarator*>(this->ast_stack.top())) {
+            declarator = popFromStack<IrDeclDeclarator>(cst_node);
+        }
+        // type specifier
+        IrType* type = popFromStack<IrType>(cst_node);
+
+        IrFieldDecl* fieldDecl = new IrFieldDecl(type, declarator, cst_node);
+        this->ast_stack.push(fieldDecl);
+    } catch (const std::exception &e) {
+        std::cerr << "Error in exitFieldDeclaration: " << e.what() << std::endl;
+    }
+}
+void ASTBuilder::exitFieldDeclarationList(const TSNode &cst_node) {
+    try {
+        // always create an IrFieldDeclList, even if it's empty
+        IrFieldDeclList* fieldDeclList = new IrFieldDeclList(cst_node);
+
+        while (!this->ast_stack.empty()) {
+            IrFieldDecl* fieldDecl = dynamic_cast<IrFieldDecl*>(this->ast_stack.top());
+            if (!fieldDecl) break; 
+            this->ast_stack.pop();
+            fieldDeclList->addField(fieldDecl);
+        }
+
+        this->ast_stack.push(fieldDeclList);
+    } catch (const std::exception &e) {
+        std::cerr << "Error in exitFieldDeclarationList: " << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder::exitStructSpecifier(const TSNode& cst_node) {
+    try {
+        IrFieldDeclList* fieldDeclList = nullptr;
+        if (!this->ast_stack.empty() && dynamic_cast<IrFieldDeclList*>(this->ast_stack.top())) {
+            fieldDeclList = popFromStack<IrFieldDeclList>(cst_node);
+        } else {
+            fieldDeclList = new IrFieldDeclList(cst_node); // Create an empty field declaration list
+        }
+
+        IrIdent* name = nullptr;
+        if (!this->ast_stack.empty() && dynamic_cast<IrIdent*>(this->ast_stack.top())) {
+            name = popFromStack<IrIdent>(cst_node);
+        }
+
+        IrTypeStruct* structType = new IrTypeStruct(name, fieldDeclList, cst_node);
+        this->ast_stack.push(structType);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitStructSpecifier: " << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder:: exitTypeDefinition(const TSNode &cst_node) {
+    try {
+        IrIdent* alias = popFromStack<IrIdent>(cst_node);
+        IrType* type = popFromStack<IrType>(cst_node);
+        IrTypeDef* typeDef = new IrTypeDef(type, alias, cst_node);
+
+        this->ast_stack.push(typeDef);
+    } catch (const std::exception &e) {
+        std::cerr << "Error in exitTypeDefinition: " << e.what() << std::endl;
+    }
+}
+
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
@@ -547,6 +619,7 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     {
         case 1: // Identifier
         case 360: // field_identifier, map field_identifier to exitIdentifier
+        case 362: // type_identifier, map type_identifier to exitIdentifier
             exitIdentifier(cst_node);
             break;
         case 93: // primitive_type
@@ -619,6 +692,18 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 226: // pointer_declarator
             exitPointerDeclarator(cst_node);
+            break;
+        case 253: // field_declaration
+            exitFieldDeclaration(cst_node);
+            break;
+        case 251: // field_declaration_list
+            exitFieldDeclarationList(cst_node);
+            break;
+        case 249: // struct_specifier
+            exitStructSpecifier(cst_node);
+            break;
+        case 199: // type_definition
+            exitTypeDefinition(cst_node);
             break;
         case 161: // translation_unit
             exitTransUnit(cst_node);

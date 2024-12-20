@@ -5,10 +5,10 @@
 // #include "stdbool.h"
 // extern void svf_assert(bool);
 
-struct {
+typedef struct {
     int a;
     int b[2];
-}typedef A;
+} A;
 
 // int getValue(A* arr, int x) {
 //     return arr->b[x];
@@ -22,3 +22,9 @@ struct {
 //     svf_assert(getValue(&a, 1) == 2);
 //     return 0;
 // }
+
+// Oirignal code but has the ERROR (tree-sitter-c)
+// struct {
+//     int a;
+//     int b[2];
+// } typedef A;
