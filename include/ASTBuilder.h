@@ -38,7 +38,8 @@ public:
 
 
     void exitIdentifier(const TSNode & cst_node);
-    void exitPrimitiveType(const TSNode & cst_node);
+    void exitMutableSpec(const TSNode &cst_node);
+    void exitPrimitiveType(const TSNode &cst_node);
     void exitParameter(const TSNode & cst_node);
     void exitDeclaration(const TSNode & cst_node);
     void exitParamList(const TSNode & cst_node);

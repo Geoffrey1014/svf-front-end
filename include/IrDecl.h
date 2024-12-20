@@ -52,6 +52,18 @@ public:
     }
 };
 
+class IrMutableSpec : public Ir {
+private:
+public:
+    IrMutableSpec(const TSNode& node) : Ir(node) {}
+    ~IrMutableSpec() = default;
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--mutable: true\n";
+        return prettyString;
+    }
+};
+
 class IrParamDecl : public Ir {
 private:
     IrType* paramType;

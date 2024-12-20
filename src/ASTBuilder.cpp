@@ -47,6 +47,11 @@ void ASTBuilder::exitIdentifier(const TSNode & cst_node) {
     this->ast_stack.push(node);
 }
 
+void ASTBuilder::exitMutableSpec(const TSNode & cst_node) {
+    Ir* node = new IrMutableSpec(cst_node);
+    this->ast_stack.push(node);
+}
+
 void ASTBuilder::exitParameter(const TSNode & cst_node) {
     Ir* node =nullptr;
     // Use stack to get the type and name
@@ -83,22 +88,6 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
         return;
     }
 
-    // Check for mutable binding
-    bool is_mutable = false;
-    TSNode mut_node = ts_node_child_by_field_name(cst_node, "mut", 3);
-    if (!ts_node_is_null(mut_node)) {
-        is_mutable = true;
-    }
-
-    // Get the name/pattern
-    IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
-    if (declName) {
-        this->ast_stack.pop();
-    } else {
-        std::cerr << "Error: Invalid declaration name/pattern" << std::endl;
-        return;
-    }
-
     // Get the type if specified
     IrType* declType = nullptr;
     TSNode type_node = ts_node_child_by_field_name(cst_node, "type", 4);
@@ -112,6 +101,23 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
         }
     }
 
+    // Check for mutable binding
+    bool is_mutable = false;
+    TSNode mut_node = ts_node_child_by_field_name(cst_node, "mutable_specifier", strlen("mutable_specifier"));
+    if (!ts_node_is_null(mut_node)) {
+        is_mutable = true;
+    }
+
+    // Get the name/pattern
+    IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+    if (declName) {
+        this->ast_stack.pop();
+    } else {
+        std::cerr << "Error: Invalid declaration name/pattern" << std::endl;
+        return;
+    }
+
+    cout << "is mutable: " << is_mutable << endl;
     // Create the declaration node
     node = new IrDecl(declName, declType, is_mutable, cst_node);
     this->ast_stack.push(node);
@@ -393,25 +399,34 @@ void ASTBuilder::exitExprStmt(const TSNode & cst_node){
     }
 }
 
-void ASTBuilder::exitTransUnit(const TSNode & cst_node){
+void ASTBuilder::exitTransUnit(const TSNode & cst_node) {
     IrTransUnit* node = new IrTransUnit(cst_node);
     uint32_t child_count = ts_node_named_child_count(cst_node);
 
     for (uint32_t i = 0; i < child_count; i++) {
-        IrDecl* child_d = dynamic_cast<IrDecl*>(this->ast_stack.top());
-        if (!child_d) {
-            IrFunctionDef* child_f = dynamic_cast<IrFunctionDef*>(this->ast_stack.top());
-            if (!child_f) {
-                std::cerr << "Error: Invalid child in translation unit" << std::endl;
-                return;
-            }
-            this->ast_stack.pop();
+        Ir* child = this->ast_stack.top();
+        this->ast_stack.pop();
+
+        IrDecl* child_d = dynamic_cast<IrDecl*>(child);
+        if (child_d) {
+            node->addToDeclarationList(child_d);
+            continue;
+        }
+
+        IrFunctionDef* child_f = dynamic_cast<IrFunctionDef*>(child);
+        if (child_f) {
             node->addToFunctionList(child_f);
+            continue;
         }
-        else {
-            this->ast_stack.pop();
-            node->addToDeclerationList(child_d);
+
+        IrStatement* child_s = dynamic_cast<IrStatement*>(child);
+        if (child_s) {
+            node->addToStatementList(child_s);
+            continue;
         }
+
+        std::cerr << "Error: Invalid child in translation unit" << std::endl;
+        return;
     }
     this->ast_stack.push(node);
 }
@@ -433,13 +448,13 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 1: // Identifier
             exitIdentifier(cst_node);
             break;
-        case 93: // primitive_type
+        case 30: // primitive_type
             exitPrimitiveType(cst_node);
             break;
         case 260: // parameter_declaration
             exitParameter(cst_node);
             break;
-        case 198: // declaration
+        case 201: // let_declaration
             exitDeclaration(cst_node);
             break;
         case 258: // parameter_list
@@ -448,10 +463,10 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 230: // function_declarator
             exitFunctionDeclarator(cst_node);
             break;
-        case 290: // function_definition
+        case 290: // binary expression
             exitBinaryExpr(cst_node);
             break;
-        case 141: // literal_number
+        case 125: // literal_number
             exitLiteralNumber(cst_node);
             break;
         case 275: // return_statement
@@ -469,17 +484,20 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 299: // call_expr
             exitCallExpr(cst_node);
             break;
-        case 287: // assign_expr
+        case 248: // assign_expr
             exitAssignExpr(cst_node);
             break;
-        case 266: //expression_statement
+        case 158: //expression_statement
             exitExprStmt(cst_node);
             break;
-        case 161:
+        case 155: // source_file
             exitTransUnit(cst_node);
             break;
+        case 120: // mutable_specifier
+            exitMutableSpec(cst_node);
+            break;
         default:
-            std::cerr << "Error: Unknown CST node type" << std::endl;
+            std::cerr << "Error: Unknown CST node type: " << std::to_string(symbol_type) << std::endl;
             break;
     }
 
