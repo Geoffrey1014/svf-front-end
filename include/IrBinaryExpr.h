@@ -36,15 +36,15 @@ public:
         std::string prettyString = indentSpace + "|--binaryExpr\n";
 
         // pretty print the lhs
-        prettyString += "  " + indentSpace + "|--lhs\n";
-        prettyString += this->leftOperand->prettyPrint("    " + indentSpace);
+        prettyString += addIndent(indentSpace) + + "|--lhs\n";
+        prettyString += this->leftOperand->prettyPrint(addIndent(indentSpace, 2));
 
         // print the operator
-        prettyString += "  " + indentSpace + "|--op: " + operation + "\n";
+        prettyString += addIndent(indentSpace) + "|--op: " + operation + "\n";
 
         // pretty print the rhs
-        prettyString += "  " + indentSpace + "|--rhs\n";
-        prettyString += this->rightOperand->prettyPrint("    " + indentSpace);
+        prettyString += addIndent(indentSpace) + "|--rhs\n";
+        prettyString += this->rightOperand->prettyPrint(addIndent(indentSpace, 2));
 
         return prettyString;
     }

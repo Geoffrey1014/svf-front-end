@@ -34,18 +34,18 @@ public:
         std::string prettyString = indentSpace + "|--subscript_expression\n";
 
         if (baseExpr) {
-            prettyString += baseExpr->prettyPrint("    " + indentSpace);
+            prettyString += baseExpr->prettyPrint(addIndent(indentSpace));
         } else {
-            prettyString += "    " + indentSpace + "|--Error: Missing base expression\n";
-        }
-        prettyString += indentSpace + "    |--index\n";
-        // Print index expression
-        if (indexExpr) {
-            prettyString += indexExpr->prettyPrint("      " + indentSpace);
-        } else {
-            prettyString += "    " + indentSpace + "|--Error: Missing index expression\n";
+            prettyString += addIndent(indentSpace) + "|--Error: Missing base expression\n";
         }
 
+        prettyString += addIndent(indentSpace) + "|--index\n";
+        // Print index expression
+        if (indexExpr) {
+             prettyString += indexExpr->prettyPrint(addIndent(indentSpace, 2));
+        } else {
+            prettyString += addIndent(indentSpace, 2) + "|--Error: Missing index expression\n";
+        }
         return prettyString;
     }
 };

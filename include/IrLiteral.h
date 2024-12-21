@@ -25,7 +25,7 @@ public:
 
     std::string prettyPrint(std::string indentSpace) {
         std::string prettyPrint = indentSpace + "|--boolLiteral\n";
-        prettyPrint += "  " + indentSpace + "|--value: " + (this->value ? "true" : "false") + "\n";
+        prettyPrint += addIndent(indentSpace)+ "|--value: " + (this->value ? "true" : "false") + "\n";
         return prettyPrint;
     }
 
@@ -54,7 +54,7 @@ public:
 
     std::string prettyPrint(std::string indentSpace) {
         std::string prettyPrint = indentSpace + "|--charLiteral\n";
-        prettyPrint += "  " + indentSpace + "|--value: " + this->value + "\n";
+        prettyPrint += addIndent(indentSpace) + "|--value: " + this->value + "\n";
         return prettyPrint;
     }
 
@@ -85,7 +85,7 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyPrint = indentSpace + "|--NumberLiteral\n";
-        prettyPrint += "  " + indentSpace + "|--value: " + std::to_string(this->value) + "\n";
+        prettyPrint += addIndent(indentSpace) + "|--value: " + std::to_string(this->value) + "\n";
         return prettyPrint;
     }
 
@@ -130,7 +130,7 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyPrint = indentSpace + "|--StringLiteral\n";
-        prettyPrint += stringContent->prettyPrint("  " + indentSpace);
+        prettyPrint += stringContent->prettyPrint(addIndent(indentSpace));
         return prettyPrint;
     }
 };

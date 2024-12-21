@@ -55,9 +55,9 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--type: struct\n";
         if (name) {
-            prettyString += name->prettyPrint(indentSpace + "  ");
+            prettyString += name->prettyPrint(addIndent(indentSpace));
         }
-        prettyString += fieldDeclList->prettyPrint(indentSpace + "  ");
+        prettyString += fieldDeclList->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
@@ -80,8 +80,8 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--typedef:\n";
-        prettyString += type->prettyPrint(indentSpace + "  ");
-        prettyString += alias->prettyPrint(indentSpace + "  ");
+        prettyString += type->prettyPrint(addIndent(indentSpace));
+        prettyString += alias->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 };

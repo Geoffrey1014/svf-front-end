@@ -37,13 +37,13 @@ public:
         std::string prettyString = indentSpace + "|--array_declarator\n";
 
         if (baseDeclarator) {
-            prettyString += baseDeclarator->prettyPrint("    " + indentSpace);
+            prettyString += baseDeclarator->prettyPrint(addIndent(indentSpace));
         } else{
             std::cout << "Error: Invalid base declarator" << std::endl;
         }
 
         if (sizeExpr){
-            prettyString += sizeExpr->prettyPrint("    " + indentSpace);
+            prettyString += sizeExpr->prettyPrint(addIndent(indentSpace));
         }
         
         return prettyString;
@@ -64,7 +64,7 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string str = indentSpace + "|--abstract_pointer_declarator: *\n";
         if(baseDeclarator){
-            str += baseDeclarator->prettyPrint(indentSpace + "  ");
+            str += baseDeclarator->prettyPrint(addIndent(indentSpace));
         }
         return str;
     }
@@ -79,7 +79,7 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string str = indentSpace + "|--pointer_declarator(*)\n";
-        str += baseDeclarator->prettyPrint(indentSpace + "  ");
+        str += baseDeclarator->prettyPrint(addIndent(indentSpace));
         return str;
     }
 };

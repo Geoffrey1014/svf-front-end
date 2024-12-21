@@ -16,7 +16,7 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--preprocInclude\n";
-        prettyString += path->prettyPrint("  " + indentSpace);
+        prettyString += path->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 };

@@ -30,9 +30,10 @@ public:
     // Pretty print for debugging
     std::string prettyPrint(std::string indentSpace) const override {
         std::string str = indentSpace + "|--field_declaration:\n";
-        str += type->prettyPrint(indentSpace + "  ");
+        str += type->prettyPrint(addIndent(indentSpace));
+
         if (declarator) {
-            str += declarator->prettyPrint(indentSpace + "  ");
+            str += declarator->prettyPrint(addIndent(indentSpace));
         }
         // if (bitfieldSize != -1) {
         //     str += indentSpace + "  |--bitfield_size: " + std::to_string(bitfieldSize) + "\n";
@@ -67,7 +68,7 @@ public:
         
         std::string str = indentSpace + "|--field_declaration_list:\n";
         for (auto* fieldDecl : fieldDeclarations) {
-            str += fieldDecl->prettyPrint(indentSpace + "  ");
+            str += fieldDecl->prettyPrint(addIndent(indentSpace));
         }
         return str;
     }
@@ -110,11 +111,11 @@ public:
         std::string prettyString = indentSpace + "|--param:\n";
 
         // Print the type
-        prettyString += this->paramType->prettyPrint("  " + indentSpace);
+        prettyString += paramType->prettyPrint(addIndent(indentSpace));
 
         // Print the declarator if it exists
         if (declarator) {
-            prettyString += declarator->prettyPrint("  " + indentSpace);
+            prettyString += declarator->prettyPrint(addIndent(indentSpace));
         }
 
         return prettyString;
@@ -147,7 +148,7 @@ public:
 
         // pretty print statement
         for (IrParamDecl* paramDecl: this->paramsList) {
-            prettyString += paramDecl->prettyPrint("  " + indentSpace);
+            prettyString += paramDecl->prettyPrint(addIndent(indentSpace));
         }
 
         return prettyString;
@@ -180,8 +181,8 @@ public:
     // Pretty print the function declarator
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_declarator\n";
-        prettyString += declarator->prettyPrint(indentSpace + "  ");
-        prettyString += paramsList->prettyPrint(indentSpace + "  ");
+        prettyString += declarator->prettyPrint(addIndent(indentSpace));
+        prettyString += paramsList->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 };
@@ -201,9 +202,9 @@ public:
     }
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_definition\n";
-        prettyString += returnType->prettyPrint("  " + indentSpace);
-        prettyString += functionDecl->prettyPrint("  " + indentSpace);
-        prettyString += compoundStmt->prettyPrint("  " + indentSpace);
+        prettyString += returnType->prettyPrint(addIndent(indentSpace));
+        prettyString += functionDecl->prettyPrint(addIndent(indentSpace));
+        prettyString += compoundStmt->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 };
@@ -227,8 +228,8 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--init_declarator:\n";
-        prettyString += declarator->prettyPrint(indentSpace + "  ");
-        prettyString += initializer->prettyPrint(indentSpace + "  ");
+        prettyString += declarator->prettyPrint(addIndent(indentSpace));
+        prettyString += initializer->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 };
@@ -269,18 +270,18 @@ public:
         std::string prettyString = indentSpace + "|--declaration:\n";
 
         if (specifier) {
-            prettyString += specifier->prettyPrint(indentSpace + "  ");
+            prettyString += specifier->prettyPrint(addIndent(indentSpace));
         }
 
-        prettyString += type->prettyPrint(indentSpace + "  ");
+        prettyString += type->prettyPrint(addIndent(indentSpace));
 
         if (!initDeclarators.empty()) {
             for (auto* initDecl : initDeclarators) {
-                prettyString += initDecl->prettyPrint(indentSpace + "  ");
+                prettyString += initDecl->prettyPrint(addIndent(indentSpace));
             }
         } else if (simpleDeclarator) {
             // If no initDecls, print the simpleDeclarator
-            prettyString += simpleDeclarator->prettyPrint(indentSpace + "  ");
+            prettyString += simpleDeclarator->prettyPrint(addIndent(indentSpace));
         }
 
         return prettyString;

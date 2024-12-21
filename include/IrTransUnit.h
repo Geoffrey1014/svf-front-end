@@ -48,19 +48,19 @@ public:
         std::string prettyString = indentSpace + "|--transUnit:\n";
 
         for (Ir* decleration: this->declerationList) {
-            prettyString += decleration->prettyPrint("  " + indentSpace);
+            prettyString += decleration->prettyPrint(addIndent(indentSpace));
         }
 
         for (Ir* preprocInclude: this->preprocIncludeList) {
-            prettyString += preprocInclude->prettyPrint("  " + indentSpace);
+            prettyString += preprocInclude->prettyPrint(addIndent(indentSpace));
         }
 
         for (Ir* transUnit: this->functionList) {
-            prettyString += transUnit->prettyPrint("  " + indentSpace);
+            prettyString += transUnit->prettyPrint(addIndent(indentSpace));
         }
 
         for (Ir* typeDef: this->typeDefList) {
-            prettyString += typeDef->prettyPrint("  " + indentSpace);
+            prettyString += typeDef->prettyPrint(addIndent(indentSpace));
         }
 
         return prettyString;

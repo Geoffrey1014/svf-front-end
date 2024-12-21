@@ -36,7 +36,7 @@ public:
         std::string prettyString = indentSpace + "|--returnExpr\n";
 
         // pretty print the expression
-        prettyString += this->result->prettyPrint("  " + indentSpace);
+        prettyString += this->result->prettyPrint(addIndent(indentSpace));
 
         return prettyString;
     }
@@ -80,7 +80,7 @@ public:
         std::string prettyString = indentSpace + "|--compoundStmt:\n";
 
         for (IrStatement* statement: this->stmtsList) {
-            prettyString += statement->prettyPrint("  " + indentSpace);
+            prettyString += statement->prettyPrint(addIndent(indentSpace));
         }
 
         return prettyString;
@@ -104,7 +104,7 @@ public:
         std::string prettyString = indentSpace + "|--exprStmt\n";
 
         // pretty print the expression
-        prettyString += this->expr->prettyPrint("  " + indentSpace);
+        prettyString += this->expr->prettyPrint(addIndent(indentSpace));
 
         return prettyString;
     }

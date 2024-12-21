@@ -32,11 +32,11 @@ public:
         std::string prettyString = indentSpace + "|--callExpr\n";
 
         // print the function name
-        prettyString += "  " + indentSpace + "|--functionName\n";
-        prettyString += this->functionName->prettyPrint("    " + indentSpace);
+        prettyString += addIndent(indentSpace) + "|--functionName\n";
+        prettyString += this->functionName->prettyPrint(addIndent(indentSpace, 2));
 
         // print the argument list
-        prettyString += this->argList->prettyPrint("  " + indentSpace);
+        prettyString += this->argList->prettyPrint(addIndent(indentSpace));
 
         return prettyString;
     }
@@ -65,12 +65,12 @@ public:
         std::string prettyString = indentSpace + "|--assignExpr\n";
 
         // pretty print the lhs
-        prettyString += "  " + indentSpace + "|--lhs\n";
-        prettyString += this->lhs->prettyPrint("    " + indentSpace);
+        prettyString += addIndent(indentSpace) + "|--lhs\n";
+        prettyString += this->lhs->prettyPrint(addIndent(indentSpace, 2));
 
         // pretty print the rhs
-        prettyString += "  " + indentSpace + "|--rhs\n";
-        prettyString += this->rhs->prettyPrint("    " + indentSpace);
+        prettyString += addIndent(indentSpace) + "|--rhs\n";
+        prettyString += this->rhs->prettyPrint(addIndent(indentSpace, 2));
 
         return prettyString;
     }    
@@ -95,9 +95,9 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string op = isArrow ? "->" : ".";
         std::string prettyString = indentSpace + "|--field_expression\n";
-        prettyString += baseExpr->prettyPrint(indentSpace + "  ");
-        prettyString += indentSpace + "  |--op: " + op + "\n";
-        prettyString += fieldName->prettyPrint(indentSpace + "  ");
+        prettyString += baseExpr->prettyPrint(addIndent(indentSpace));
+        prettyString += addIndent(indentSpace) + "|--op: " + op + "\n";
+        prettyString += fieldName->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
@@ -125,15 +125,14 @@ public:
     bool getIsDereference() const { return isDereference; }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string op;
-        if (isAddressOf)    op = "&";
-        else if (isDereference) op = "*";
-
+        std::string op = isAddressOf ? "&" : "*";
         std::string prettyString = indentSpace + "|--pointer_expression\n";
-        prettyString += indentSpace + "  |--op: " + op + "\n";
+
+        prettyString += addIndent(indentSpace) + "|--op: " + op + "\n";
         if (argument) {
-            prettyString += argument->prettyPrint(indentSpace + "  ");
+            prettyString += argument->prettyPrint(addIndent(indentSpace));
         }
+        
         return prettyString;
     }
 };
