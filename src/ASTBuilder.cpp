@@ -236,9 +236,18 @@ void ASTBuilder::exitLiteralNumber(const TSNode & cst_node){
 void ASTBuilder::exitArgList(const TSNode & cst_node){
     IrArgList* argList = new IrArgList(cst_node);
     uint32_t arg_count = ts_node_named_child_count(cst_node);
+
+    std::vector<IrExpr*> tempArgs;
+    tempArgs.reserve(arg_count);
+
     for (uint32_t i = 0; i < arg_count; i++) {
         IrExpr* arg = dynamic_cast<IrExpr*>(this->ast_stack.top());
         this->ast_stack.pop();
+        tempArgs.push_back(arg);
+    }
+    // Reverse the vector to restore the original left-to-right argument order
+    std::reverse(tempArgs.begin(), tempArgs.end());
+    for (auto* arg : tempArgs) {
         argList->addToArgsList(arg);
     }
     this->ast_stack.push(argList);
@@ -521,7 +530,6 @@ void ASTBuilder::exitAbstractPointerDeclarator(const TSNode &cst_node) {
             }
         }
 
-        // Create a new IrAbstractPointerDeclarator node
         IrAbstractPointerDeclarator* pointerDeclarator = new IrAbstractPointerDeclarator(baseDeclarator, cst_node);
         this->ast_stack.push(pointerDeclarator);
     } catch (const std::exception& e) {
@@ -646,6 +654,19 @@ void ASTBuilder::exitFieldExpression(const TSNode & cst_node) {
     this->ast_stack.push(fieldExpr);
 }
 
+void ASTBuilder::exitPointerExpression(const TSNode &cst_node) {
+
+    IrExpr* argument = this->popFromStack<IrExpr>(cst_node);
+
+    TSNode operator_node = ts_node_child(cst_node, 0);
+    std::string opText = getNodeText(operator_node);
+
+    bool isAddressOf = (opText == "&");
+    bool isDereference = (opText == "*");
+
+    IrPointerExpr* pointerExpr = new IrPointerExpr(argument, isAddressOf, isDereference, cst_node);
+    this->ast_stack.push(pointerExpr);
+}
 
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
@@ -754,8 +775,11 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 161: // translation_unit
             exitTransUnit(cst_node);
             break;
-        case 310:
+        case 310: // field_expression
             exitFieldExpression(cst_node);
+            break;
+        case 288: // pointer_expression
+            exitPointerExpression(cst_node);
             break;
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;

@@ -5,24 +5,26 @@
 // #include "stdbool.h"
 // extern void svf_assert(bool);
 
-typedef struct {
-    int a;
-    int b[2];
-} A;
-
-int getValue(A* arr, int x) {
-    return arr->b[x];
-}
+// typedef struct {
+//     int a;
+//     int b[2];
+// } A;
 
 // int getValue(A* arr, int x) {
 //     return arr->b[x];
 // }
 
+int main() {
+    int a;
+    svf_assert(getValue(&a, 1) == 2);
+    return 0;
+}
+
 // int main() {
 //     A a;
-//     a.a = 0;
-//     a.b[0] = 1;
-//     a.b[1] = 2;
+//     // a.a = 0;
+//     // a.b[0] = 1;
+//     // a.b[1] = 2;
 //     svf_assert(getValue(&a, 1) == 2);
 //     return 0;
 // }

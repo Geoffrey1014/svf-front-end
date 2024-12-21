@@ -71,6 +71,7 @@ public:
     void exitTypeDefinition(const TSNode & cst_node);
     void exitTypeIdentifier(const TSNode & cst_node);
     void exitFieldExpression(const TSNode & cst_node);
+    void exitPointerExpression(const TSNode & cst_node);
 
     void debugStackState() const;
 

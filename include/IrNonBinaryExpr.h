@@ -77,7 +77,7 @@ public:
 
 };
 
-class IrFieldExpr : public IrExpr {
+class IrFieldExpr : public IrNonBinaryExpr {
 private:
     IrExpr* baseExpr;
     IrIdent* fieldName;
@@ -85,7 +85,7 @@ private:
 
 public:
     IrFieldExpr(IrExpr* base, IrIdent* field, bool isArrow, const TSNode & node) 
-      : Ir(node), IrExpr(node), baseExpr(base), fieldName(field), isArrow(isArrow) {}
+      : Ir(node), IrNonBinaryExpr(node), baseExpr(base), fieldName(field), isArrow(isArrow) {}
 
     ~IrFieldExpr() override {
         delete baseExpr;
@@ -104,6 +104,38 @@ public:
     IrExpr* getBaseExpr() const { return baseExpr; }
     IrIdent* getFieldName() const { return fieldName; }
     bool getIsArrow() const { return isArrow; }
+};
+
+class IrPointerExpr : public IrNonBinaryExpr {
+private:
+    IrExpr* argument;
+    bool isAddressOf;   // true if operator is '&'
+    bool isDereference; // true if operator is '*'
+
+public:
+    IrPointerExpr(IrExpr* arg, bool addressOf, bool dereference, const TSNode & node)
+        : Ir(node), IrNonBinaryExpr(node), argument(arg), isAddressOf(addressOf), isDereference(dereference) {}
+
+    ~IrPointerExpr() override {
+        delete argument;
+    }
+
+    IrExpr* getArgument() const { return argument; }
+    bool getIsAddressOf() const { return isAddressOf; }
+    bool getIsDereference() const { return isDereference; }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string op;
+        if (isAddressOf)    op = "&";
+        else if (isDereference) op = "*";
+
+        std::string prettyString = indentSpace + "|--pointer_expression\n";
+        prettyString += indentSpace + "  |--op: " + op + "\n";
+        if (argument) {
+            prettyString += argument->prettyPrint(indentSpace + "  ");
+        }
+        return prettyString;
+    }
 };
 
 #endif
