@@ -38,10 +38,10 @@ public:
         } else {
             prettyString += "    " + indentSpace + "|--Error: Missing base expression\n";
         }
-
+        prettyString += indentSpace + "    |--index\n";
         // Print index expression
         if (indexExpr) {
-            prettyString += indexExpr->prettyPrint("    " + indentSpace);
+            prettyString += indexExpr->prettyPrint("      " + indentSpace);
         } else {
             prettyString += "    " + indentSpace + "|--Error: Missing index expression\n";
         }
