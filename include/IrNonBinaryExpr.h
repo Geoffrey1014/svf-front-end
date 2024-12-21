@@ -14,7 +14,8 @@ private:
     IrArgList* argList;
 
 public:
-    IrCallExpr(IrIdent* functionName, IrArgList* argList, const TSNode & node) : Ir(node), IrNonBinaryExpr(node), functionName(functionName), argList(argList) {}
+    IrCallExpr(IrIdent* functionName, IrArgList* argList, const TSNode & node) 
+        : Ir(node), IrNonBinaryExpr(node), functionName(functionName), argList(argList) {}
     ~IrCallExpr() {
         delete functionName;
         delete argList;
@@ -46,7 +47,8 @@ private:
     IrExpr* lhs;
     IrExpr* rhs;
 public:
-    IrAssignExpr(IrExpr* lhs, IrExpr* rhs, const TSNode & node) : Ir(node), IrNonBinaryExpr(node), lhs(lhs), rhs(rhs) {}
+    IrAssignExpr(IrExpr* lhs, IrExpr* rhs, const TSNode & node) 
+        : Ir(node), IrNonBinaryExpr(node), lhs(lhs), rhs(rhs) {}
     ~IrAssignExpr() {
         delete lhs;
         delete rhs;
@@ -73,6 +75,35 @@ public:
         return prettyString;
     }    
 
+};
+
+class IrFieldExpr : public IrExpr {
+private:
+    IrExpr* baseExpr;
+    IrIdent* fieldName;
+    bool isArrow; 
+
+public:
+    IrFieldExpr(IrExpr* base, IrIdent* field, bool isArrow, const TSNode & node) 
+      : Ir(node), IrExpr(node), baseExpr(base), fieldName(field), isArrow(isArrow) {}
+
+    ~IrFieldExpr() override {
+        delete baseExpr;
+        delete fieldName;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string op = isArrow ? "->" : ".";
+        std::string prettyString = indentSpace + "|--field_expression\n";
+        prettyString += baseExpr->prettyPrint(indentSpace + "  ");
+        prettyString += indentSpace + "  |--op: " + op + "\n";
+        prettyString += fieldName->prettyPrint(indentSpace + "  ");
+        return prettyString;
+    }
+
+    IrExpr* getBaseExpr() const { return baseExpr; }
+    IrIdent* getFieldName() const { return fieldName; }
+    bool getIsArrow() const { return isArrow; }
 };
 
 #endif

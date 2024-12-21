@@ -622,6 +622,30 @@ void ASTBuilder::exitTypeIdentifier(const TSNode &cst_node) {
         std::cerr << "Error in exitTypeIdentifier: " << e.what() << std::endl;
     }
 }
+    // field_expression: $ => seq(
+    //   prec(PREC.FIELD, seq(
+    //     field('argument', $.expression),
+    //     field('operator', choice('.', '->')),
+    //   )),
+    //   field('field', $._field_identifier),
+    // ),
+    // arr --> b
+    // arguement operator field
+void ASTBuilder::exitFieldExpression(const TSNode & cst_node) {
+
+    IrIdent* fieldName = this->popFromStack<IrIdent>(cst_node);
+
+    TSNode operator_node = ts_node_child(cst_node, 1); // second child is the op node
+    std::string opText = getNodeText(operator_node);
+    bool isArrow = (opText == "->");
+
+    IrExpr* baseExpr = this->popFromStack<IrExpr>(cst_node);
+
+    // Create the field expression node
+    IrFieldExpr* fieldExpr = new IrFieldExpr(baseExpr, fieldName, isArrow, cst_node);
+    this->ast_stack.push(fieldExpr);
+}
+
 
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
@@ -729,6 +753,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 161: // translation_unit
             exitTransUnit(cst_node);
+            break;
+        case 310:
+            exitFieldExpression(cst_node);
             break;
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;

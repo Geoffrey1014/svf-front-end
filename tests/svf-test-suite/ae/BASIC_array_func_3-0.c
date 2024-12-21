@@ -11,12 +11,8 @@ typedef struct {
 } A;
 
 int getValue(A* arr, int x) {
-    return 0;
+    return arr->b[x];
 }
-
-// int getValue(A* arr, int x) {
-//     return arr->b[x];
-// }
 
 // int getValue(A* arr, int x) {
 //     return arr->b[x];
