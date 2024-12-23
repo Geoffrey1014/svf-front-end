@@ -4,7 +4,7 @@
 
 class IrLiteral : public IrExpr {
 public:
-    IrLiteral(const TSNode& node) : IrExpr(node) {}
+    IrLiteral(const TSNode& node) : IrExpr(node), Ir(node) {}
 };
 
 
@@ -13,7 +13,7 @@ private:
     bool value;
 
 public:
-    IrLiteralBool(bool value, const TSNode& node) : IrLiteral(node), value(value) {}
+    IrLiteralBool(bool value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
     ~IrLiteralBool() = default;
     // IrType* getExpressionType() {
     //     return new IrTypeBool(this->getLineNumber(), this->getColNumber());
@@ -25,7 +25,7 @@ public:
 
     std::string prettyPrint(std::string indentSpace) {
         std::string prettyPrint = indentSpace + "|--boolLiteral\n";
-        prettyPrint += "  " + indentSpace + "|--value: " + (this->value ? "true" : "false") + "\n";
+        prettyPrint += addIndent(indentSpace)+ "|--value: " + (this->value ? "true" : "false") + "\n";
         return prettyPrint;
     }
 
@@ -40,7 +40,7 @@ private:
     char value;
 
 public:
-    IrLiteralChar(char value, const TSNode& node) : IrLiteral(node), value(value) {}
+    IrLiteralChar(char value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
     ~IrLiteralChar() = default;
     // IrType* getExpressionType() {
     //     // it's definitely not of type void but it
@@ -54,7 +54,7 @@ public:
 
     std::string prettyPrint(std::string indentSpace) {
         std::string prettyPrint = indentSpace + "|--charLiteral\n";
-        prettyPrint += "  " + indentSpace + "|--value: " + this->value + "\n";
+        prettyPrint += addIndent(indentSpace) + "|--value: " + this->value + "\n";
         return prettyPrint;
     }
 
@@ -69,7 +69,7 @@ private:
     long value;
 
 public:
-    IrLiteralNumber(long value, const TSNode& node) : IrLiteral(node), value(value) {}
+    IrLiteralNumber(long value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
     ~IrLiteralNumber() = default;
     long getValue() {
         return this->value;
@@ -85,7 +85,7 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyPrint = indentSpace + "|--NumberLiteral\n";
-        prettyPrint += "  " + indentSpace + "|--value: " + std::to_string(this->value) + "\n";
+        prettyPrint += addIndent(indentSpace) + "|--value: " + std::to_string(this->value) + "\n";
         return prettyPrint;
     }
 
@@ -94,36 +94,45 @@ public:
     // }
 };
 
+class IrLiteralStringContent : public IrLiteral {
+private:
+    std::string value;
+
+public:
+    IrLiteralStringContent(const std::string& value, const TSNode& node)
+        : IrLiteral(node), Ir(node), value(value) {}
+
+    const std::string& getValue() const {
+        return value;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        return indentSpace + "|--stringContent: " + value + "\n";
+    }
+};
+
 
 class IrLiteralString : public IrLiteral {
 private:
-    std::string* value;
+    IrLiteralStringContent* stringContent;
 
 public:
-    IrLiteralString(std::string* value,const TSNode& node) : IrLiteral(node), value(value) {}
+    IrLiteralString(IrLiteralStringContent* stringContent, const TSNode& node)
+        : IrLiteral(node), Ir(node), stringContent(stringContent) {}
+
     ~IrLiteralString() {
-        delete value;
-    }
-    std::string* getValue() {
-        return this->value;
+        delete stringContent;
     }
 
-    // IrType* getExpressionType() {
-    //     return new IrTypeString(this->getLineNumber(), this->getColNumber());
-    // }
+    const std::string& getValue() const {
+        return stringContent->getValue();
+    }
 
-    // std::string semanticCheck(ScopeStack* scopeStack) {
-    //     return "";
-    // }
-
-    std::string prettyPrint(std::string indentSpace) {
+    std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyPrint = indentSpace + "|--StringLiteral\n";
-        prettyPrint += "  " + indentSpace + "|--value: " + *(this->value) + "\n";
+        prettyPrint += stringContent->prettyPrint(addIndent(indentSpace));
         return prettyPrint;
     }
-
-    // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
-    //     return nullptr;
-    // }
 };
+
 #endif

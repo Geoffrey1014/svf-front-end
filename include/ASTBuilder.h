@@ -11,14 +11,19 @@
 #include "Ir/IrStatement.h"
 #include "Ir/IrNonBinaryExpr.h"
 #include "IrTransUnit.h"
-#include "main.h"
+#include "IrPreprocInclude.h"
+#include "IrStorageClassSpecifier.h"
+#include "IrSubscriptExpr.h"
+#include "IrDeclarator.h"
+#include "IrTypeComposite.h"
 
+#include "main.h"
 
 
 class ASTBuilder {
     private:
     std::stack<Ir*> ast_stack;
-    const string* source_code;
+    const std::string* source_code;
     const TSLanguage* language;
     Ir* root_node;
 public:
@@ -30,16 +35,13 @@ public:
         delete source_code;
     }
 
-    std::string* getNodeText(const TSNode & node) {
-        unsigned start = ts_node_start_byte(node);
-        unsigned end = ts_node_end_byte(node);
-        return new std::string(source_code->substr(start, end - start));
-    }
-
+    template <typename T>
+    T* popFromStack(const TSNode& cst_node);
+    
+    std::string getNodeText(const TSNode &cst_node);
 
     void exitIdentifier(const TSNode & cst_node);
     void exitPrimitiveType(const TSNode & cst_node);
-    void exitParameter(const TSNode & cst_node);
     void exitDeclaration(const TSNode & cst_node);
     void exitParamList(const TSNode & cst_node);
     void exitFunctionDeclarator(const TSNode & cst_node);
@@ -53,8 +55,27 @@ public:
     void exitCallExpr(const TSNode & cst_node);
     void exitAssignExpr(const TSNode & cst_node);
     void exitExprStmt(const TSNode & cst_node);
-    void exitTransUnit(const TSNode & cst_node);
+    void exitStringContent(const TSNode & cst_node);
+    void exitLiteralString(const TSNode & cst_node);
+    void exitPreprocInclude(const TSNode & cst_node);
+    void exitStorageClassSpecifier(const TSNode & cst_node);
+    void exitArrayDeclarator(const TSNode & cst_node);
+    void exitSubscriptExpression(const TSNode & cst_node);
+    void exitInitDeclarator(const TSNode & cst_node);
+    void exitParameter(const TSNode & cst_node);
+    void exitAbstractPointerDeclarator(const TSNode & cst_node);
+    void exitPointerDeclarator(const TSNode & cst_node);
+    void exitFieldDeclaration(const TSNode & cst_node);
+    void exitFieldDeclarationList(const TSNode & cst_node);
+    void exitStructSpecifier(const TSNode & cst_node);
+    void exitTypeDefinition(const TSNode & cst_node);
+    void exitTypeIdentifier(const TSNode & cst_node);
+    void exitFieldExpression(const TSNode & cst_node);
+    void exitPointerExpression(const TSNode & cst_node);
 
+    void debugStackState() const;
+
+    void exitTransUnit(const TSNode & cst_node);
 
     void exit_cst_node(const TSNode & cst_node);
     void enter_cst_node(const TSNode & cst_node);
@@ -65,11 +86,17 @@ public:
     /// build the AST, return the root node. The user should delete the returned pointer.
     /// @param cst_root the root node of the CST
     /// @return the root node of the AST
-    Ir* build(const TSNode & cst_root) {
+    Ir* build(const TSNode &cst_root) {
         traverse_tree(cst_root);
+        if (ast_stack.empty()) {
+            std::cerr << "Error: AST stack is empty after traversal." << std::endl;
+            return nullptr;
+        }
         root_node = ast_stack.top();
         ast_stack.pop();
         return root_node;
     }
 };
+
+#include "ASTBuilder.tpp"
 #endif

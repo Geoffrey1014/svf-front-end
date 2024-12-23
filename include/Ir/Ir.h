@@ -4,7 +4,6 @@
 #include <tree_sitter/api.h> 
 #include <vector>
 
-
 using namespace std;
 
 class Ir {
@@ -22,10 +21,18 @@ class Ir {
         return ts_node_start_point(node).column;
     }
 
+    virtual bool operator==(const Ir& other) const {
+        return this == &other;
+    }
+
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
     // virtual LlLocation generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) = 0;
-
+    // indentSpace -- current indentation level
     virtual std::string prettyPrint(std::string indentSpace) const =0;
+    
+    std::string addIndent(const std::string& baseIndent, int level = 1) const {
+        return baseIndent + std::string(level * 2, ' '); // 2 spaces per level
+    }
 
     virtual std::string toString() {
         return "ASTNode: " + std::to_string(getLineNumber()) + ", " + std::to_string(getColNumber()) + " - " + std::to_string(ts_node_end_point(node).row) + ", " + std::to_string(ts_node_end_point(node).column);

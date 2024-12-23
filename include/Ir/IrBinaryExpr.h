@@ -4,16 +4,15 @@
 
 class IrBinaryExpr : public IrExpr {
 private:
-    std::string* operation;
+    std::string operation;
     IrExpr* leftOperand;
     IrExpr* rightOperand;
 
 public:
-    IrBinaryExpr(std::string* operation, IrExpr* leftOperand, IrExpr* rightOperand, const TSNode & node) 
-        : IrExpr(node), operation(operation), 
+    IrBinaryExpr(std::string& operation, IrExpr* leftOperand, IrExpr* rightOperand, const TSNode & node) 
+        : Ir(node), IrExpr(node), operation(operation), 
           leftOperand(leftOperand), rightOperand(rightOperand) {}
     ~IrBinaryExpr() {
-        delete operation;
         delete leftOperand;
         delete rightOperand;
     }
@@ -25,27 +24,27 @@ public:
         return this->rightOperand;
     }
 
-    std::string* getOperation() {
+    std::string& getOperation() {
         return this->operation;
     }
 
     std::string toString() {
-        return leftOperand->toString() + " " + *operation + " " + rightOperand->toString();
+        return leftOperand->toString() + " " + operation + " " + rightOperand->toString();
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--binaryExpr\n";
 
         // pretty print the lhs
-        prettyString += "  " + indentSpace + "|--lhs\n";
-        prettyString += this->leftOperand->prettyPrint("    " + indentSpace);
+        prettyString += addIndent(indentSpace) + + "|--lhs\n";
+        prettyString += this->leftOperand->prettyPrint(addIndent(indentSpace, 2));
 
         // print the operator
-        prettyString += "  " + indentSpace + "|--op: " + *(this->operation) + "\n";
+        prettyString += addIndent(indentSpace) + "|--op: " + operation + "\n";
 
         // pretty print the rhs
-        prettyString += "  " + indentSpace + "|--rhs\n";
-        prettyString += this->rightOperand->prettyPrint("    " + indentSpace);
+        prettyString += addIndent(indentSpace) + "|--rhs\n";
+        prettyString += this->rightOperand->prettyPrint(addIndent(indentSpace, 2));
 
         return prettyString;
     }

@@ -6,9 +6,9 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
     LlBuildersList* llBuildersList = new LlBuildersList();
     for (IrDecl* decl: this->declerationList) {
         if (program.is_used("--verbose"))
-            cout << "Decleration: " << *(decl->getName()) << endl;
-        
-        LlLocationVar* var = new LlLocationVar((decl->getName()));
+            cout << "Decleration: " << (decl->getName()) << endl;
+        std::string name = decl->getName();
+        LlLocationVar* var = new LlLocationVar(&name);
         llBuildersList->addToGlobalVars(var);
     }
 

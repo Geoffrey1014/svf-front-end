@@ -28,13 +28,11 @@ public:
 
         // pretty print statement
         for (IrExpr* arg: this->argsList) {
-            prettyString += arg->prettyPrint("  " + indentSpace);
+            prettyString += arg->prettyPrint(addIndent(indentSpace)); 
         }
 
         return prettyString;
     }
 };
-
-
 
 #endif

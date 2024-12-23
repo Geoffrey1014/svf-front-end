@@ -14,7 +14,8 @@ private:
     IrArgList* argList;
 
 public:
-    IrCallExpr(IrIdent* functionName, IrArgList* argList, const TSNode & node) : IrNonBinaryExpr(node), functionName(functionName), argList(argList) {}
+    IrCallExpr(IrIdent* functionName, IrArgList* argList, const TSNode & node) 
+        : Ir(node), IrNonBinaryExpr(node), functionName(functionName), argList(argList) {}
     ~IrCallExpr() {
         delete functionName;
         delete argList;
@@ -31,11 +32,11 @@ public:
         std::string prettyString = indentSpace + "|--callExpr\n";
 
         // print the function name
-        prettyString += "  " + indentSpace + "|--functionName\n";
-        prettyString += this->functionName->prettyPrint("    " + indentSpace);
+        prettyString += addIndent(indentSpace) + "|--functionName\n";
+        prettyString += this->functionName->prettyPrint(addIndent(indentSpace, 2));
 
         // print the argument list
-        prettyString += this->argList->prettyPrint("  " + indentSpace);
+        prettyString += this->argList->prettyPrint(addIndent(indentSpace));
 
         return prettyString;
     }
@@ -46,7 +47,8 @@ private:
     IrExpr* lhs;
     IrExpr* rhs;
 public:
-    IrAssignExpr(IrExpr* lhs, IrExpr* rhs, const TSNode & node) : IrNonBinaryExpr(node), lhs(lhs), rhs(rhs) {}
+    IrAssignExpr(IrExpr* lhs, IrExpr* rhs, const TSNode & node) 
+        : Ir(node), IrNonBinaryExpr(node), lhs(lhs), rhs(rhs) {}
     ~IrAssignExpr() {
         delete lhs;
         delete rhs;
@@ -63,16 +65,76 @@ public:
         std::string prettyString = indentSpace + "|--assignExpr\n";
 
         // pretty print the lhs
-        prettyString += "  " + indentSpace + "|--lhs\n";
-        prettyString += this->lhs->prettyPrint("    " + indentSpace);
+        prettyString += addIndent(indentSpace) + "|--lhs\n";
+        prettyString += this->lhs->prettyPrint(addIndent(indentSpace, 2));
 
         // pretty print the rhs
-        prettyString += "  " + indentSpace + "|--rhs\n";
-        prettyString += this->rhs->prettyPrint("    " + indentSpace);
+        prettyString += addIndent(indentSpace) + "|--rhs\n";
+        prettyString += this->rhs->prettyPrint(addIndent(indentSpace, 2));
 
         return prettyString;
     }    
 
+};
+
+class IrFieldExpr : public IrNonBinaryExpr {
+private:
+    IrExpr* baseExpr;
+    IrIdent* fieldName;
+    bool isArrow; 
+
+public:
+    IrFieldExpr(IrExpr* base, IrIdent* field, bool isArrow, const TSNode & node) 
+      : Ir(node), IrNonBinaryExpr(node), baseExpr(base), fieldName(field), isArrow(isArrow) {}
+
+    ~IrFieldExpr() override {
+        delete baseExpr;
+        delete fieldName;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string op = isArrow ? "->" : ".";
+        std::string prettyString = indentSpace + "|--field_expression\n";
+        prettyString += baseExpr->prettyPrint(addIndent(indentSpace));
+        prettyString += addIndent(indentSpace) + "|--op: " + op + "\n";
+        prettyString += fieldName->prettyPrint(addIndent(indentSpace));
+        return prettyString;
+    }
+
+    IrExpr* getBaseExpr() const { return baseExpr; }
+    IrIdent* getFieldName() const { return fieldName; }
+    bool getIsArrow() const { return isArrow; }
+};
+
+class IrPointerExpr : public IrNonBinaryExpr {
+private:
+    IrExpr* argument;
+    bool isAddressOf;   // true if operator is '&'
+    bool isDereference; // true if operator is '*'
+
+public:
+    IrPointerExpr(IrExpr* arg, bool addressOf, bool dereference, const TSNode & node)
+        : Ir(node), IrNonBinaryExpr(node), argument(arg), isAddressOf(addressOf), isDereference(dereference) {}
+
+    ~IrPointerExpr() override {
+        delete argument;
+    }
+
+    IrExpr* getArgument() const { return argument; }
+    bool getIsAddressOf() const { return isAddressOf; }
+    bool getIsDereference() const { return isDereference; }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string op = isAddressOf ? "&" : "*";
+        std::string prettyString = indentSpace + "|--pointer_expression\n";
+
+        prettyString += addIndent(indentSpace) + "|--op: " + op + "\n";
+        if (argument) {
+            prettyString += argument->prettyPrint(addIndent(indentSpace));
+        }
+        
+        return prettyString;
+    }
 };
 
 #endif
