@@ -243,19 +243,12 @@ void ASTBuilder::exitArgList(const TSNode & cst_node){
     IrArgList* argList = new IrArgList(cst_node);
     uint32_t arg_count = ts_node_named_child_count(cst_node);
 
-    std::vector<IrExpr*> tempArgs;
-    tempArgs.reserve(arg_count);
-
     for (uint32_t i = 0; i < arg_count; i++) {
         IrExpr* arg = dynamic_cast<IrExpr*>(this->ast_stack.top());
         this->ast_stack.pop();
-        tempArgs.push_back(arg);
-    }
-    // Reverse the vector to restore the original left-to-right argument order
-    std::reverse(tempArgs.begin(), tempArgs.end());
-    for (auto* arg : tempArgs) {
         argList->addToArgsList(arg);
     }
+
     this->ast_stack.push(argList);
 }
 

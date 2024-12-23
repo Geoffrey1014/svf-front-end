@@ -47,7 +47,7 @@ public:
 
 class IrFieldDeclList : public Ir {
 private:
-    std::vector<IrFieldDecl*> fieldDeclarations; // List of field declarations
+    std::deque<IrFieldDecl*> fieldDeclarations; // List of field declarations
 
 public:
     IrFieldDeclList(const TSNode& node) : Ir(node) {}
@@ -59,7 +59,7 @@ public:
     }
 
     void addField(IrFieldDecl* fieldDecl) {
-        fieldDeclarations.push_back(fieldDecl);
+        fieldDeclarations.push_front(fieldDecl);
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
