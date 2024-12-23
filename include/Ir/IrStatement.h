@@ -36,7 +36,6 @@ public:
     std::string prettyPrint(std::string indentSpace)const override {
         std::string prettyString = indentSpace + "|--returnExpr\n";
 
-        // pretty print the expression
         prettyString += this->result->prettyPrint(addIndent(indentSpace));
 
         return prettyString;

@@ -134,7 +134,6 @@ public:
     IrIdent(const std::string& name, const TSNode & node, bool isTypeAlias = false) : Ir(node), IrDeclDeclarator(node), IrExpr(node), name(name) {}
     ~IrIdent() = default;
 
-    // Getter for name
     const std::string & getValue() const {
         return name;
     }

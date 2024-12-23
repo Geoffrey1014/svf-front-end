@@ -35,9 +35,6 @@ class Ir {
         return baseIndent + std::string(level * 2, ' '); // 2 spaces per level
     }
 
-    // virtual std::string toString() {
-    //     return "ASTNode: " + std::to_string(getLineNumber()) + ", " + std::to_string(getColNumber()) + " - " + std::to_string(ts_node_end_point(node).row) + ", " + std::to_string(ts_node_end_point(node).column);
-    // }
 };
 
 #endif

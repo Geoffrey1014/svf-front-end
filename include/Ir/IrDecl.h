@@ -27,7 +27,6 @@ public:
 
     // int getBitfieldSize() const { return bitfieldSize; }
 
-    // Pretty print for debugging
     std::string prettyPrint(std::string indentSpace) const override {
         std::string str = indentSpace + "|--field_declaration:\n";
         str += type->prettyPrint(addIndent(indentSpace));
@@ -59,12 +58,10 @@ public:
         }
     }
 
-    // Add a field declaration to the list
     void addField(IrFieldDecl* fieldDecl) {
         fieldDeclarations.push_back(fieldDecl);
     }
 
-    // Pretty print for debugging
     std::string prettyPrint(std::string indentSpace) const override {
         if (fieldDeclarations.empty()) {
             return "";
@@ -100,17 +97,14 @@ public:
         delete declarator;
     }
 
-    // Getter for type
     IrType* getParamType() const {
         return this->paramType;
     }
 
-    // Getter for declarator
     IrDeclDeclarator* getDeclarator() const {
         return this->declarator;
     }
 
-    // Convert to string
     std::string toString() const{
         if (declarator) {
             return paramType->toString() + " " + declarator->toString();
@@ -118,14 +112,11 @@ public:
         return paramType->toString();
     }
 
-    // Pretty print the parameter
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--param:\n";
 
-        // Print the type
         prettyString += paramType->prettyPrint(addIndent(indentSpace));
 
-        // Print the declarator if it exists
         if (declarator) {
             prettyString += declarator->prettyPrint(addIndent(indentSpace));
         }
@@ -181,20 +172,16 @@ private:
     IrParamList* paramsList;   // List of function parameters
 
 public:
-    // Constructor
     IrFunctionDecl(IrDeclDeclarator* declarator, IrParamList* paramsList, const TSNode& node)
         : Ir(node), IrDeclDeclarator(node), declarator(declarator), paramsList(paramsList) {}
 
-    // Destructor
     ~IrFunctionDecl() override {
         delete declarator;
         delete paramsList;
     }
 
-    // Getter for the declarator (function name or base)
     IrDeclDeclarator* getDeclarator() const { return declarator; }
 
-    // Getter for the parameter list
     IrParamList* getParamsList() const { return paramsList; }
 
     const std::string getName() const override {
@@ -206,7 +193,6 @@ public:
         return getName() + " (" + paramsList->toString() + ")";
     }
 
-    // Pretty print the function declarator
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_declarator\n";
         prettyString += declarator->prettyPrint(addIndent(indentSpace));
@@ -306,7 +292,6 @@ public:
         return "";
     }
 
-    // Getter methods
     IrType* getType() const { return type; }
     IrStorageClassSpecifier* getSpecifier() const { return specifier; }
     const std::vector<IrInitDeclarator*>& getInitDeclarators() const { return initDeclarators; }
