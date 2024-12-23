@@ -1,9 +1,9 @@
 #ifndef IR_TYPE_COMPOSITE_H
 #define IR_TYPE_COMPOSITE_H
 
-#include "IrType.h"
+#include "Ir/IrType.h"
 #include "IrDeclarator.h"
-#include "IrDecl.h"
+#include "Ir/IrDecl.h"
 
 class IrTypeIdent : public IrType {
     private:

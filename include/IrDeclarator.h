@@ -1,14 +1,16 @@
 #ifndef IR_DECLARATOR_H
 #define IR_DECLARATOR_H
 
-#include "Ir.h"
-#include "IrDecl.h"
+#include "Ir/Ir.h"
+#include "Ir/IrDecl.h"
+#include <iostream>
 
 class IrDeclDeclarator : public virtual Ir {
 public:
     IrDeclDeclarator(const TSNode& node) : Ir(node) {}
-    virtual std::string getName() const {
-        return "";
+    virtual const std::string getName() const {
+        static const std::string emptyString = "";
+        return emptyString;
     }
 };
 
@@ -36,7 +38,7 @@ public:
         return sizeExpr;
     }
 
-    std::string getName() const override {
+    const std::string getName() const override {
         if (baseDeclarator) {
             return baseDeclarator->getName();
         }
@@ -72,7 +74,7 @@ public:
         delete baseDeclarator;
     }
 
-    std::string getName() const override {
+    const std::string getName() const override {
         if (baseDeclarator) {
             return baseDeclarator->getName();
         }
@@ -95,7 +97,7 @@ public:
     IrPointerDeclarator(IrDeclDeclarator* base, const TSNode& node) : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
     ~IrPointerDeclarator() { delete baseDeclarator; }
 
-    std::string getName() const override {
+    const std::string getName() const override {
         if (baseDeclarator) {
             return baseDeclarator->getName();
         }
@@ -108,7 +110,6 @@ public:
         return str;
     }
 };
-
 class IrIdent : public IrDeclDeclarator, public IrExpr {
 private:
     const std::string name;
@@ -119,7 +120,7 @@ public:
     ~IrIdent() = default;
 
     // Getter for name
-    const std::string &getValue() const {
+    const std::string & getValue() const {
         return name;
     }
 
@@ -137,15 +138,14 @@ public:
         std::hash<std::string> hasher;
         return hasher(this->name);
     }
-
-    bool isType() const { return isTypeAlias; }
+        bool isType() const { return isTypeAlias; }
     void markAsTypeAlias() { isTypeAlias = true; }
 
     std::string prettyPrint(std::string indentSpace) const {
         return indentSpace + "|--id: " + name + "\n";
     }
 
-    std::string getName() const override {
+    const std::string getName() const override {
         return name;
     }
 
@@ -154,7 +154,6 @@ public:
     }
 
 };
-
 #endif
 
 // Though this is not the named node, but it's kind of necessary to have this

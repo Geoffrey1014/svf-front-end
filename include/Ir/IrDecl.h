@@ -143,6 +143,14 @@ public:
         this->paramsList.push_back(newParam);
     }
 
+    std::string toString() {
+        std::string paramsString = "";
+        for (IrParamDecl* paramDecl: this->paramsList) {
+            paramsString += paramDecl->toString() + ", ";
+        }
+        return paramsString;
+    }
+
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--paramList:\n";
 
@@ -178,9 +186,13 @@ public:
     // Getter for the parameter list
     IrParamList* getParamsList() const { return paramsList; }
 
-    std::string getName() const override {
+    const std::string getName() const override {
         if (declarator) return declarator->getName();
         return "";
+    }
+
+    std::string toString() {
+        return getName() + " (" + paramsList->toString() + ")";
     }
 
     // Pretty print the function declarator
@@ -205,6 +217,14 @@ public:
         delete functionDecl;
         delete compoundStmt;
     }
+    std::string toString() {
+        return  "" + functionDecl->toString();
+    }
+    std::string getFunctionName() {
+        return functionDecl->toString();
+    }
+
+
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_definition\n";
         prettyString += returnType->prettyPrint(addIndent(indentSpace));
@@ -263,6 +283,12 @@ public:
             delete initDecl;
         }
         delete simpleDeclarator;
+    }
+    std::string getName() const {
+        if (simpleDeclarator) {
+            return simpleDeclarator->getName();
+        }
+        return "";
     }
 
     // Getter methods

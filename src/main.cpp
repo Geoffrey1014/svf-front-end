@@ -44,7 +44,14 @@ int main(int argc, char *argv[]) {
 
   ASTBuilder ast_builder(source_code, language);
   Ir* ast_root = ast_builder.build(root_node);
-  std::cout << "\n======== AST:\n" << ast_root->prettyPrint("") << std::endl;
+
+  if (program["--verbose"] == true) {
+    std::cout << "\n======== AST:\n" << ast_root->prettyPrint("") << std::endl;
+  }
+  IrTransUnit* unit = dynamic_cast<IrTransUnit*>(ast_root);
+  unit->getLlBuilder();
+
+  // Clean up
   delete ast_root;
 
 

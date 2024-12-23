@@ -3,7 +3,8 @@
 //
 
 #include "stdbool.h"
-extern void svf_prin(int, char*);
+extern void svf_assert(bool);
+extern void svf_print(int, char*);
 
 int getValue(int* arr, int idx) {
     return arr[idx];

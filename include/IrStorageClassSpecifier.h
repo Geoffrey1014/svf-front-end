@@ -1,7 +1,7 @@
 #ifndef IR_STORAGE_CLASS_SPECIFIER_H
 #define IR_STORAGE_CLASS_SPECIFIER_H
 
-#include "Ir.h"
+#include "Ir/Ir.h"
 
 class IrStorageClassSpecifier : public Ir {
 private:
