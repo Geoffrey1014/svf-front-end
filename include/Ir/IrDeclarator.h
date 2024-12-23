@@ -1,8 +1,8 @@
 #ifndef IR_DECLARATOR_H
 #define IR_DECLARATOR_H
 
-#include "Ir/Ir.h"
-#include "Ir/IrDecl.h"
+#include "Ir.h"
+#include "IrDecl.h"
 #include <iostream>
 
 class IrDeclDeclarator : public virtual Ir {

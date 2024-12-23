@@ -1,8 +1,8 @@
 #ifndef IR_PREPROC_INCLUDE_H
 #define IR_PREPROC_INCLUDE_H
 
-#include "Ir/Ir.h"
-#include "Ir/IrLiteral.h"
+#include "Ir.h"
+#include "IrLiteral.h"
 
 class IrPreprocInclude : public Ir {
 private:

@@ -11,11 +11,11 @@
 #include "Ir/IrStatement.h"
 #include "Ir/IrNonBinaryExpr.h"
 #include "IrTransUnit.h"
-#include "IrPreprocInclude.h"
-#include "IrStorageClassSpecifier.h"
-#include "IrSubscriptExpr.h"
-#include "IrDeclarator.h"
-#include "IrTypeComposite.h"
+#include "Ir/IrPreprocInclude.h"
+#include "Ir/IrStorageClassSpecifier.h"
+#include "Ir/IrSubscriptExpr.h"
+#include "Ir/IrDeclarator.h"
+#include "Ir/IrTypeComposite.h"
 
 #include "main.h"
 
