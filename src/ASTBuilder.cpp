@@ -138,6 +138,12 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode &cst_node) {
 
         // Construct the IrFunctionDecl node
         IrFunctionDecl* funcDecl = new IrFunctionDecl(declarator, paramList, cst_node);
+        std::string name = funcDecl->getName();
+        if (name.empty()) {
+            std::cout << "Empty function name in function declarator" << std::endl;
+        } else {
+            std::cout << "Declarator name is: " << name << std::endl;
+        }
         this->ast_stack.push(funcDecl);
     } catch (const std::runtime_error& e) {
         std::cerr << "Error in function declarator: " << e.what() << std::endl;
