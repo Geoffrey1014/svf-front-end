@@ -27,6 +27,10 @@ public:
         return 11; // some arbitrary prime
     }
 
+    std::string toString() {
+        return "bool";
+    }
+
     std::string prettyPrint(std::string indentSpace) const {
         return indentSpace + "|--type: bool\n";
     }
@@ -49,6 +53,10 @@ public:
 
     int hashCode() const {
         return 13; // some arbitrary prime
+    }
+
+    std::string toString() {
+        return "void";
     }
 
     std::string prettyPrint(std::string indentSpace) const {
@@ -75,6 +83,10 @@ public:
         return 17; // some arbitrary prime
     }
 
+    std::string toString() {
+        return "int";
+    }
+
     std::string prettyPrint(std::string indentSpace) const {
         return indentSpace + "|--type: int\n";
     }
@@ -96,6 +108,10 @@ public:
 
     int hashCode() const {
         return 7; // some arbitrary prime
+    }
+
+    std::string toString() {
+        return "string";
     }
 
      std::string prettyPrint(std::string indentSpace) const {

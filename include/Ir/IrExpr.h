@@ -55,7 +55,7 @@ public:
         return indentSpace + "|--id: " + *name + "\n";
     }
     std::string toString() {
-        return "IrIdent: " + *name;
+        return *name;
     }
 
 };

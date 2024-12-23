@@ -8,7 +8,7 @@ void parse_command_line(argparse::ArgumentParser& program, int argc, char *argv[
   program.add_argument("filename")
     .help("The name of the file to read");
 
-  program.add_argument("-v", "--verbose")
+  program.add_argument("-V", "--verbose")
   .help("increase output verbosity")
   .default_value(false)
   .implicit_value(true);

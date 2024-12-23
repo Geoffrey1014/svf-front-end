@@ -96,6 +96,14 @@ public:
         this->paramsList.push_back(newParam);
     }
 
+    std::string toString() {
+        std::string paramsString = "";
+        for (IrParamDecl* paramDecl: this->paramsList) {
+            paramsString += paramDecl->toString() + ", ";
+        }
+        return paramsString;
+    }
+
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--paramList:\n";
 
@@ -121,6 +129,13 @@ public:
         delete paramsList;
     }
 
+    const std::string* getName() const{
+        return name->getValue();
+    }
+
+    std::string toString() {
+        return name->toString() + " (" + paramsList->toString() + ")";
+    }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_declarator\n";
@@ -144,8 +159,12 @@ public:
         delete compoundStmt;
     }
     std::string toString() {
-        return "IrFunctionDef: " + functionDecl->toString();
+        return  "" + functionDecl->toString();
     }
+    std::string getFunctionName() {
+        return functionDecl->toString();
+    }
+
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_definition\n";
