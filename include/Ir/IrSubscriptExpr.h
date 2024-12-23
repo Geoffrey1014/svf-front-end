@@ -48,6 +48,10 @@ public:
         }
         return prettyString;
     }
+
+    std::string toString() const{
+        return baseExpr->toString() + "[" + indexExpr->toString() + "]";
+    }
 };
 
 #endif

@@ -19,6 +19,10 @@ public:
         prettyString += path->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
+
+    std::string toString() const{
+        return "#include " + path->getValue();
+    }
 };
 
 #endif

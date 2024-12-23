@@ -8,7 +8,7 @@ class IrStatement : public Ir {
 public:
     IrStatement(const TSNode& node) : Ir(node) {}
     virtual ~IrStatement() = default;
-    std::string toString() override{
+    std::string toString() const override{
         return "IrStatement";
     }
 };
@@ -41,6 +41,9 @@ public:
 
         return prettyString;
     }
+    std::string toString() const{
+        return "IrStmtReturnExpr";
+    }
 };
 
 class IrStmtReturnVoid : public IrStmtReturn {
@@ -55,7 +58,7 @@ public:
         std::string prettyString = indentSpace + "|--returnVoid\n";
         return prettyString;
     }
-    std::string toString() {
+    std::string toString() const{
         return "IrStmtReturnVoid";
     }
 };
@@ -86,6 +89,13 @@ public:
 
         return prettyString;
     }
+    std::string toString() const{
+        std::string s = "";
+        for (IrStatement* statement: this->stmtsList) {
+            s += statement->toString();
+        }
+        return s;
+    }
 };
 
 class IrExprStmt : public IrStatement {
@@ -109,7 +119,7 @@ public:
 
         return prettyString;
     }
-    std::string toString() {
+    std::string toString() const{
         return "IrExprStmt";
     }
 };

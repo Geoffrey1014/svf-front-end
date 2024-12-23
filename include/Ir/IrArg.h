@@ -33,6 +33,14 @@ public:
 
         return prettyString;
     }
+
+    std::string toString() const{
+        std::string argsString = "";
+        for (IrExpr* arg: this->argsList) {
+            argsString += arg->toString() + ", ";
+        }
+        return argsString;
+    }
 };
 
 #endif

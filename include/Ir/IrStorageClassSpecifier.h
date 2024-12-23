@@ -18,6 +18,10 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         return indentSpace + "|--storageClassSpecifier: " + this->specifier + "\n";
     }
+
+    std::string toString() const{
+        return "IrStorageClassSpecifier: " + this->specifier;
+    }
 };
 
 #endif

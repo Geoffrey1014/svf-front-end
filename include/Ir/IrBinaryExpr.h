@@ -28,7 +28,7 @@ public:
         return this->operation;
     }
 
-    std::string toString() {
+    std::string toString() const{
         return leftOperand->toString() + " " + operation + " " + rightOperand->toString();
     }
 

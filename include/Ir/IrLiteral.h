@@ -29,6 +29,10 @@ public:
         return prettyPrint;
     }
 
+    std::string toString() {
+        return "IrLiteralBool";
+    }
+
     // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
     //     return nullptr;
     // }
@@ -56,6 +60,10 @@ public:
         std::string prettyPrint = indentSpace + "|--charLiteral\n";
         prettyPrint += addIndent(indentSpace) + "|--value: " + this->value + "\n";
         return prettyPrint;
+    }
+
+    std::string toString() const{
+        return "IrLiteralChar";
     }
 
     // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
@@ -89,6 +97,10 @@ public:
         return prettyPrint;
     }
 
+    std::string toString() const{
+        return "IrLiteralNumber";
+    }
+
     // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
     //    return nullptr;
     // }
@@ -108,6 +120,10 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override {
         return indentSpace + "|--stringContent: " + value + "\n";
+    }
+
+    std::string toString() const{
+        return "IrLiteralStringContent";
     }
 };
 
@@ -132,6 +148,10 @@ public:
         std::string prettyPrint = indentSpace + "|--StringLiteral\n";
         prettyPrint += stringContent->prettyPrint(addIndent(indentSpace));
         return prettyPrint;
+    }
+
+    std::string toString() const{
+        return "IrLiteralString";
     }
 };
 

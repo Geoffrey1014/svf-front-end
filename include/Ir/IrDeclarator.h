@@ -61,6 +61,10 @@ public:
         
         return prettyString;
     }
+
+    std::string toString() const{
+        return  baseDeclarator->toString() + "[" + sizeExpr->toString() + "]";
+    }
 };
 
 class IrAbstractPointerDeclarator : public IrDeclDeclarator {
@@ -88,6 +92,13 @@ public:
         }
         return str;
     }
+
+    std::string toString() const{
+        if (baseDeclarator) {
+            return "IrAbstractPointerDeclarator: " + baseDeclarator->toString() + "*";
+        }
+        return "IrAbstractPointerDeclarator ";
+    }
 };
 
 class IrPointerDeclarator : public IrDeclDeclarator {
@@ -108,6 +119,10 @@ public:
         std::string str = indentSpace + "|--pointer_declarator(*)\n";
         str += baseDeclarator->prettyPrint(addIndent(indentSpace));
         return str;
+    }
+
+    std::string toString() const{
+        return baseDeclarator->toString() + "*";
     }
 };
 class IrIdent : public IrDeclDeclarator, public IrExpr {
@@ -149,8 +164,8 @@ public:
         return name;
     }
 
-    std::string toString() {
-        return "IrIdent: " + name;
+    std::string toString() const{
+        return name;
     }
 
 };

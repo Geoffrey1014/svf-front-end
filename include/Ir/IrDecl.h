@@ -40,6 +40,10 @@ public:
         // }
         return str;
     }
+
+    std::string toString() const {
+        return type->toString() + " " + declarator->toString();
+    }
 };
 
 class IrFieldDeclList : public Ir {
@@ -72,6 +76,14 @@ public:
         }
         return str;
     }
+
+    std::string toString() const {
+        std::string str = "";
+        for (auto* fieldDecl : fieldDeclarations) {
+            str += fieldDecl->toString() + ", ";
+        }
+        return str;
+    }
 };
 
 class IrParamDecl : public Ir {
@@ -99,7 +111,7 @@ public:
     }
 
     // Convert to string
-    std::string toString() const {
+    std::string toString() const{
         if (declarator) {
             return paramType->toString() + " " + declarator->toString();
         }
@@ -125,7 +137,7 @@ public:
 
 class IrParamList : public Ir {
 private:
-    std::vector<IrParamDecl*> paramsList;
+    std::deque<IrParamDecl*> paramsList;
 
 public:
     IrParamList(const TSNode& node) : Ir(node) {}
@@ -135,15 +147,15 @@ public:
         }
     }
 
-    std::vector<IrParamDecl*> getParamsList() {
+    std::deque<IrParamDecl*> getParamsList() {
         return this->paramsList;
     }
 
     void addToParamsList(IrParamDecl* newParam) {
-        this->paramsList.push_back(newParam);
+        this->paramsList.push_front(newParam);
     }
 
-    std::string toString() {
+    std::string toString() const{
         std::string paramsString = "";
         for (IrParamDecl* paramDecl: this->paramsList) {
             paramsString += paramDecl->toString() + ", ";
@@ -154,7 +166,6 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--paramList:\n";
 
-        // pretty print statement
         for (IrParamDecl* paramDecl: this->paramsList) {
             prettyString += paramDecl->prettyPrint(addIndent(indentSpace));
         }
@@ -191,7 +202,7 @@ public:
         return "";
     }
 
-    std::string toString() {
+    std::string toString() const{
         return getName() + " (" + paramsList->toString() + ")";
     }
 
@@ -217,7 +228,7 @@ public:
         delete functionDecl;
         delete compoundStmt;
     }
-    std::string toString() {
+    std::string toString() const{
         return  "" + functionDecl->toString();
     }
     std::string getFunctionName() {
@@ -256,6 +267,10 @@ public:
         prettyString += declarator->prettyPrint(addIndent(indentSpace));
         prettyString += initializer->prettyPrint(addIndent(indentSpace));
         return prettyString;
+    }
+
+    std::string toString() const {
+        return declarator->toString() + " = " + initializer->toString();
     }
 };
 
@@ -311,11 +326,26 @@ public:
                 prettyString += initDecl->prettyPrint(addIndent(indentSpace));
             }
         } else if (simpleDeclarator) {
-            // If no initDecls, print the simpleDeclarator
             prettyString += simpleDeclarator->prettyPrint(addIndent(indentSpace));
         }
 
         return prettyString;
+    }
+
+    std::string toString() const {
+        std::string str = type->toString();
+        if (specifier) {
+            str += " " + specifier->getValue();
+        }
+
+        if (!initDeclarators.empty()) {
+            for (auto* initDecl : initDeclarators) {
+                str += " " + initDecl->toString();
+            }
+        } else if (simpleDeclarator) {
+            str += " " + simpleDeclarator->toString();
+        }
+        return str;
     }
 };
 

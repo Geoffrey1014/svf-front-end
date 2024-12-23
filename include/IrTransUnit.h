@@ -68,6 +68,10 @@ public:
     }
 
     LlBuildersList* getLlBuilder();
+
+    std::string toString() const{
+        return "IrTransUnit";
+    }
 };
 
 #endif
