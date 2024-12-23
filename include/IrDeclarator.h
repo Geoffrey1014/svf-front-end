@@ -6,7 +6,11 @@
 
 class IrDeclDeclarator : public virtual Ir {
 public:
-    IrDeclDeclarator(const TSNode& node) : Ir(node) {}};
+    IrDeclDeclarator(const TSNode& node) : Ir(node) {}
+    virtual std::string getName() const {
+        return "";
+    }
+};
 
 class IrArrayDeclarator : public IrDeclDeclarator {
 private:
@@ -30,6 +34,13 @@ public:
     // Getter for the size expression
     IrExpr* getSizeExpr() const {
         return sizeExpr;
+    }
+
+    std::string getName() const override {
+        if (baseDeclarator) {
+            return baseDeclarator->getName();
+        }
+        return "";
     }
 
     // Pretty print method to adhere to the CST hierarchy
@@ -61,6 +72,13 @@ public:
         delete baseDeclarator;
     }
 
+    std::string getName() const override {
+        if (baseDeclarator) {
+            return baseDeclarator->getName();
+        }
+        return "";
+    }
+
     std::string prettyPrint(std::string indentSpace) const override {
         std::string str = indentSpace + "|--abstract_pointer_declarator: *\n";
         if(baseDeclarator){
@@ -76,6 +94,13 @@ private:
 public:
     IrPointerDeclarator(IrDeclDeclarator* base, const TSNode& node) : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
     ~IrPointerDeclarator() { delete baseDeclarator; }
+
+    std::string getName() const override {
+        if (baseDeclarator) {
+            return baseDeclarator->getName();
+        }
+        return "";
+    }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string str = indentSpace + "|--pointer_declarator(*)\n";
@@ -119,6 +144,11 @@ public:
     std::string prettyPrint(std::string indentSpace) const {
         return indentSpace + "|--id: " + name + "\n";
     }
+
+    std::string getName() const override {
+        return name;
+    }
+
     std::string toString() {
         return "IrIdent: " + name;
     }

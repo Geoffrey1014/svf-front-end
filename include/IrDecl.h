@@ -178,6 +178,11 @@ public:
     // Getter for the parameter list
     IrParamList* getParamsList() const { return paramsList; }
 
+    std::string getName() const override {
+        if (declarator) return declarator->getName();
+        return "";
+    }
+
     // Pretty print the function declarator
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_declarator\n";
