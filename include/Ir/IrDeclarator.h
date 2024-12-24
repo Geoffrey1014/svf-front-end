@@ -1,8 +1,8 @@
 #ifndef IR_DECLARATOR_H
 #define IR_DECLARATOR_H
 
-#include "Ir/Ir.h"
-#include "Ir/IrDecl.h"
+#include "Ir.h"
+#include "IrDecl.h"
 #include <iostream>
 
 class IrDeclDeclarator : public virtual Ir {
@@ -61,6 +61,10 @@ public:
         
         return prettyString;
     }
+
+    std::string toString() const{
+        return  baseDeclarator->toString() + "[" + sizeExpr->toString() + "]";
+    }
 };
 
 class IrAbstractPointerDeclarator : public IrDeclDeclarator {
@@ -88,6 +92,13 @@ public:
         }
         return str;
     }
+
+    std::string toString() const{
+        if (baseDeclarator) {
+            return "IrAbstractPointerDeclarator: " + baseDeclarator->toString() + "*";
+        }
+        return "IrAbstractPointerDeclarator ";
+    }
 };
 
 class IrPointerDeclarator : public IrDeclDeclarator {
@@ -109,6 +120,10 @@ public:
         str += baseDeclarator->prettyPrint(addIndent(indentSpace));
         return str;
     }
+
+    std::string toString() const{
+        return baseDeclarator->toString() + "*";
+    }
 };
 class IrIdent : public IrDeclDeclarator, public IrExpr {
 private:
@@ -119,7 +134,6 @@ public:
     IrIdent(const std::string& name, const TSNode & node, bool isTypeAlias = false) : Ir(node), IrDeclDeclarator(node), IrExpr(node), name(name) {}
     ~IrIdent() = default;
 
-    // Getter for name
     const std::string & getValue() const {
         return name;
     }
@@ -149,8 +163,8 @@ public:
         return name;
     }
 
-    std::string toString() {
-        return "IrIdent: " + name;
+    std::string toString() const{
+        return name;
     }
 
 };

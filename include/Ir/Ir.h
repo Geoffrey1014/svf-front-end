@@ -3,6 +3,9 @@
 #include <string>
 #include <tree_sitter/api.h> 
 #include <vector>
+#include "Ll.h"
+#include "LlBuilder.h"
+#include "LlSymbolTable.h"
 
 using namespace std;
 
@@ -26,17 +29,18 @@ class Ir {
     }
 
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
-    // virtual LlLocation generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) = 0;
-    // indentSpace -- current indentation level
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable){
+        std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
+        return new LlLocationVar(new std::string("")); // Return empty location
+    };
+    
     virtual std::string prettyPrint(std::string indentSpace) const =0;
+    virtual std::string toString() const = 0;
     
     std::string addIndent(const std::string& baseIndent, int level = 1) const {
         return baseIndent + std::string(level * 2, ' '); // 2 spaces per level
     }
 
-    virtual std::string toString() {
-        return "ASTNode: " + std::to_string(getLineNumber()) + ", " + std::to_string(getColNumber()) + " - " + std::to_string(ts_node_end_point(node).row) + ", " + std::to_string(ts_node_end_point(node).column);
-    }
 };
 
 #endif

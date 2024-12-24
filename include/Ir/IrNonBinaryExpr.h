@@ -40,6 +40,10 @@ public:
 
         return prettyString;
     }
+
+    std::string toString() const{
+        return functionName->toString() + " (" + argList->toString() + ")";
+    }
 };
 
 class IrAssignExpr : public IrNonBinaryExpr {
@@ -75,6 +79,10 @@ public:
         return prettyString;
     }    
 
+    std::string toString() const {
+        return lhs->toString() + " = " + rhs->toString();
+    }
+
 };
 
 class IrFieldExpr : public IrNonBinaryExpr {
@@ -100,6 +108,11 @@ public:
         prettyString += fieldName->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
+
+    std::string toString() {
+        std::string op = isArrow ? "->" : ".";
+        return baseExpr->toString() + op + fieldName->toString();
+    }   
 
     IrExpr* getBaseExpr() const { return baseExpr; }
     IrIdent* getFieldName() const { return fieldName; }
@@ -134,6 +147,11 @@ public:
         }
         
         return prettyString;
+    }
+
+    std::string toString() const{
+        std::string op = isAddressOf ? "&" : "*";
+        return op + argument->toString();
     }
 };
 

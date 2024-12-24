@@ -6,7 +6,7 @@
 
 class IrArgList : public Ir {
 private:
-    std::vector<IrExpr*> argsList;
+    std::deque<IrExpr*> argsList;
 public:
     IrArgList(const TSNode& node) : Ir(node) {}
     ~IrArgList() {
@@ -15,23 +15,30 @@ public:
         }
     }   
 
-    std::vector<IrExpr*> getArgsList() {
+    std::deque<IrExpr*> getArgsList() {
         return this->argsList;
     }
 
     void addToArgsList(IrExpr* newArg) {
-        this->argsList.push_back(newArg);
+        this->argsList.push_front(newArg);
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--argList:\n";
 
-        // pretty print statement
         for (IrExpr* arg: this->argsList) {
             prettyString += arg->prettyPrint(addIndent(indentSpace)); 
         }
 
         return prettyString;
+    }
+
+    std::string toString() const{
+        std::string argsString = "";
+        for (IrExpr* arg: this->argsList) {
+            argsString += arg->toString() + ", ";
+        }
+        return argsString;
     }
 };
 

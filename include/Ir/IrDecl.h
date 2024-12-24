@@ -27,7 +27,6 @@ public:
 
     // int getBitfieldSize() const { return bitfieldSize; }
 
-    // Pretty print for debugging
     std::string prettyPrint(std::string indentSpace) const override {
         std::string str = indentSpace + "|--field_declaration:\n";
         str += type->prettyPrint(addIndent(indentSpace));
@@ -40,11 +39,15 @@ public:
         // }
         return str;
     }
+
+    std::string toString() const {
+        return type->toString() + " " + declarator->toString();
+    }
 };
 
 class IrFieldDeclList : public Ir {
 private:
-    std::vector<IrFieldDecl*> fieldDeclarations; // List of field declarations
+    std::deque<IrFieldDecl*> fieldDeclarations; // List of field declarations
 
 public:
     IrFieldDeclList(const TSNode& node) : Ir(node) {}
@@ -55,12 +58,10 @@ public:
         }
     }
 
-    // Add a field declaration to the list
     void addField(IrFieldDecl* fieldDecl) {
-        fieldDeclarations.push_back(fieldDecl);
+        fieldDeclarations.push_front(fieldDecl);
     }
 
-    // Pretty print for debugging
     std::string prettyPrint(std::string indentSpace) const override {
         if (fieldDeclarations.empty()) {
             return "";
@@ -69,6 +70,14 @@ public:
         std::string str = indentSpace + "|--field_declaration_list:\n";
         for (auto* fieldDecl : fieldDeclarations) {
             str += fieldDecl->prettyPrint(addIndent(indentSpace));
+        }
+        return str;
+    }
+
+    std::string toString() const {
+        std::string str = "";
+        for (auto* fieldDecl : fieldDeclarations) {
+            str += fieldDecl->toString() + ", ";
         }
         return str;
     }
@@ -88,32 +97,26 @@ public:
         delete declarator;
     }
 
-    // Getter for type
     IrType* getParamType() const {
         return this->paramType;
     }
 
-    // Getter for declarator
     IrDeclDeclarator* getDeclarator() const {
         return this->declarator;
     }
 
-    // Convert to string
-    std::string toString() const {
+    std::string toString() const{
         if (declarator) {
             return paramType->toString() + " " + declarator->toString();
         }
         return paramType->toString();
     }
 
-    // Pretty print the parameter
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--param:\n";
 
-        // Print the type
         prettyString += paramType->prettyPrint(addIndent(indentSpace));
 
-        // Print the declarator if it exists
         if (declarator) {
             prettyString += declarator->prettyPrint(addIndent(indentSpace));
         }
@@ -125,7 +128,7 @@ public:
 
 class IrParamList : public Ir {
 private:
-    std::vector<IrParamDecl*> paramsList;
+    std::deque<IrParamDecl*> paramsList;
 
 public:
     IrParamList(const TSNode& node) : Ir(node) {}
@@ -135,15 +138,15 @@ public:
         }
     }
 
-    std::vector<IrParamDecl*> getParamsList() {
+    std::deque<IrParamDecl*> getParamsList() {
         return this->paramsList;
     }
 
     void addToParamsList(IrParamDecl* newParam) {
-        this->paramsList.push_back(newParam);
+        this->paramsList.push_front(newParam);
     }
 
-    std::string toString() {
+    std::string toString() const{
         std::string paramsString = "";
         for (IrParamDecl* paramDecl: this->paramsList) {
             paramsString += paramDecl->toString() + ", ";
@@ -154,7 +157,6 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--paramList:\n";
 
-        // pretty print statement
         for (IrParamDecl* paramDecl: this->paramsList) {
             prettyString += paramDecl->prettyPrint(addIndent(indentSpace));
         }
@@ -170,20 +172,16 @@ private:
     IrParamList* paramsList;   // List of function parameters
 
 public:
-    // Constructor
     IrFunctionDecl(IrDeclDeclarator* declarator, IrParamList* paramsList, const TSNode& node)
         : Ir(node), IrDeclDeclarator(node), declarator(declarator), paramsList(paramsList) {}
 
-    // Destructor
     ~IrFunctionDecl() override {
         delete declarator;
         delete paramsList;
     }
 
-    // Getter for the declarator (function name or base)
     IrDeclDeclarator* getDeclarator() const { return declarator; }
 
-    // Getter for the parameter list
     IrParamList* getParamsList() const { return paramsList; }
 
     const std::string getName() const override {
@@ -191,11 +189,10 @@ public:
         return "";
     }
 
-    std::string toString() {
+    std::string toString() const{
         return getName() + " (" + paramsList->toString() + ")";
     }
 
-    // Pretty print the function declarator
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_declarator\n";
         prettyString += declarator->prettyPrint(addIndent(indentSpace));
@@ -217,13 +214,21 @@ public:
         delete functionDecl;
         delete compoundStmt;
     }
-    std::string toString() {
-        return  "" + functionDecl->toString();
-    }
-    std::string getFunctionName() {
-        return functionDecl->toString();
+
+    IrType* getReturnType() const { return returnType; }
+    IrFunctionDecl* getFunctionDecl() const { return functionDecl; }
+    IrCompoundStmt* getCompoundStmt() const { return compoundStmt; }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        std::string name = functionDecl->getName();
+        LlEmptyStmt* emptyStmt = new LlEmptyStmt();
+        builder.appendStatement(emptyStmt);
+        this->compoundStmt->generateLlIr(builder, symbolTable);
+        return nullptr;
     }
 
+    std::string toString() const{ return  functionDecl->toString();}
+    std::string getFunctionName() { return functionDecl->toString();}
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_definition\n";
@@ -256,6 +261,10 @@ public:
         prettyString += declarator->prettyPrint(addIndent(indentSpace));
         prettyString += initializer->prettyPrint(addIndent(indentSpace));
         return prettyString;
+    }
+
+    std::string toString() const {
+        return declarator->toString() + " = " + initializer->toString();
     }
 };
 
@@ -291,7 +300,6 @@ public:
         return "";
     }
 
-    // Getter methods
     IrType* getType() const { return type; }
     IrStorageClassSpecifier* getSpecifier() const { return specifier; }
     const std::vector<IrInitDeclarator*>& getInitDeclarators() const { return initDeclarators; }
@@ -311,11 +319,26 @@ public:
                 prettyString += initDecl->prettyPrint(addIndent(indentSpace));
             }
         } else if (simpleDeclarator) {
-            // If no initDecls, print the simpleDeclarator
             prettyString += simpleDeclarator->prettyPrint(addIndent(indentSpace));
         }
 
         return prettyString;
+    }
+
+    std::string toString() const {
+        std::string str = type->toString();
+        if (specifier) {
+            str += " " + specifier->getValue();
+        }
+
+        if (!initDeclarators.empty()) {
+            for (auto* initDecl : initDeclarators) {
+                str += " " + initDecl->toString();
+            }
+        } else if (simpleDeclarator) {
+            str += " " + simpleDeclarator->toString();
+        }
+        return str;
     }
 };
 

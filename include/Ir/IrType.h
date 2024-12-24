@@ -27,7 +27,7 @@ public:
         return 11; // some arbitrary prime
     }
 
-    std::string toString() {
+    std::string toString() const{
         return "bool";
     }
 
@@ -55,7 +55,7 @@ public:
         return 13; // some arbitrary prime
     }
 
-    std::string toString() {
+    std::string toString() const{
         return "void";
     }
 
@@ -83,7 +83,7 @@ public:
         return 17; // some arbitrary prime
     }
 
-    std::string toString() {
+    std::string toString() const{
         return "int";
     }
 
@@ -110,7 +110,7 @@ public:
         return 7; // some arbitrary prime
     }
 
-    std::string toString() {
+    std::string toString() const{
         return "string";
     }
 
@@ -139,6 +139,10 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const {
         return indentSpace + "|--type: char\n";
+    }
+
+    std::string toString() const{
+        return "char";
     }
 };
 

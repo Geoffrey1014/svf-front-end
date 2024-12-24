@@ -1,7 +1,7 @@
 #ifndef IR_SUBSCRIPT_EXPR_H
 #define IR_SUBSCRIPT_EXPR_H
 
-#include "Ir/IrExpr.h"
+#include "IrExpr.h"
     // subscript_expression: $ => prec(PREC.SUBSCRIPT, seq(
     //   field('argument', $.expression),
     //   '[',
@@ -47,6 +47,10 @@ public:
             prettyString += addIndent(indentSpace, 2) + "|--Error: Missing index expression\n";
         }
         return prettyString;
+    }
+
+    std::string toString() const{
+        return baseExpr->toString() + "[" + indexExpr->toString() + "]";
     }
 };
 

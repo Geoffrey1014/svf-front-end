@@ -1,7 +1,7 @@
 #ifndef IR_STORAGE_CLASS_SPECIFIER_H
 #define IR_STORAGE_CLASS_SPECIFIER_H
 
-#include "Ir/Ir.h"
+#include "Ir.h"
 
 class IrStorageClassSpecifier : public Ir {
 private:
@@ -17,6 +17,10 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override {
         return indentSpace + "|--storageClassSpecifier: " + this->specifier + "\n";
+    }
+
+    std::string toString() const{
+        return "IrStorageClassSpecifier: " + this->specifier;
     }
 };
 

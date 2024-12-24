@@ -1,9 +1,9 @@
 #ifndef IR_TYPE_COMPOSITE_H
 #define IR_TYPE_COMPOSITE_H
 
-#include "Ir/IrType.h"
+#include "IrType.h"
 #include "IrDeclarator.h"
-#include "Ir/IrDecl.h"
+#include "IrDecl.h"
 
 class IrTypeIdent : public IrType {
     private:
@@ -35,6 +35,10 @@ class IrTypeIdent : public IrType {
         std::string prettyPrint(std::string indentSpace) const {
             return indentSpace + "|--typeId: " + name + "\n";
         }
+
+        std::string toString() const{
+            return "IrTypeIdent: " + name;
+        }
 };
 
 // Comment: maybe refactor the IrType (add one layer for primitive types or ...)
@@ -61,6 +65,10 @@ public:
         return prettyString;
     }
 
+    std::string toString() const {
+        return "struct " + name->toString() + " {" + fieldDeclList->toString() + "}";
+    }
+
 };
 
 class IrTypeDef : public Ir {
@@ -83,6 +91,10 @@ public:
         prettyString += type->prettyPrint(addIndent(indentSpace));
         prettyString += alias->prettyPrint(addIndent(indentSpace));
         return prettyString;
+    }
+
+    std::string toString() const {
+        return "typedef " + type->toString() + " " + alias->toString();
     }
 };
 

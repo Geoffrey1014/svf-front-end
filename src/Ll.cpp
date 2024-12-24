@@ -18,6 +18,21 @@ std::size_t LlComponent::hashCode() const {
 
 
 
+std::string LlStatement::toString() {
+    return "LlComponent";
+}
+
+bool LlStatement::operator==(const LlStatement& other) const {
+    // Implement comparison logic
+    return true;
+}
+
+std::size_t LlStatement::hashCode() const {
+    // Implement hash code logic
+    return 0;
+}
+
+
 const std::string* LlLocation::getVarName() const {
     return varName;
 }
