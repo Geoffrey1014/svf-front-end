@@ -10,10 +10,10 @@
 class LlBuilder {
 private:
     std::string name;
-    std::unordered_map<std::string, LlStatement> statementTable;
+    std::unordered_map<std::string, LlStatement*> statementTable;
     int labelCounter = 0;
     int tempCounter = 0;
-    std::vector<LlLocationVar> params;
+    std::vector<LlLocationVar*> params;
     bool arrLeftSide = false;
     std::stack<std::string> currentBlockLabel;
     std::string currentLoopCondition;
@@ -26,20 +26,24 @@ public:
         return this->name;
     }
 
-    void setStatementTable(std::unordered_map<std::string, LlStatement> statementTable) {
+    void addParam(LlLocationVar* param) {
+        params.push_back(param);
+    }
+
+    void setStatementTable(std::unordered_map<std::string, LlStatement*> statementTable) {
         this->statementTable = statementTable;
     }
 
-    void appendStatement(LlStatement statement){
+    void appendStatement(LlStatement* statement){
         std::string label = this->generateLabel();
         statementTable[label] = statement;
     }
 
-    void appendStatement(std::string label, LlStatement statement){
+    void appendStatement(std::string label, LlStatement* statement){
         if(statementTable.find(label) != statementTable.end()){
             std::cerr << "Duplicate label key . Please use the label generator! " << std::endl;
             std::cerr << "Key :" << label << std::endl;
-            std::cerr << "Statement : " << statement.toString() << std::endl;
+            std::cerr << "Statement : " << statement->toString() << std::endl;
             std::cerr << "StackSize " << labelCounter << std::endl;
         }
         else{
@@ -73,7 +77,7 @@ public:
     //     return this->pocket;
     // }
 
-    std::unordered_map<std::string, LlStatement> getStatementTable() {
+    std::unordered_map<std::string, LlStatement*> getStatementTable() {
         return statementTable;
     }
 
@@ -104,7 +108,7 @@ public:
     std::string toString() {
         std::stringstream st;
         for(auto& pair : statementTable){
-            st << pair.first << " : " << pair.second.toString() << "\n";
+            st << pair.first << " : " << pair.second->toString() << "\n";
         }
         return st.str();
     }

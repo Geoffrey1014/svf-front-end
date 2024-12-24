@@ -14,9 +14,23 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
 
     for (IrFunctionDef* func: this->functionList) {
         if (program.is_used("--verbose"))
-            cout << "Function: " << func->toString() << endl;
+            cout << "Function: " << func->getFunctionName() << endl;
+        LlBuilder* builder = new LlBuilder(func->getFunctionName());
 
-        LlBuilder* builder = new LlBuilder(func->toString());
+
+        for (IrParamDecl* p: func->getFunctionDecl()->getParamsList()->getParamsList()) {
+            std::string name = p->getDeclarator()->getName();
+            builder->addParam(new LlLocationVar(&name));
+        }
+
+        LlSymbolTable* symbolTable = new LlSymbolTable(func->getFunctionName());
+        
+        
+
+        llBuildersList->addBuilder(builder);
+        llBuildersList->addSymbolTable(symbolTable);
+
+
     }
 
 

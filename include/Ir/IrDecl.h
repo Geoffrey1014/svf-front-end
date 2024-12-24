@@ -214,13 +214,21 @@ public:
         delete functionDecl;
         delete compoundStmt;
     }
-    std::string toString() const{
-        return  "" + functionDecl->toString();
-    }
-    std::string getFunctionName() {
-        return functionDecl->toString();
+
+    IrType* getReturnType() const { return returnType; }
+    IrFunctionDecl* getFunctionDecl() const { return functionDecl; }
+    IrCompoundStmt* getCompoundStmt() const { return compoundStmt; }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        std::string name = functionDecl->getName();
+        LlEmptyStmt* emptyStmt = new LlEmptyStmt();
+        builder.appendStatement(emptyStmt);
+        this->compoundStmt->generateLlIr(builder, symbolTable);
+        return nullptr;
     }
 
+    std::string toString() const{ return  functionDecl->toString();}
+    std::string getFunctionName() { return functionDecl->toString();}
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_definition\n";
