@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
 
   if (program["--verbose"] == true) {
     std::cout << "\n======== AST:\n" << ast_root->prettyPrint("") << std::endl;
+    std::cout << "\n==== AST toString():\n" << ast_root->toString() << std::endl;
   }
   IrTransUnit* unit = dynamic_cast<IrTransUnit*>(ast_root);
   unit->getLlBuilder();

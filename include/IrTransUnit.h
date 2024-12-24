@@ -5,6 +5,7 @@
 #include "LlBuilderList.h"
 #include "Ir/IrPreprocInclude.h"
 #include "Ir/IrTypeComposite.h"
+#include "Ir/IrPreproc.h"
 
 class IrTransUnit : public Ir {
 private:
@@ -12,6 +13,7 @@ private:
     std::vector<IrFunctionDef*> functionList;
     std::vector<IrPreprocInclude*> preprocIncludeList;
     std::vector<IrTypeDef*> typeDefList;
+    std::vector<IrPreprocDef*> preprocDefList;
 public:
     IrTransUnit(const TSNode& node) : Ir(node) {}
     ~IrTransUnit() {
@@ -26,6 +28,9 @@ public:
         }
         for (Ir* t: this->typeDefList) {
             delete t;
+        }
+        for (Ir* pd: this->preprocDefList) {
+            delete pd;
         }
     }
 
@@ -43,6 +48,10 @@ public:
 
     void addToTypeDefList(IrTypeDef* newTypeDef) {
         this->typeDefList.push_back(newTypeDef);
+    }
+
+    void addToPreprocDefList(IrPreprocDef* newPreprocDef) {
+        this->preprocDefList.push_back(newPreprocDef);
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
@@ -69,9 +78,47 @@ public:
 
     LlBuildersList* getLlBuilder();
 
-    std::string toString() const{
-        return "IrTransUnit";
+    std::string toString() const override {
+        std::string result = "IrTransUnit";
+
+        // Add declarations
+        for (auto decl : declerationList) {
+            if (decl) {
+                result += "\n" + decl->toString();
+            }
+        }
+
+        // Add preprocessor includes
+        for (auto inc : preprocIncludeList) {
+            if (inc) {
+                result += "\n" + inc->toString();
+            }
+        }
+
+        // Add function definitions
+        for (auto func : functionList) {
+            if (func) {
+                result += "\n" + func->toString();
+            }
+        }
+
+        // Add type definitions
+        for (auto td : typeDefList) {
+            if (td) {
+                result += "\n" + td->toString();
+            }
+        }
+
+        // Add preprocessor defs
+        for (auto pd : preprocDefList) {
+            if (pd) {
+                result += "\n" + pd->toString();
+            }
+        }
+
+        return result;
     }
+    
 };
 
 #endif

@@ -139,11 +139,11 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode &cst_node) {
         // Construct the IrFunctionDecl node
         IrFunctionDecl* funcDecl = new IrFunctionDecl(declarator, paramList, cst_node);
         std::string name = funcDecl->getName();
-        if (name.empty()) {
-            std::cout << "Empty function name in function declarator" << std::endl;
-        } else {
-            std::cout << "Declarator name is: " << name << std::endl;
-        }
+        // if (name.empty()) {
+        //     std::cout << "Empty function name in function declarator" << std::endl;
+        // } else {
+        //     std::cout << "Declarator name is: " << name << std::endl;
+        // }
         this->ast_stack.push(funcDecl);
     } catch (const std::runtime_error& e) {
         std::cerr << "Error in function declarator: " << e.what() << std::endl;
@@ -341,7 +341,11 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
         } else if (auto* typeDef = dynamic_cast<IrTypeDef*>(topLevelItem)) {
             this->ast_stack.pop();
             transUnitNode->addToTypeDefList(typeDef);
-        }else {
+        } else if (auto* preprocDef = dynamic_cast<IrPreprocDef*>(topLevelItem)) {
+            this->ast_stack.pop();
+            transUnitNode->addToPreprocDefList(preprocDef);
+        }
+        else {
             std::cerr << "Error: Unrecognized top-level item type." << std::endl;
         }
     }
@@ -667,6 +671,39 @@ void ASTBuilder::exitPointerExpression(const TSNode &cst_node) {
     this->ast_stack.push(pointerExpr);
 }
 
+void ASTBuilder::exitPreprocArg(const TSNode &cst_node) {
+    std::string node_text = getNodeText(cst_node);
+    Ir* node = new IrPreprocArg(node_text, cst_node);
+    this->ast_stack.push(node);
+}
+
+//     preproc_def: $ => seq(
+//       preprocessor('define'),
+//       field('name', $.identifier),
+//       field('value', optional($.preproc_arg)),
+//       token.immediate(/\r?\n/),
+//     ),
+void ASTBuilder::exitPreprocDef(const TSNode &cst_node) {
+    try {
+        IrPreprocArg* value = nullptr;
+
+        // 1. Pop preproc_arg (value) if it exists
+        if (!this->ast_stack.empty()) {
+            if (IrPreprocArg* arg = dynamic_cast<IrPreprocArg*>(this->ast_stack.top())) {
+                this->ast_stack.pop();
+                value = arg;  // Store the argument directly
+            }
+        }
+        IrIdent* identifier = this->popFromStack<IrIdent>(cst_node);
+        IrPreprocDef* node = new IrPreprocDef(identifier, cst_node, value);
+
+        this->ast_stack.push(node);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitPreprocDef: " << e.what() << std::endl;
+    }
+}
+
+
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
@@ -780,6 +817,12 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 288: // pointer_expression
             exitPointerExpression(cst_node);
             break;
+        case 18: // preproc_arg
+            exitPreprocArg(cst_node);
+            break;
+        case 165: // preproc_def
+            exitPreprocDef(cst_node);
+            break;        
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;
             break;
