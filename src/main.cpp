@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
     std::cout << "\n==== AST toString():\n" << ast_root->toString() << std::endl;
   }
   IrTransUnit* unit = dynamic_cast<IrTransUnit*>(ast_root);
+  std::cout << "\n==== llBuilder:\n" << ast_root->toString() << std::endl;
   unit->getLlBuilder();
 
   // Clean up

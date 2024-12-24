@@ -6,119 +6,66 @@
 #include "Ir/IrPreprocInclude.h"
 #include "Ir/IrTypeComposite.h"
 #include "Ir/IrPreproc.h"
+#include <deque>
 
 class IrTransUnit : public Ir {
 private:
+    std::deque<Ir*> topLevelNodes;  // Use deque instead of vector
+    ////QA do we need to categorize them? OR JUST COMMENT OUT
     std::vector<IrDecl*> declerationList;
     std::vector<IrFunctionDef*> functionList;
     std::vector<IrPreprocInclude*> preprocIncludeList;
     std::vector<IrTypeDef*> typeDefList;
     std::vector<IrPreprocDef*> preprocDefList;
+
 public:
     IrTransUnit(const TSNode& node) : Ir(node) {}
     ~IrTransUnit() {
-        for (Ir* f: this->functionList) {
-            delete f;
-        }
-        for (Ir* d: this->declerationList) {
-            delete d;
-        }
-        for (Ir* p: this->preprocIncludeList) {
-            delete p;
-        }
-        for (Ir* t: this->typeDefList) {
-            delete t;
-        }
-        for (Ir* pd: this->preprocDefList) {
-            delete pd;
+        for (Ir* item : this->topLevelNodes) {
+            delete item;
         }
     }
 
-    void addToDeclarationList(IrDecl* newDecleration) {
-        this->declerationList.push_back(newDecleration);
-    }
-
-    void addToFunctionList(IrFunctionDef* newFunction) {
-        this->functionList.push_back(newFunction);
-    }
-
-    void addToPreprocIncludeList(IrPreprocInclude* newPreprocInclude) {
-        this->preprocIncludeList.push_back(newPreprocInclude);
-    }
-
-    void addToTypeDefList(IrTypeDef* newTypeDef) {
-        this->typeDefList.push_back(newTypeDef);
-    }
-
-    void addToPreprocDefList(IrPreprocDef* newPreprocDef) {
-        this->preprocDefList.push_back(newPreprocDef);
-    }
-
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--transUnit:\n";
-
-        for (Ir* decleration: this->declerationList) {
-            prettyString += decleration->prettyPrint(addIndent(indentSpace));
+    void addTopLevelNodeFront(Ir* node) {
+        this->topLevelNodes.push_front(node);
+        // Categorize nodes during insertion OR JUST COMMENT OUT
+        if (auto* decl = dynamic_cast<IrDecl*>(node)) {
+            this->declerationList.push_back(decl);
+        } else if (auto* func = dynamic_cast<IrFunctionDef*>(node)) {
+            this->functionList.push_back(func);
+        } else if (auto* preprocInclude = dynamic_cast<IrPreprocInclude*>(node)) {
+            this->preprocIncludeList.push_back(preprocInclude);
+        } else if (auto* typeDef = dynamic_cast<IrTypeDef*>(node)) {
+            this->typeDefList.push_back(typeDef);
+        } else if (auto* preprocDef = dynamic_cast<IrPreprocDef*>(node)) {
+            this->preprocDefList.push_back(preprocDef);
+        } else {
+            std::cerr << "Warning: Skipping unrecognized node." << std::endl;
         }
+    }
 
-        for (Ir* preprocInclude: this->preprocIncludeList) {
-            prettyString += preprocInclude->prettyPrint(addIndent(indentSpace));
-        }
-
-        for (Ir* transUnit: this->functionList) {
-            prettyString += transUnit->prettyPrint(addIndent(indentSpace));
-        }
-
-        for (Ir* typeDef: this->typeDefList) {
-            prettyString += typeDef->prettyPrint(addIndent(indentSpace));
-        }
-
-        return prettyString;
+    // Insert at the back when needed
+    void addTopLevelNodeBack(Ir* node) {
+        this->topLevelNodes.push_back(node);
     }
 
     LlBuildersList* getLlBuilder();
 
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--transUnit:\n";
+        for (Ir* node : this->topLevelNodes) {
+            prettyString += node->prettyPrint(addIndent(indentSpace));
+        }
+        return prettyString;
+    }
+
     std::string toString() const override {
         std::string result = "IrTransUnit";
-
-        // Add declarations
-        for (auto decl : declerationList) {
-            if (decl) {
-                result += "\n" + decl->toString();
-            }
+        for (auto node : topLevelNodes) {
+            result += "\n" + node->toString();
         }
-
-        // Add preprocessor includes
-        for (auto inc : preprocIncludeList) {
-            if (inc) {
-                result += "\n" + inc->toString();
-            }
-        }
-
-        // Add function definitions
-        for (auto func : functionList) {
-            if (func) {
-                result += "\n" + func->toString();
-            }
-        }
-
-        // Add type definitions
-        for (auto td : typeDefList) {
-            if (td) {
-                result += "\n" + td->toString();
-            }
-        }
-
-        // Add preprocessor defs
-        for (auto pd : preprocDefList) {
-            if (pd) {
-                result += "\n" + pd->toString();
-            }
-        }
-
         return result;
     }
-    
 };
 
 #endif

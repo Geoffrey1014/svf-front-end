@@ -3,7 +3,7 @@
 //
 
 #include "stdbool.h"
-// extern void svf_assert(bool);
+extern void svf_assert(bool);
 // #define LEN 10
 
 // int main() {

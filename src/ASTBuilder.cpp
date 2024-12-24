@@ -314,45 +314,27 @@ void ASTBuilder::exitExprStmt(const TSNode & cst_node){
 
 void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
     IrTransUnit* transUnitNode = new IrTransUnit(cst_node);
-    uint32_t child_count = ts_node_named_child_count(cst_node);
+    
+    while (!this->ast_stack.empty()) {
+        Ir* node = this->ast_stack.top();
+        this->ast_stack.pop();
 
-    // // Debugging output to verify the stack size
-    // std::cout << "AST stack size before processing: " << this->ast_stack.size() << std::endl;
+        // Process only valid types
+        if (dynamic_cast<IrDecl*>(node) || 
+            dynamic_cast<IrFunctionDef*>(node) || 
+            dynamic_cast<IrPreprocInclude*>(node) || 
+            dynamic_cast<IrTypeDef*>(node) || 
+            dynamic_cast<IrPreprocDef*>(node)) {
 
-    // Process only as many items as are available on the stack
-    uint32_t items_to_process = std::min(child_count, static_cast<uint32_t>(this->ast_stack.size()));
-
-    for (uint32_t i = 0; i < items_to_process; i++) {
-        if (this->ast_stack.empty()) {
-            std::cout << "Error: AST stack is empty at child index" << std::endl;
-        }
-
-        Ir* topLevelItem = this->ast_stack.top();
-
-        if (auto* decl = dynamic_cast<IrDecl*>(topLevelItem)) {
-            this->ast_stack.pop();
-            transUnitNode->addToDeclarationList(decl);
-        } else if (auto* func = dynamic_cast<IrFunctionDef*>(topLevelItem)) {
-            this->ast_stack.pop();
-            transUnitNode->addToFunctionList(func);
-        } else if (auto* preprocInclude = dynamic_cast<IrPreprocInclude*>(topLevelItem)) {
-            this->ast_stack.pop();
-            transUnitNode->addToPreprocIncludeList(preprocInclude);
-        } else if (auto* typeDef = dynamic_cast<IrTypeDef*>(topLevelItem)) {
-            this->ast_stack.pop();
-            transUnitNode->addToTypeDefList(typeDef);
-        } else if (auto* preprocDef = dynamic_cast<IrPreprocDef*>(topLevelItem)) {
-            this->ast_stack.pop();
-            transUnitNode->addToPreprocDefList(preprocDef);
-        }
-        else {
-            std::cerr << "Error: Unrecognized top-level item type." << std::endl;
+            transUnitNode->addTopLevelNodeFront(node); 
+        } else {
+            std::cerr << "Warning: Skipping unrecognized node." << std::endl;
+            delete node;
         }
     }
-
-    // Push the transUnitNode onto the stack
     this->ast_stack.push(transUnitNode);
 }
+
 
 void ASTBuilder::exitStringContent(const TSNode &cst_node) {
     std::string content = getNodeText(cst_node);
