@@ -35,18 +35,24 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--binaryExpr\n";
 
-        // pretty print the lhs
         prettyString += addIndent(indentSpace) + + "|--lhs\n";
         prettyString += this->leftOperand->prettyPrint(addIndent(indentSpace, 2));
 
-        // print the operator
         prettyString += addIndent(indentSpace) + "|--op: " + operation + "\n";
 
-        // pretty print the rhs
         prettyString += addIndent(indentSpace) + "|--rhs\n";
         prettyString += this->rightOperand->prettyPrint(addIndent(indentSpace, 2));
 
         return prettyString;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlLocation* left = leftOperand->generateLlIr(builder, symbolTable);
+        LlLocation* right = rightOperand->generateLlIr(builder, symbolTable);
+        LlLocationVar* result = builder.generateTemp();
+        builder.appendStatement(new LlAssignStmtBinaryOp(result, left, operation, right));
+        return result;
+    }
+       
 };
 #endif

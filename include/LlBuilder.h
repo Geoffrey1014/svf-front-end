@@ -55,9 +55,9 @@ public:
        return "L" + std::to_string(labelCounter++);
     }
 
-    LlLocationVar generateTemp(){
+    LlLocationVar* generateTemp(){
         std::string t = "#_t" + std::to_string(tempCounter++);
-        return LlLocationVar(&t);
+        return new LlLocationVar(&t);
     }
 
     LlLocationVar generateStrTemp(){
