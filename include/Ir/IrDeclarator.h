@@ -167,6 +167,10 @@ public:
         return name;
     }
 
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        return new LlLocationVar(new std::string(name));
+    }
+
 };
 #endif
 

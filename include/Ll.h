@@ -10,7 +10,7 @@ private:
     /* data */
 public:
     Ll (){};
-    ~Ll()=default;
+    virtual ~Ll()=default;
     virtual std::string toString()=0;
 };
 
@@ -19,7 +19,7 @@ private:
     /* data */
 public:
     LlStatement (){};
-    ~LlStatement ()=default;
+    virtual ~LlStatement ()=default;
     virtual std::string toString() override{
         return "LlStatement";
     }
@@ -30,7 +30,7 @@ class LlComponent: public Ll{
         /* data */
     public:
         LlComponent (){};
-        ~LlComponent ()=default;
+        virtual ~LlComponent ()=default;
         virtual std::string toString() override{
             return "LlComponent";
         }
@@ -45,7 +45,7 @@ class LlComponent: public Ll{
 class LlLiteral: public LlComponent{
     public:
         LlLiteral (){};
-        ~LlLiteral ()=default;
+        virtual ~LlLiteral ()=default;
         std::string toString() override{
             return "LlLiteral";
         }
@@ -54,6 +54,8 @@ class LlLiteral: public LlComponent{
 
 class LlEmptyStmt : public LlStatement {
 public:
+    LlEmptyStmt() {};
+    virtual ~LlEmptyStmt() {};
     std::string toString() override{
         return "EMPTY_STATEMENT";
     }
@@ -78,7 +80,7 @@ private:
     const std::string* varName;
 public:
     LlLocation (const std::string* varName): varName(varName){};
-    ~LlLocation (){};
+    virtual ~LlLocation (){delete varName;};
     
     std::string toString() override{
         return *(this->varName);
@@ -106,6 +108,9 @@ protected:
 
 public:
     LlAssignStmt(LlLocation* storeLocation) : storeLocation(storeLocation) {}
+    virtual ~LlAssignStmt() {
+        delete storeLocation;
+    }
 
     LlLocation* getStoreLocation() {
         return this->storeLocation;
@@ -124,6 +129,9 @@ private:
 
 public:
     LLAssignStmtRegular(LlLocation* storeLocation, LlComponent* rightHandSide) : LlAssignStmt(storeLocation), rightHandSide(rightHandSide) {}
+    virtual ~LLAssignStmtRegular() {
+        delete rightHandSide;
+    }
 
     LlComponent* getRightHandSide() {
         return this->rightHandSide;
@@ -158,6 +166,11 @@ private:
 public:
     LlAssignStmtBinaryOp(LlLocation* storeLocation, LlComponent* leftOperand, std::string operation, LlComponent* rightOperand)
         : LlAssignStmt(storeLocation), leftOperand(leftOperand), operation(operation), rightOperand(rightOperand) {}
+
+    virtual ~LlAssignStmtBinaryOp() {
+        delete leftOperand;
+        delete rightOperand;
+    }
 
     LlComponent* getLeftOperand() {
         return this->leftOperand;
@@ -205,6 +218,10 @@ private:
 public:
     LlAssignStmtUnaryOp(LlLocation* storeLocation, LlComponent* operand, std::string* operator_)
         : LlAssignStmt(storeLocation), operand(operand), operator_(operator_) {}
+    virtual ~LlAssignStmtUnaryOp() {
+        delete operand;
+        delete operator_;
+    }
 
     LlComponent* getOperand() {
         return this->operand;
@@ -228,6 +245,9 @@ protected:
 
 public:
     LlJump(std::string* jumpToLabel) : jumpToLabel(jumpToLabel) {}
+    virtual ~LlJump() {
+        delete jumpToLabel;
+    }
 
     std::string* getJumpToLabel() {
         return jumpToLabel;
@@ -248,6 +268,10 @@ private:
 public:
     LlJumpConditional(std::string* jumpToLabel, LlComponent* condition) 
         : LlJump(jumpToLabel), condition(condition) {}
+    
+    virtual ~LlJumpConditional() {
+        delete condition;
+    }
 
     LlComponent* getCondition() {
         return this->condition;
@@ -265,6 +289,8 @@ class LlJumpUnconditional : public LlJump {
 public:
     LlJumpUnconditional(std::string* jumpToLabel) : LlJump(jumpToLabel) {}
 
+    virtual ~LlJumpUnconditional() {}
+
     std::string toString() override{
         return "goto " + *(this->jumpToLabel);
     }
@@ -280,6 +306,7 @@ private:
 
 public:
     LlLiteralBool(bool boolValue) : boolValue(boolValue) {}
+    virtual ~LlLiteralBool() {}
 
     bool getBoolValue() {
         return this->boolValue;
@@ -304,6 +331,7 @@ private:
 
 public:
     LlLiteralInt(long intValue) : intValue(intValue) {}
+    virtual ~LlLiteralInt() {}
 
     long getIntValue() {
         return this->intValue;
@@ -313,8 +341,12 @@ public:
         return std::to_string(this->intValue);
     }
 
-    bool operator==(const LlLiteralInt& other) const;
-    std::size_t hashCode() const override;
+    bool operator==(const LlLiteralInt& other) const {
+        return this->intValue == other.intValue;
+    }
+    std::size_t hashCode() const override {
+        return std::hash<long>()(this->intValue);
+    }
 };
 
 
@@ -324,6 +356,9 @@ private:
 
 public:
     LlLocationArray(std::string* varName, LlComponent* elementIndex) : LlLocation(varName), elementIndex(elementIndex) {}
+    virtual ~LlLocationArray() {
+        delete elementIndex;
+    }
 
     LlComponent* getElementIndex() {
         return this->elementIndex;
@@ -345,6 +380,8 @@ public:
 class LlLocationVar : public LlLocation {
 public:
     LlLocationVar(const std::string* varName) : LlLocation(varName) {}
+    virtual ~LlLocationVar() {}
+
 
     std::string toString() override{
         return *(this->getVarName());
@@ -379,6 +416,12 @@ private:
 public:
     LlMethodCallStmt(const std::string methodName, std::vector<LlComponent*> argsList, LlLocation* returnLocation) 
         : methodName(methodName), argsList(argsList), returnLocation(returnLocation) {}
+    virtual ~LlMethodCallStmt() {
+        delete returnLocation;
+        for (LlComponent* arg : argsList) {
+            delete arg;
+        }
+    }
 
     std::string getMethodName() {
         return this->methodName;
@@ -411,6 +454,7 @@ private:
 
 public:
     LlParallelMethodStmt(std::string methodName) : parallelMethodName(methodName) {}
+    virtual ~LlParallelMethodStmt() {}
 
     std::string toString() {
         return "create_and_run_threads(" + this->parallelMethodName + ")";
@@ -427,6 +471,9 @@ private:
 
 public:
     LlReturn(LlComponent* returnValue) : returnValue(returnValue) {}
+    virtual ~LlReturn() {
+        delete returnValue;
+    }
 
     LlComponent* getReturnValue() {
         return this->returnValue;

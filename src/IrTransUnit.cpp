@@ -25,6 +25,9 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
 
         LlSymbolTable* symbolTable = new LlSymbolTable(func->getFunctionName());
         func->generateLlIr(*builder, *symbolTable);
+        if (program.is_used("--verbose"))
+            cout << builder->toString() << endl;
+
         
         llBuildersList->addBuilder(builder);
         llBuildersList->addSymbolTable(symbolTable);
