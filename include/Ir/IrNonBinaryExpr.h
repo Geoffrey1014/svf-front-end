@@ -44,6 +44,18 @@ public:
     std::string toString() const{
         return functionName->toString() + " (" + argList->toString() + ")";
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+    std::vector<LlComponent*> argsList;
+    for(auto& arg : this->argList->getArgsList()) {
+        argsList.push_back(arg->generateLlIr(builder, symbolTable));
+    }
+    LlLocationVar* returnLocation = builder.generateTemp();
+
+    LlMethodCallStmt* methodCallStmt = new LlMethodCallStmt(functionName->getName(), argsList, returnLocation);
+    builder.appendStatement(methodCallStmt);
+    return returnLocation;
+}
 };
 
 class IrAssignExpr : public IrNonBinaryExpr {

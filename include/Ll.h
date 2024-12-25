@@ -372,32 +372,32 @@ public:
 
 class LlMethodCallStmt : public LlStatement {
 private:
-    LlLocation returnLocation;
+    LlLocation* returnLocation;
     std::string methodName;
-    std::vector<LlComponent> argsList;
+    std::vector<LlComponent*> argsList;
 
 public:
-    LlMethodCallStmt(std::string methodName, std::vector<LlComponent> argsList, LlLocation returnLocation) 
+    LlMethodCallStmt(const std::string methodName, std::vector<LlComponent*> argsList, LlLocation* returnLocation) 
         : methodName(methodName), argsList(argsList), returnLocation(returnLocation) {}
 
     std::string getMethodName() {
         return this->methodName;
     }
 
-    LlLocation getReturnLocation() {
+    LlLocation* getReturnLocation() {
         return this->returnLocation;
     }
 
-    std::vector<LlComponent> getArgsList() {
+    std::vector<LlComponent*> getArgsList() {
         return this->argsList;  // Return a copy of the vector
     }
 
     std::string toString() {
         std::string argsString = "";
         for(auto &arg : argsList){
-            argsString +=  arg.toString() +",";
+            argsString +=  arg->toString() +",";
         }
-        return this->returnLocation.toString() + " = " + this->methodName + "(" + argsString +")" ;
+        return this->returnLocation->toString() + " = " + this->methodName + "(" + argsString +")" ;
     }
 
     bool operator==(const LlMethodCallStmt& other) const;
