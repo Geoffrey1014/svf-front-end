@@ -17,6 +17,7 @@
 #include "Ir/IrDeclarator.h"
 #include "Ir/IrTypeComposite.h"
 #include "Ir/IrPreproc.h"
+#include "Ir/IrForStmt.h"
 
 #include "main.h"
 
@@ -79,6 +80,7 @@ public:
     void exitParenthesizedExpr(const TSNode & cst_node);
     void exitIfStatement(const TSNode & cst_node);
     void exitElseClause(const TSNode & cst_node);
+    void exitForStatement(const TSNode & cst_node);
 
     void debugStackState() const;
 

@@ -741,6 +741,13 @@ void ASTBuilder::exitElseClause(const TSNode &cst_node) {
     }
 }
 
+void ASTBuilder::exitForStatement(const TSNode &cst_node) {
+    try {
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitForStatement: " << e.what() << std::endl;
+    }
+}
+
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
@@ -871,6 +878,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 268: // else_clause
             exitElseClause(cst_node);
+            break;
+        case 273: // for_statement
+            exitForStatement(cst_node);
             break;        
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;
