@@ -31,11 +31,8 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--callExpr\n";
 
-        // print the function name
         prettyString += addIndent(indentSpace) + "|--functionName\n";
         prettyString += this->functionName->prettyPrint(addIndent(indentSpace, 2));
-
-        // print the argument list
         prettyString += this->argList->prettyPrint(addIndent(indentSpace));
 
         return prettyString;
@@ -46,16 +43,16 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
-    std::vector<LlComponent*> argsList;
-    for(auto& arg : this->argList->getArgsList()) {
-        argsList.push_back(arg->generateLlIr(builder, symbolTable));
-    }
-    LlLocationVar* returnLocation = builder.generateTemp();
+        std::vector<LlComponent*> argsList;
+        for(auto& arg : this->argList->getArgsList()) {
+            argsList.push_back(arg->generateLlIr(builder, symbolTable));
+        }
+        LlLocationVar* returnLocation = builder.generateTemp();
 
-    LlMethodCallStmt* methodCallStmt = new LlMethodCallStmt(functionName->getName(), argsList, returnLocation);
-    builder.appendStatement(methodCallStmt);
-    return returnLocation;
-}
+        LlMethodCallStmt* methodCallStmt = new LlMethodCallStmt(functionName->getName(), argsList, returnLocation);
+        builder.appendStatement(methodCallStmt);
+        return returnLocation;
+    }
 };
 
 class IrAssignExpr : public IrNonBinaryExpr {
@@ -80,11 +77,9 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--assignExpr\n";
 
-        // pretty print the lhs
         prettyString += addIndent(indentSpace) + "|--lhs\n";
         prettyString += this->lhs->prettyPrint(addIndent(indentSpace, 2));
 
-        // pretty print the rhs
         prettyString += addIndent(indentSpace) + "|--rhs\n";
         prettyString += this->rhs->prettyPrint(addIndent(indentSpace, 2));
 
@@ -93,6 +88,14 @@ public:
 
     std::string toString() const {
         return lhs->toString() + " = " + rhs->toString();
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlLocation* left = lhs->generateLlIr(builder, symbolTable);
+        LlComponent* right = rhs->generateLlIr(builder, symbolTable);
+        LlAssignStmtRegular* assignStmt = new LlAssignStmtRegular(left, right);
+        builder.appendStatement(assignStmt);
+        return left;
     }
 
 };

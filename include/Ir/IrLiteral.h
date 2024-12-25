@@ -43,7 +43,7 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
         LlLiteralBool *llLiteralBool = new LlLiteralBool(this->value);
         LlLocationVar *llLocationVar = builder.generateTemp();
-        LLAssignStmtRegular* regularAssignment  = new LLAssignStmtRegular(llLocationVar, llLiteralBool);
+        LlAssignStmtRegular* regularAssignment  = new LlAssignStmtRegular(llLocationVar, llLiteralBool);
         builder.appendStatement(regularAssignment);
         return llLocationVar;
     }
@@ -115,7 +115,7 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
         LlLiteralInt * llLiteralInt = new LlLiteralInt(this->value);
         LlLocationVar *llLocationVar = builder.generateTemp();
-        LLAssignStmtRegular* regularAssignment  = new LLAssignStmtRegular(llLocationVar, llLiteralInt);
+        LlAssignStmtRegular* regularAssignment  = new LlAssignStmtRegular(llLocationVar, llLiteralInt);
         builder.appendStatement(regularAssignment);
         return llLocationVar;
     }

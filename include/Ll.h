@@ -123,13 +123,13 @@ public:
 };
 
 
-class LLAssignStmtRegular : public LlAssignStmt {
+class LlAssignStmtRegular : public LlAssignStmt {
 private:
     LlComponent* rightHandSide;
 
 public:
-    LLAssignStmtRegular(LlLocation* storeLocation, LlComponent* rightHandSide) : LlAssignStmt(storeLocation), rightHandSide(rightHandSide) {}
-    virtual ~LLAssignStmtRegular() {
+    LlAssignStmtRegular(LlLocation* storeLocation, LlComponent* rightHandSide) : LlAssignStmt(storeLocation), rightHandSide(rightHandSide) {}
+    virtual ~LlAssignStmtRegular() {
         delete rightHandSide;
     }
 
@@ -145,7 +145,7 @@ public:
         if (&other == this) {
             return true;
         }
-        if (auto otherOp = dynamic_cast<const LLAssignStmtRegular*>(&other)) {
+        if (auto otherOp = dynamic_cast<const LlAssignStmtRegular*>(&other)) {
             return *storeLocation == *otherOp->storeLocation &&
                    *rightHandSide == *otherOp->rightHandSide;
         }
@@ -486,8 +486,24 @@ public:
         return "return " + this->returnValue->toString();
     }
 
-    bool operator==(const LlReturn& other) const;
-    std::size_t hashCode() const;
+    bool operator==(const LlReturn& other) const{
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherReturn = dynamic_cast<const LlReturn*>(&other)) {
+            if (returnValue == nullptr) {
+                return otherReturn->returnValue == nullptr;
+            }
+            return *returnValue == *otherReturn->returnValue;
+        }
+        return false;
+    }
+    std::size_t hashCode() const {
+        if (returnValue == nullptr) {
+            return 13;
+        }
+        return returnValue->hashCode();
+    }
 };
 
 // Specialize std::hash for LlComponent

@@ -77,8 +77,9 @@ public:
         return "IrStmtReturnVoid";
     }
     virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
-        std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("")); // Return empty location
+        LlReturn* returnStmt = new LlReturn(nullptr);
+        builder.appendStatement(returnStmt);
+        return nullptr;
     }
 };
 
@@ -139,19 +140,16 @@ public:
 
     std::string prettyPrint(std::string indentSpace)const override  {
         std::string prettyString = indentSpace + "|--exprStmt\n";
-
-        // pretty print the expression
         prettyString += this->expr->prettyPrint(addIndent(indentSpace));
-
         return prettyString;
     }
+
     std::string toString() const{
         return "IrExprStmt";
     }
 
     virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
-        std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("")); // Return empty location
+        return this->expr->generateLlIr(builder, symbolTable);
     }
 };
 
