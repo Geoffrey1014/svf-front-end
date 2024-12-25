@@ -41,7 +41,8 @@ public:
         return prettyString;
     }
     std::string toString() const{
-        return "IrStmtReturnExpr";
+        string s = "return " + result->toString();
+        return s;
     }
 };
 
@@ -91,7 +92,7 @@ public:
     std::string toString() const{
         std::string s = "";
         for (IrStatement* statement: this->stmtsList) {
-            s += statement->toString();
+            s += statement->toString() + "\n";
         }
         return s;
     }
@@ -119,8 +120,50 @@ public:
         return prettyString;
     }
     std::string toString() const{
-        return "IrExprStmt";
+        string s = expr->toString();
+        return s;
     }
 };
+
+class IrIfStmt : public IrStatement {
+private:
+    IrExpr* condition;
+    IrStatement* consequence;
+    IrStatement* alternative;  // Can be null if no else clause exists
+
+public:
+    IrIfStmt(IrExpr* cond, IrStatement* cons, IrStatement* alt, const TSNode& node)
+        : IrStatement(node), condition(cond), consequence(cons), alternative(alt) {}
+
+    ~IrIfStmt() {
+        delete condition;
+        delete consequence;
+        if (alternative) {
+            delete alternative;
+        }
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--ifStmt\n";
+        prettyString += addIndent(indentSpace) + "|--condition\n";
+        prettyString += condition->prettyPrint(addIndent(indentSpace, 2));
+        prettyString += addIndent(indentSpace) + "|--consequence\n";
+        prettyString += consequence->prettyPrint(addIndent(indentSpace, 2));
+        if (alternative) {
+            prettyString += addIndent(indentSpace) + "|--else\n";
+            prettyString += alternative->prettyPrint(addIndent(indentSpace, 2));
+        }
+        return prettyString;
+    }
+
+    std::string toString() const override {
+        std::string result = "if" + condition->toString() + "{" + consequence->toString(); + "}\n";
+        if (alternative) {
+            result += " else {" + alternative->toString(); + "}\n";
+        }
+        return result;
+    }
+};
+
 
 #endif

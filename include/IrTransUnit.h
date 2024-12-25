@@ -10,8 +10,7 @@
 
 class IrTransUnit : public Ir {
 private:
-    std::deque<Ir*> topLevelNodes;  // Use deque instead of vector
-    ////QA do we need to categorize them? OR JUST COMMENT OUT
+    std::deque<Ir*> topLevelNodes; 
     std::vector<IrDecl*> declerationList;
     std::vector<IrFunctionDef*> functionList;
     std::vector<IrPreprocInclude*> preprocIncludeList;
@@ -28,7 +27,7 @@ public:
 
     void addTopLevelNodeFront(Ir* node) {
         this->topLevelNodes.push_front(node);
-        // Categorize nodes during insertion OR JUST COMMENT OUT
+        // Categorize nodes 
         if (auto* decl = dynamic_cast<IrDecl*>(node)) {
             this->declerationList.push_back(decl);
         } else if (auto* func = dynamic_cast<IrFunctionDef*>(node)) {

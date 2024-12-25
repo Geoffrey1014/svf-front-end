@@ -685,6 +685,46 @@ void ASTBuilder::exitPreprocDef(const TSNode &cst_node) {
     }
 }
 
+void ASTBuilder::exitParenthesizedExpr(const TSNode &cst_node) {
+    try {
+        IrExpr* expr = this->popFromStack<IrExpr>(cst_node);
+        IrParenthesizedExpr* parenExpr = new IrParenthesizedExpr(expr, cst_node);
+        this->ast_stack.push(parenExpr);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitParenthesizedExpr: " << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder::exitUnaryExpr(const TSNode &cst_node) {
+    try {
+        IrExpr* expr = this->popFromStack<IrExpr>(cst_node); 
+        TSNode operatorNode = ts_node_child(cst_node, 0);
+        std::string op = getNodeText(operatorNode);
+
+        IrUnaryExpr* unaryExpr = new IrUnaryExpr(op, expr, cst_node);
+        this->ast_stack.push(unaryExpr);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitUnaryExpr: " << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder::exitIfStatement(const TSNode &cst_node) {
+    try {
+        IrStatement* alternative = nullptr;
+        if (ts_node_child_count(cst_node) == 4) {
+            alternative = this->popFromStack<IrStatement>(cst_node);  // Pop the else clause if it exists
+        }
+
+        IrStatement* consequence = this->popFromStack<IrStatement>(cst_node);  // Pop the consequence block
+        IrExpr* condition = this->popFromStack<IrExpr>(cst_node);  // Pop the condition expression
+
+        IrIfStmt* ifStmt = new IrIfStmt(condition, consequence, alternative, cst_node);
+        this->ast_stack.push(ifStmt);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitIfStatement: " << e.what() << std::endl;
+    }
+}
+
 
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
@@ -804,6 +844,15 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 165: // preproc_def
             exitPreprocDef(cst_node);
+            break;
+        case 312: // parenthesized_expression
+            exitParenthesizedExpr(cst_node);
+            break;
+        case 289: // unary_expression
+            exitUnaryExpr(cst_node);
+            break;
+        case 267: // if_statement
+            exitIfStatement(cst_node);
             break;        
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;

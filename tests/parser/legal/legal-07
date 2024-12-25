@@ -3,11 +3,12 @@ int abs ( int a ) {
   if ( a < 0 ) {
     b = -a;
   }
-  else {
-    b = a;
-  }
+
   return b;
 }
-int main ( ) {
-  return abs ( -2 );
-}
+  // else {
+  //   b = a;
+  // }
+// int main ( ) {
+//   return abs ( -2 );
+// }

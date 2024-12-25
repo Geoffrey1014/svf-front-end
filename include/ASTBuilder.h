@@ -75,6 +75,9 @@ public:
     void exitPointerExpression(const TSNode & cst_node);
     void exitPreprocArg(const TSNode & cst_node);
     void exitPreprocDef(const TSNode & cst_node);
+    void exitInitList(const TSNode & cst_node); // unimplemented
+    void exitParenthesizedExpr(const TSNode & cst_node);
+    void exitIfStatement(const TSNode & cst_node);
 
     void debugStackState() const;
 
