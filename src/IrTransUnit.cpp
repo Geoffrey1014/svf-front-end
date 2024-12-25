@@ -24,9 +24,8 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
         }
 
         LlSymbolTable* symbolTable = new LlSymbolTable(func->getFunctionName());
+        func->generateLlIr(*builder, *symbolTable);
         
-        
-
         llBuildersList->addBuilder(builder);
         llBuildersList->addSymbolTable(symbolTable);
 

@@ -30,7 +30,7 @@ class Ir {
 
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
     virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable){
-        std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
+        std::cerr << "Ir Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
         return new LlLocationVar(new std::string("")); // Return empty location
     };
     

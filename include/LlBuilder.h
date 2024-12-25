@@ -17,7 +17,7 @@ private:
     bool arrLeftSide = false;
     std::stack<std::string> currentBlockLabel;
     std::string currentLoopCondition;
-    
+    Ll* pocket = nullptr;
 
 public:
     LlBuilder(std::string name) : name(name) {}
@@ -65,17 +65,17 @@ public:
         return LlLocationVar(&t);
     }
 
-    // void putInPocket(std::any o){
-    //     this->pocket = o;
-    // }
+    void putInPocket(Ll* o){
+        this->pocket = o;
+    }
 
-    // void emptyPocket(){
-    //     this->pocket.reset();
-    // }
+    void emptyPocket(){
+        this->pocket = nullptr;
+    }
 
-    // std::any pickPocket(){
-    //     return this->pocket;
-    // }
+    Ll* pickPocket(){
+        return this->pocket;
+    }
 
     std::unordered_map<std::string, LlStatement*> getStatementTable() {
         return statementTable;

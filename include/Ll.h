@@ -35,7 +35,7 @@ class LlComponent: public Ll{
             return "LlComponent";
         }
         virtual bool operator==(const LlComponent& other) const {
-            return false;
+            return this == &other;
         }
         virtual std::size_t hashCode() const {
             return 0;
@@ -46,7 +46,9 @@ class LlLiteral: public LlComponent{
     public:
         LlLiteral (){};
         ~LlLiteral ()=default;
-        std::string toString() override;
+        std::string toString() override{
+            return "LlLiteral";
+        }
 
 };
 
@@ -115,6 +117,37 @@ public:
     virtual std::size_t hashCode() const =0;
 };
 
+
+class LLAssignStmtRegular : public LlAssignStmt {
+private:
+    LlComponent* rightHandSide;
+
+public:
+    LLAssignStmtRegular(LlLocation* storeLocation, LlComponent* rightHandSide) : LlAssignStmt(storeLocation), rightHandSide(rightHandSide) {}
+
+    LlComponent* getRightHandSide() {
+        return this->rightHandSide;
+    }
+
+    std::string toString() override{
+        return this->storeLocation->toString() + " = " + this->rightHandSide->toString();
+    }
+
+    bool operator==(const LlAssignStmt& other) const override {
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherOp = dynamic_cast<const LLAssignStmtRegular*>(&other)) {
+            return *storeLocation == *otherOp->storeLocation &&
+                   *rightHandSide == *otherOp->rightHandSide;
+        }
+        return false;
+    }
+    std::size_t hashCode() const override {
+        return storeLocation->hashCode() * rightHandSide->hashCode();
+    }
+
+};
 
 class LlAssignStmtBinaryOp : public LlAssignStmt {
 private:
@@ -256,8 +289,12 @@ public:
         return this->boolValue ? "true" : "false";
     }
 
-    bool operator==(const LlLiteralBool& other) const;
-    std::size_t hashCode() const override;
+    bool operator==(const LlLiteralBool& other) const{
+        return this->boolValue == other.boolValue;
+    }
+    std::size_t hashCode() const override {
+        return std::hash<bool>()(this->boolValue);
+    }
 };
 
 

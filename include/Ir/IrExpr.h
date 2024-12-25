@@ -19,6 +19,11 @@ public:
         // Implementation of hashCode
         return 0;
     }
+
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        std::cerr << "IrExpr Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
+        return new LlLocationVar(new std::string("")); // Return empty location
+    }
 };
 
 

@@ -5,6 +5,13 @@
 class IrLiteral : public IrExpr {
 public:
     IrLiteral(const TSNode& node) : IrExpr(node), Ir(node) {}
+
+    virtual ~IrLiteral() = default;
+
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        std::cerr << "IrLiteral Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
+        return new LlLocationVar(new std::string("")); // Return empty location
+    }
 };
 
 
@@ -33,9 +40,13 @@ public:
         return "IrLiteralBool";
     }
 
-    // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
-    //     return nullptr;
-    // }
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        LlLiteralBool *llLiteralBool = new LlLiteralBool(this->value);
+        LlLocationVar *llLocationVar = builder.generateTemp();
+        LLAssignStmtRegular* regularAssignment  = new LLAssignStmtRegular(llLocationVar, llLiteralBool);
+        builder.appendStatement(regularAssignment);
+        return llLocationVar;
+    }
 };
 
 
@@ -101,9 +112,13 @@ public:
         return "IrLiteralNumber";
     }
 
-    // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
-    //    return nullptr;
-    // }
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        LlLiteralBool *llLiteralBool = new LlLiteralBool(this->value);
+        LlLocationVar *llLocationVar = builder.generateTemp();
+        LLAssignStmtRegular* regularAssignment  = new LLAssignStmtRegular(llLocationVar, llLiteralBool);
+        builder.appendStatement(regularAssignment);
+        return llLocationVar;
+    }
 };
 
 class IrLiteralStringContent : public IrLiteral {
