@@ -78,6 +78,7 @@ public:
     void exitInitList(const TSNode & cst_node); // unimplemented
     void exitParenthesizedExpr(const TSNode & cst_node);
     void exitIfStatement(const TSNode & cst_node);
+    void exitElseClause(const TSNode & cst_node);
 
     void debugStackState() const;
 

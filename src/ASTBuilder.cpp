@@ -217,19 +217,24 @@ void ASTBuilder:: exitReturnStatement(const TSNode & cst_node){
 void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
     IrCompoundStmt* compoundStmt = new IrCompoundStmt(cst_node);
 
-    // Iterate through the stack to collect statements and declarations
-    while (!this->ast_stack.empty()) {
-        // Try to dynamically cast the top of the stack to IrStatement
+    uint32_t stmt_count = ts_node_named_child_count(cst_node);
+
+    for (uint32_t i = 0; i < stmt_count; i++) {
+        if (this->ast_stack.empty()) {
+            std::cerr << "Error: AST stack empty while building compound statement" << std::endl;
+            break;
+        }
+
+        // Pop statement from the stack and add to the compound statement
         IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
         if (stmt) {
             this->ast_stack.pop();
-            compoundStmt->addStmtToFront(stmt); // Add statements or declarations to the compound statement
+            compoundStmt->addStmtToFront(stmt);  // Preserve order
         } else {
-            break; // Stop when no more IrStatement objects are found
+            std::cerr << "Error: Expected IrStatement, found something else." << std::endl;
+            break;
         }
     }
-
-    // Push the compound statement onto the stack
     this->ast_stack.push(compoundStmt);
 }
 
@@ -710,13 +715,13 @@ void ASTBuilder::exitUnaryExpr(const TSNode &cst_node) {
 
 void ASTBuilder::exitIfStatement(const TSNode &cst_node) {
     try {
-        IrStatement* alternative = nullptr;
+        IrElseClause* alternative = nullptr;
         if (ts_node_child_count(cst_node) == 4) {
-            alternative = this->popFromStack<IrStatement>(cst_node);  // Pop the else clause if it exists
+            alternative = this->popFromStack<IrElseClause>(cst_node); 
         }
 
-        IrStatement* consequence = this->popFromStack<IrStatement>(cst_node);  // Pop the consequence block
-        IrExpr* condition = this->popFromStack<IrExpr>(cst_node);  // Pop the condition expression
+        IrStatement* consequence = this->popFromStack<IrStatement>(cst_node); 
+        IrParenthesizedExpr* condition = this->popFromStack<IrParenthesizedExpr>(cst_node);
 
         IrIfStmt* ifStmt = new IrIfStmt(condition, consequence, alternative, cst_node);
         this->ast_stack.push(ifStmt);
@@ -725,6 +730,16 @@ void ASTBuilder::exitIfStatement(const TSNode &cst_node) {
     }
 }
 
+// Process the else clause before the if statement
+void ASTBuilder::exitElseClause(const TSNode &cst_node) {
+    try {
+        IrStatement* alt = this->popFromStack<IrStatement>(cst_node);
+        IrElseClause* elseNode = new IrElseClause(alt, cst_node);
+        this->ast_stack.push(elseNode);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitElseClause: " << e.what() << std::endl;
+    }
+}
 
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
@@ -853,6 +868,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 267: // if_statement
             exitIfStatement(cst_node);
+            break;
+        case 268: // else_clause
+            exitElseClause(cst_node);
             break;        
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;

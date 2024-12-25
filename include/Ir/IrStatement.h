@@ -2,6 +2,7 @@
 #define IR_STATEMENT_H
 #include "Ir.h"
 #include "IrExpr.h"
+#include "IrNonBinaryExpr.h"
 #include <deque>
 
 class IrStatement : public Ir {
@@ -125,45 +126,76 @@ public:
     }
 };
 
-class IrIfStmt : public IrStatement {
+class IrElseClause : public IrStatement {
 private:
-    IrExpr* condition;
-    IrStatement* consequence;
-    IrStatement* alternative;  // Can be null if no else clause exists
+    IrStatement* alternative;
 
 public:
-    IrIfStmt(IrExpr* cond, IrStatement* cons, IrStatement* alt, const TSNode& node)
-        : IrStatement(node), condition(cond), consequence(cons), alternative(alt) {}
+    IrElseClause(IrStatement* alternative, const TSNode& node)
+        : IrStatement(node), alternative(alternative) {}
 
-    ~IrIfStmt() {
-        delete condition;
-        delete consequence;
-        if (alternative) {
-            delete alternative;
-        }
+    ~IrElseClause() {
+        delete alternative;
+    }
+
+    IrStatement* getAlternative() const {
+        return alternative;
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--ifStmt\n";
-        prettyString += addIndent(indentSpace) + "|--condition\n";
-        prettyString += condition->prettyPrint(addIndent(indentSpace, 2));
-        prettyString += addIndent(indentSpace) + "|--consequence\n";
-        prettyString += consequence->prettyPrint(addIndent(indentSpace, 2));
-        if (alternative) {
-            prettyString += addIndent(indentSpace) + "|--else\n";
-            prettyString += alternative->prettyPrint(addIndent(indentSpace, 2));
-        }
+        std::string prettyString = indentSpace + "|--elseClause\n";
+        prettyString += alternative->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
     std::string toString() const override {
-        std::string result = "if" + condition->toString() + "{" + consequence->toString(); + "}\n";
-        if (alternative) {
-            result += " else {" + alternative->toString(); + "}\n";
-        }
+        std::string result = "else " + alternative->toString();
         return result;
     }
 };
 
+class IrIfStmt : public IrStatement {
+private:
+    IrParenthesizedExpr* condition;  
+    IrStatement* thenBody;
+    IrElseClause* elseBody;  
+public:
+    IrIfStmt(IrParenthesizedExpr* condition, IrStatement* thenBody, IrElseClause* elseBody, const TSNode& node)
+        : IrStatement(node), condition(condition), thenBody(thenBody), elseBody(elseBody) {}
+
+    ~IrIfStmt() {
+        delete condition;
+        delete thenBody;
+        delete elseBody;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--ifStmt\n";
+
+        // Print condition
+        prettyString += addIndent(indentSpace) + "|--condition\n";
+        prettyString += condition->prettyPrint(addIndent(indentSpace, 2));
+
+        // Print thenBody (if block)
+        prettyString += addIndent(indentSpace) + "|--consequence\n";
+        prettyString += thenBody->prettyPrint(addIndent(indentSpace, 2));
+
+        // Print elseBody (if exists)
+        if (elseBody) {
+            prettyString += addIndent(indentSpace) + "|--else\n";
+            prettyString += elseBody->prettyPrint(addIndent(indentSpace, 2));
+        }
+
+        return prettyString;
+    }
+
+    std::string toString() const override {
+        std::string result = "if " + condition->toString() + " " + thenBody->toString();
+        if (elseBody) {
+            result += " " + elseBody->toString();
+        }
+        return result;
+    }
+};
 
 #endif
