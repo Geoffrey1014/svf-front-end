@@ -12,7 +12,6 @@ private:
     std::unordered_map<LlComponent, std::string> llStringTable;
     std::unordered_map<LlLocationVar, std::string> paramTable;
     std::unordered_map<LlLocationVar, int> arrayTable;
-    // std::unordered_map<CFG.SymbolDef, std::vector<CFG.Tuple>> useDef;
     std::unordered_map<LlLocationVar, int> globalArrays;
     std::vector<LlLocationVar> globalVars;
 
