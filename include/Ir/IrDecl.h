@@ -6,6 +6,7 @@
 #include "IrExpr.h"
 #include "IrStorageClassSpecifier.h"
 #include "IrDeclarator.h"
+#include <deque>
 
 class IrFieldDecl : public Ir {
 private:
@@ -245,6 +246,45 @@ public:
         prettyString += functionDecl->prettyPrint(addIndent(indentSpace));
         prettyString += compoundStmt->prettyPrint(addIndent(indentSpace));
         return prettyString;
+    }
+};
+
+class IrInitializerList : public IrExpr {
+private:
+    std::deque<IrExpr*> elements;
+
+public:
+    IrInitializerList(const TSNode& node) : IrExpr(node), Ir(node) {}
+
+    ~IrInitializerList() {
+        for (IrExpr* expr : elements) {
+            delete expr;
+        }
+    }
+
+    void addElement(IrExpr* expr) {
+        elements.push_front(expr);
+    }
+
+    std::deque<IrExpr*> getElements() const {
+        return elements;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyPrint = indentSpace + "|--initializer_list\n";
+        for (IrExpr* expr : elements) {
+            prettyPrint += expr->prettyPrint(addIndent(indentSpace));
+        }
+        return prettyPrint;
+    }
+
+    std::string toString() const override {
+        std::string str = "{ ";
+        for (auto expr : elements) {
+            str += expr->toString() + ", ";
+        }
+        str += "}";
+        return str;
     }
 };
 

@@ -484,7 +484,6 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
     }
 }
 
-
 void ASTBuilder::exitInitDeclarator(const TSNode &cst_node) {
     try {
         // Pop the initializer (expression, e.g., 2)
@@ -613,15 +612,7 @@ void ASTBuilder::exitTypeIdentifier(const TSNode &cst_node) {
         std::cerr << "Error in exitTypeIdentifier: " << e.what() << std::endl;
     }
 }
-    // field_expression: $ => seq(
-    //   prec(PREC.FIELD, seq(
-    //     field('argument', $.expression),
-    //     field('operator', choice('.', '->')),
-    //   )),
-    //   field('field', $._field_identifier),
-    // ),
-    // arr --> b
-    // arguement operator field
+
 void ASTBuilder::exitFieldExpression(const TSNode & cst_node) {
 
     IrIdent* fieldName = this->popFromStack<IrIdent>(cst_node);
@@ -657,12 +648,6 @@ void ASTBuilder::exitPreprocArg(const TSNode &cst_node) {
     this->ast_stack.push(node);
 }
 
-//     preproc_def: $ => seq(
-//       preprocessor('define'),
-//       field('name', $.identifier),
-//       field('value', optional($.preproc_arg)),
-//       token.immediate(/\r?\n/),
-//     ),
 void ASTBuilder::exitPreprocDef(const TSNode &cst_node) {
     try {
         IrPreprocArg* value = nullptr;
@@ -762,6 +747,25 @@ void ASTBuilder::exitForStatement(const TSNode &cst_node) {
         this->ast_stack.push(forStmt);
     } catch (const std::exception& e) {
         std::cerr << "Error in exitForStatement: " << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder::exitInitList(const TSNode &cst_node) {
+    try {
+        IrInitializerList* initList = new IrInitializerList(cst_node);
+
+        uint32_t child_count = ts_node_named_child_count(cst_node);
+        for (uint32_t i = 0; i < child_count; i++) {
+            IrExpr* expr = dynamic_cast<IrExpr*>(this->ast_stack.top());
+            if (expr) {
+                this->ast_stack.pop();
+                initList->addElement(expr);
+            }
+        }
+
+        this->ast_stack.push(initList);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitInitializerList: " << e.what() << std::endl;
     }
 }
 
@@ -899,6 +903,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 273: // for_statement
             exitForStatement(cst_node);
+            break;
+        case 313: // initializer_list
+            exitInitList(cst_node);
             break;        
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;
