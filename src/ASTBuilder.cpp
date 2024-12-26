@@ -14,7 +14,7 @@ std::string ASTBuilder::getNodeText(const TSNode &node) {
 }
 
 void ASTBuilder::debugStackState() const {
-    std::cout << "Stack state before exiting:\n";
+    std::cout << "Stack state:\n";
     std::stack<Ir*> tempStack = this->ast_stack; // Copy the stack for debugging
 
     while (!tempStack.empty()) {
@@ -444,11 +444,9 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
 
 void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
     try {
-        // this->debugStackState();
         IrStorageClassSpecifier* specifier = nullptr;
         std::vector<IrInitDeclarator*> initDecls;
 
-        // Pop all consecutive IrInitDeclarator nodes from the stack
         while (!this->ast_stack.empty()) {
             IrInitDeclarator* initDecl = dynamic_cast<IrInitDeclarator*>(this->ast_stack.top());
             if (!initDecl)
@@ -457,16 +455,13 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
             initDecls.insert(initDecls.begin(), initDecl); // Insert at the front to preserve order
         }
 
-        // If we found no initDeclarators, this must be a simple declarator scenario
         IrDeclDeclarator* declarator = nullptr;
         if (initDecls.empty()) {
             declarator = this->popFromStack<IrDeclDeclarator>(cst_node);
         }
 
-        // Pop the type
         IrType* type = this->popFromStack<IrType>(cst_node);
 
-        // Check for storage class specifier
         if (!this->ast_stack.empty()) {
             specifier = dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top());
             if (specifier) {
@@ -476,12 +471,10 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
             }
         }
 
-        // If we have multiple initDeclarators
         if (!initDecls.empty()) {
             IrDecl* decl = new IrDecl(type, specifier, initDecls, cst_node);
             this->ast_stack.push(decl);
         } else {
-            // Just a simple declarator
             IrDecl* decl = new IrDecl(type, specifier, declarator, cst_node);
             this->ast_stack.push(decl);
         }
@@ -743,10 +736,35 @@ void ASTBuilder::exitElseClause(const TSNode &cst_node) {
 
 void ASTBuilder::exitForStatement(const TSNode &cst_node) {
     try {
+        IrStatement* body = nullptr;
+        IrExpr* update = nullptr;
+        IrExpr* condition = nullptr;
+
+        body = this->popFromStack<IrStatement>(cst_node);
+
+        // Check if 'update' exists by inspecting CST children directly
+        TSNode updateNode = ts_node_child_by_field_name(cst_node, "update", 6);
+        if (!ts_node_is_null(updateNode)) {
+            update = dynamic_cast<IrExpr*>(this->ast_stack.top());
+            if (update) this->ast_stack.pop();
+        }
+
+        // Check if 'condition' exists
+        TSNode conditionNode = ts_node_child_by_field_name(cst_node, "condition", 9);
+        if (!ts_node_is_null(conditionNode)) {
+            condition = dynamic_cast<IrExpr*>(this->ast_stack.top());
+            if (condition) this->ast_stack.pop();
+        }
+
+        IrAssignExpr* initializer = popFromStack<IrAssignExpr>(cst_node);
+
+        IrForStmt* forStmt = new IrForStmt(initializer, condition, update, body, cst_node);
+        this->ast_stack.push(forStmt);
     } catch (const std::exception& e) {
         std::cerr << "Error in exitForStatement: " << e.what() << std::endl;
     }
 }
+
 
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
