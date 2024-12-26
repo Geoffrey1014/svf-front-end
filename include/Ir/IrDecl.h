@@ -349,6 +349,17 @@ public:
         }
         return str;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        if (simpleDeclarator) {
+            LlLocation* location = simpleDeclarator->generateLlIr(builder, symbolTable);
+            if (location) {
+                symbolTable.putOnStringTable(location ,*(location->getVarName()));
+            }
+            return location;
+        }
+        return nullptr;
+    }
 };
 
 #endif

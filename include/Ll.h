@@ -235,8 +235,20 @@ public:
         return this->storeLocation->toString() + " = " + *(operator_) + " " + operand->toString();
     }
 
-    bool operator==(const LlAssignStmtUnaryOp& other) const;
-    std::size_t hashCode() const override;
+    bool operator==(const LlAssignStmt& other) const {
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherOp = dynamic_cast<const LlAssignStmtUnaryOp*>(&other)) {
+            return *storeLocation == *otherOp->storeLocation &&
+                   *operand == *otherOp->operand &&
+                   *operator_ == *otherOp->operator_;
+        }
+        return false;
+    }
+    std::size_t hashCode() const override {
+        return storeLocation->hashCode() * operand->hashCode() * std::hash<std::string>()(*operator_);
+    }
 };
 
 class LlJump : public LlStatement {
@@ -256,8 +268,17 @@ public:
     std::string toString() override{
         return "goto " + *(this->jumpToLabel);
     }
-    bool operator==(const LlJump& other) const;
-    virtual std::size_t hashCode() const;
+    bool operator==(const LlJump& other) const {
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherJump = dynamic_cast<const LlJump*>(&other)) {
+            return *jumpToLabel == *otherJump->jumpToLabel;
+        }
+    }
+    virtual std::size_t hashCode() const {
+        return std::hash<std::string>()(*jumpToLabel);
+    }
 };
 
 
@@ -281,8 +302,18 @@ public:
         return "if " + condition->toString() + " goto " + *(this->jumpToLabel);
     }
 
-    bool operator==(const LlJumpConditional& other) const;
-    std::size_t hashCode() const override;
+    bool operator==(const LlJumpConditional& other) const{
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherJump = dynamic_cast<const LlJumpConditional*>(&other)) {
+            return *jumpToLabel == *otherJump->jumpToLabel &&
+                   *condition == *otherJump->condition;
+        }
+    }
+    std::size_t hashCode() const override {
+        return std::hash<std::string>()(*jumpToLabel) * condition->hashCode();
+    }
 };
 
 class LlJumpUnconditional : public LlJump {
@@ -295,8 +326,17 @@ public:
         return "goto " + *(this->jumpToLabel);
     }
 
-    bool operator==(const LlJumpUnconditional& other) const;
-    std::size_t hashCode() const override;
+    bool operator==(const LlJumpUnconditional& other) const {
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherJump = dynamic_cast<const LlJumpUnconditional*>(&other)) {
+            return *jumpToLabel == *otherJump->jumpToLabel;
+        }
+    }
+    std::size_t hashCode() const override {
+        return std::hash<std::string>()(*jumpToLabel);
+    }
 };
 
 

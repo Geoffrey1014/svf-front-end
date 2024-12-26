@@ -196,6 +196,10 @@ public:
     std::string toString() const override {
         return "(" + innerExpr->toString() + ")";
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        return innerExpr->generateLlIr(builder, symbolTable);
+    }
 };
 
 class IrUnaryExpr : public IrNonBinaryExpr {
@@ -223,6 +227,14 @@ public:
 
     std::string toString() const override {
         return op + argument->toString();
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlLocation* arg = argument->generateLlIr(builder, symbolTable);
+        LlLocation* returnLocation = builder.generateTemp();
+        LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new std::string(op));
+        builder.appendStatement(unaryOp);
+        return returnLocation;
     }
 };
 

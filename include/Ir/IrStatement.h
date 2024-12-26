@@ -150,6 +150,10 @@ public:
         string s = expr->toString();
         return s;
     }
+
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        return expr->generateLlIr(builder, symbolTable);
+    }
 };
 
 class IrElseClause : public IrStatement {
@@ -177,6 +181,11 @@ public:
     std::string toString() const override {
         std::string result = "else " + alternative->toString();
         return result;
+    }
+
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        alternative->generateLlIr(builder, symbolTable);
+        return nullptr;
     }
 };
 
@@ -224,7 +233,41 @@ public:
     }
 
     virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
-        return this->expr->generateLlIr(builder, symbolTable);
+        LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
+        std::string* ifLabel = new std::string();
+        ifLabel->append("if_");
+        ifLabel->append(builder.generateLabel());
+        
+        std::string* endLabel = new std::string();
+        endLabel->append("end_");
+        endLabel->append(*ifLabel);
+
+        
+        LlJumpConditional* conditionalJump = new LlJumpConditional(ifLabel,conditionVar);
+        builder.appendStatement(conditionalJump);
+
+        if (elseBody) {
+            std::string* elseLabel = new std::string();
+            elseLabel->append("else_");
+            elseLabel->append(builder.generateLabel());
+            LlEmptyStmt* emptyStmt = new LlEmptyStmt();
+            LlJumpUnconditional *jumpUnconditionalToElse = new LlJumpUnconditional(elseLabel);
+            builder.appendStatement(jumpUnconditionalToElse);
+            elseBody->generateLlIr(builder, symbolTable);
+        }
+        
+        LlJumpUnconditional *jumpUnconditionalToEnd = new LlJumpUnconditional(endLabel);
+        builder.appendStatement(jumpUnconditionalToEnd);
+
+        // add the label to the if body block
+        LlEmptyStmt* emptyStmt = new LlEmptyStmt();
+        builder.appendStatement(*ifLabel, emptyStmt);
+        thenBody->generateLlIr(builder, symbolTable);
+
+        // append end if label
+        LlEmptyStmt* endIfEmptyStmt = new LlEmptyStmt();
+        builder.appendStatement(*endLabel, endIfEmptyStmt);
+        return nullptr;
     }
 };
 

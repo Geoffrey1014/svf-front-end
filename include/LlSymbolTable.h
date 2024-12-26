@@ -9,11 +9,11 @@
 class LlSymbolTable {
 private:
     std::string methodName;
-    std::unordered_map<LlComponent, std::string> llStringTable;
-    std::unordered_map<LlLocationVar, std::string> paramTable;
-    std::unordered_map<LlLocationVar, int> arrayTable;
-    std::unordered_map<LlLocationVar, int> globalArrays;
-    std::vector<LlLocationVar> globalVars;
+    std::unordered_map<LlComponent*, std::string> llStringTable;
+    std::unordered_map<LlLocationVar*, std::string> paramTable;
+    std::unordered_map<LlLocationVar*, int> arrayTable;
+    std::unordered_map<LlLocationVar*, int> globalArrays;
+    std::vector<LlLocationVar*> globalVars;
 
 public:
     LlSymbolTable(std::string methodName) : methodName(methodName) {}
@@ -22,23 +22,23 @@ public:
         return this->methodName;
     }
 
-    void putOnStringTable(LlComponent key, std::string value){
+    void putOnStringTable(LlComponent* key, std::string value){
         this->llStringTable[key] = value;
     }
 
-    std::string getFromStringTable(LlComponent key){
+    std::string getFromStringTable(LlComponent* key){
         return this->llStringTable[key];
     }
 
-    std::unordered_map<LlComponent, std::string> getLlStringTable(){
+    std::unordered_map<LlComponent*, std::string> getLlStringTable(){
         return this->llStringTable;
     }
 
-    void putOnParamTable(LlLocationVar key, std::string value){
+    void putOnParamTable(LlLocationVar* key, std::string value){
         this->paramTable[key] = value;
     }
 
-    std::string getFromParamTable(LlLocationVar key){
+    std::string getFromParamTable(LlLocationVar* key){
        auto it = this->paramTable.find(key);
        if(it != this->paramTable.end()){
            return it->second;
@@ -46,7 +46,7 @@ public:
        return "";
     }
 
-    std::unordered_map<LlLocationVar, std::string> getParamTable(){
+    std::unordered_map<LlLocationVar*, std::string> getParamTable(){
         return this->paramTable;
     }
 
@@ -58,11 +58,11 @@ public:
     //     return this->useDef;
     // }
 
-    void putOnArrayTable(LlLocationVar key, int val){
+    void putOnArrayTable(LlLocationVar* key, int val){
         this->arrayTable[key] = val;
     }
 
-    int getFromArrayTable(LlLocationVar key){
+    int getFromArrayTable(LlLocationVar* key){
         auto it = this->arrayTable.find(key);
         if(it != this->arrayTable.end()){
             return it->second;
@@ -70,33 +70,33 @@ public:
         return -1;
     }
 
-    std::unordered_map<LlLocationVar, int> getArrayTable(){
+    std::unordered_map<LlLocationVar*, int> getArrayTable(){
         return this->arrayTable;
     }
 
-    void addToGlobalArrays(LlLocationVar var, int size){
+    void addToGlobalArrays(LlLocationVar* var, int size){
         this->globalArrays[var] = size;
     }
 
-    std::unordered_map<LlLocationVar, int> getGlobalArrays(){
+    std::unordered_map<LlLocationVar*, int> getGlobalArrays(){
         return this->globalArrays;
     }
 
-    void addToGlobalVars(LlLocationVar var){
+    void addToGlobalVars(LlLocationVar* var){
         this->globalVars.push_back(var);
     }
 
-    std::vector<LlLocationVar> getGlobalVars(){
+    std::vector<LlLocationVar*> getGlobalVars(){
         return this->globalVars;
     }
 
-    bool isInGlobalArraysTable(LlLocationVar var){
+    bool isInGlobalArraysTable(LlLocationVar* var){
         return this->globalArrays.find(var) != this->globalArrays.end();
     }
 
-    bool isInGlobalVarsTable(LlLocationVar var){
+    bool isInGlobalVarsTable(LlLocationVar* var){
         for (auto &v : this->globalVars){
-            if(v.getVarName() == var.getVarName()){
+            if(v->getVarName() == var->getVarName()){
                 return true;
             }
         }
