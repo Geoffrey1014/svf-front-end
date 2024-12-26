@@ -37,14 +37,14 @@ class IrTypeIdent : public IrType {
         }
 
         std::string toString() const{
-            return "IrTypeIdent: " + name;
+            return name;
         }
 };
 
 // Comment: maybe refactor the IrType (add one layer for primitive types or ...)
 class IrTypeStruct : public IrType {
 private:
-    IrIdent* name;                       // Optional struct name
+    IrIdent* name;                       
     IrFieldDeclList* fieldDeclList;      // List of field declarations
 
 public:
@@ -66,9 +66,12 @@ public:
     }
 
     std::string toString() const {
-        return "struct " + name->toString() + " {" + fieldDeclList->toString() + "}";
+        std::string str = "struct ";
+        if (name) {
+            str += name->toString();
+        }
+        return str + " {" + fieldDeclList->toString() + "}";
     }
-
 };
 
 class IrTypeDef : public Ir {

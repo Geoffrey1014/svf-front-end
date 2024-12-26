@@ -42,7 +42,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return functionName->toString() + " (" + argList->toString() + ")";
     }
 };
@@ -80,7 +80,7 @@ public:
         return prettyString;
     }    
 
-    std::string toString() const {
+    std::string toString() const override{
         return lhs->toString() + " = " + rhs->toString();
     }
 
@@ -110,7 +110,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() {
+    std::string toString() const override{
         std::string op = isArrow ? "->" : ".";
         return baseExpr->toString() + op + fieldName->toString();
     }   

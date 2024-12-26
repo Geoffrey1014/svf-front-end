@@ -375,11 +375,12 @@ public:
     }
 
     std::string toString() const {
-        std::string str = type->toString();
+        std::string str = "";
         if (specifier) {
-            str += " " + specifier->getValue();
+            str += specifier->getValue();
         }
 
+        str += " " + type->toString();
         if (!initDeclarators.empty()) {
             for (auto* initDecl : initDeclarators) {
                 str += " " + initDecl->toString();
