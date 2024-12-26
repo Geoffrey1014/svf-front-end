@@ -139,11 +139,11 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode &cst_node) {
         // Construct the IrFunctionDecl node
         IrFunctionDecl* funcDecl = new IrFunctionDecl(declarator, paramList, cst_node);
         std::string name = funcDecl->getName();
-        if (name.empty()) {
-            std::cout << "Empty function name in function declarator" << std::endl;
-        } else {
-            std::cout << "Declarator name is: " << name << std::endl;
-        }
+        // if (name.empty()) {
+        //     std::cout << "Empty function name in function declarator" << std::endl;
+        // } else {
+        //     std::cout << "Declarator name is: " << name << std::endl;
+        // }
         this->ast_stack.push(funcDecl);
     } catch (const std::runtime_error& e) {
         std::cerr << "Error in function declarator: " << e.what() << std::endl;
@@ -217,19 +217,24 @@ void ASTBuilder:: exitReturnStatement(const TSNode & cst_node){
 void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
     IrCompoundStmt* compoundStmt = new IrCompoundStmt(cst_node);
 
-    // Iterate through the stack to collect statements and declarations
-    while (!this->ast_stack.empty()) {
-        // Try to dynamically cast the top of the stack to IrStatement
+    uint32_t stmt_count = ts_node_named_child_count(cst_node);
+
+    for (uint32_t i = 0; i < stmt_count; i++) {
+        if (this->ast_stack.empty()) {
+            std::cerr << "Error: AST stack empty while building compound statement" << std::endl;
+            break;
+        }
+
+        // Pop statement from the stack and add to the compound statement
         IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
         if (stmt) {
             this->ast_stack.pop();
-            compoundStmt->addStmtToFront(stmt); // Add statements or declarations to the compound statement
+            compoundStmt->addStmtToFront(stmt);  // Preserve order
         } else {
-            break; // Stop when no more IrStatement objects are found
+            std::cerr << "Error: Expected IrStatement, found something else." << std::endl;
+            break;
         }
     }
-
-    // Push the compound statement onto the stack
     this->ast_stack.push(compoundStmt);
 }
 
@@ -314,41 +319,27 @@ void ASTBuilder::exitExprStmt(const TSNode & cst_node){
 
 void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
     IrTransUnit* transUnitNode = new IrTransUnit(cst_node);
-    uint32_t child_count = ts_node_named_child_count(cst_node);
+    
+    while (!this->ast_stack.empty()) {
+        Ir* node = this->ast_stack.top();
+        this->ast_stack.pop();
 
-    // // Debugging output to verify the stack size
-    // std::cout << "AST stack size before processing: " << this->ast_stack.size() << std::endl;
+        // Process only valid types
+        if (dynamic_cast<IrDecl*>(node) || 
+            dynamic_cast<IrFunctionDef*>(node) || 
+            dynamic_cast<IrPreprocInclude*>(node) || 
+            dynamic_cast<IrTypeDef*>(node) || 
+            dynamic_cast<IrPreprocDef*>(node)) {
 
-    // Process only as many items as are available on the stack
-    uint32_t items_to_process = std::min(child_count, static_cast<uint32_t>(this->ast_stack.size()));
-
-    for (uint32_t i = 0; i < items_to_process; i++) {
-        if (this->ast_stack.empty()) {
-            std::cout << "Error: AST stack is empty at child index" << std::endl;
-        }
-
-        Ir* topLevelItem = this->ast_stack.top();
-
-        if (auto* decl = dynamic_cast<IrDecl*>(topLevelItem)) {
-            this->ast_stack.pop();
-            transUnitNode->addToDeclarationList(decl);
-        } else if (auto* func = dynamic_cast<IrFunctionDef*>(topLevelItem)) {
-            this->ast_stack.pop();
-            transUnitNode->addToFunctionList(func);
-        } else if (auto* preprocInclude = dynamic_cast<IrPreprocInclude*>(topLevelItem)) {
-            this->ast_stack.pop();
-            transUnitNode->addToPreprocIncludeList(preprocInclude);
-        } else if (auto* typeDef = dynamic_cast<IrTypeDef*>(topLevelItem)) {
-            this->ast_stack.pop();
-            transUnitNode->addToTypeDefList(typeDef);
-        }else {
-            std::cerr << "Error: Unrecognized top-level item type." << std::endl;
+            transUnitNode->addTopLevelNodeFront(node); 
+        } else {
+            std::cerr << "Warning: Skipping unrecognized node." << std::endl;
+            delete node;
         }
     }
-
-    // Push the transUnitNode onto the stack
     this->ast_stack.push(transUnitNode);
 }
+
 
 void ASTBuilder::exitStringContent(const TSNode &cst_node) {
     std::string content = getNodeText(cst_node);
@@ -667,6 +658,89 @@ void ASTBuilder::exitPointerExpression(const TSNode &cst_node) {
     this->ast_stack.push(pointerExpr);
 }
 
+void ASTBuilder::exitPreprocArg(const TSNode &cst_node) {
+    std::string node_text = getNodeText(cst_node);
+    Ir* node = new IrPreprocArg(node_text, cst_node);
+    this->ast_stack.push(node);
+}
+
+//     preproc_def: $ => seq(
+//       preprocessor('define'),
+//       field('name', $.identifier),
+//       field('value', optional($.preproc_arg)),
+//       token.immediate(/\r?\n/),
+//     ),
+void ASTBuilder::exitPreprocDef(const TSNode &cst_node) {
+    try {
+        IrPreprocArg* value = nullptr;
+
+        // 1. Pop preproc_arg (value) if it exists
+        if (!this->ast_stack.empty()) {
+            if (IrPreprocArg* arg = dynamic_cast<IrPreprocArg*>(this->ast_stack.top())) {
+                this->ast_stack.pop();
+                value = arg;  // Store the argument directly
+            }
+        }
+        IrIdent* identifier = this->popFromStack<IrIdent>(cst_node);
+        IrPreprocDef* node = new IrPreprocDef(identifier, cst_node, value);
+
+        this->ast_stack.push(node);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitPreprocDef: " << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder::exitParenthesizedExpr(const TSNode &cst_node) {
+    try {
+        IrExpr* expr = this->popFromStack<IrExpr>(cst_node);
+        IrParenthesizedExpr* parenExpr = new IrParenthesizedExpr(expr, cst_node);
+        this->ast_stack.push(parenExpr);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitParenthesizedExpr: " << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder::exitUnaryExpr(const TSNode &cst_node) {
+    try {
+        IrExpr* expr = this->popFromStack<IrExpr>(cst_node); 
+        TSNode operatorNode = ts_node_child(cst_node, 0);
+        std::string op = getNodeText(operatorNode);
+
+        IrUnaryExpr* unaryExpr = new IrUnaryExpr(op, expr, cst_node);
+        this->ast_stack.push(unaryExpr);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitUnaryExpr: " << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder::exitIfStatement(const TSNode &cst_node) {
+    try {
+        IrElseClause* alternative = nullptr;
+        if (ts_node_child_count(cst_node) == 4) {
+            alternative = this->popFromStack<IrElseClause>(cst_node); 
+        }
+
+        IrStatement* consequence = this->popFromStack<IrStatement>(cst_node); 
+        IrParenthesizedExpr* condition = this->popFromStack<IrParenthesizedExpr>(cst_node);
+
+        IrIfStmt* ifStmt = new IrIfStmt(condition, consequence, alternative, cst_node);
+        this->ast_stack.push(ifStmt);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitIfStatement: " << e.what() << std::endl;
+    }
+}
+
+// Process the else clause before the if statement
+void ASTBuilder::exitElseClause(const TSNode &cst_node) {
+    try {
+        IrStatement* alt = this->popFromStack<IrStatement>(cst_node);
+        IrElseClause* elseNode = new IrElseClause(alt, cst_node);
+        this->ast_stack.push(elseNode);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitElseClause: " << e.what() << std::endl;
+    }
+}
+
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
@@ -780,6 +854,24 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 288: // pointer_expression
             exitPointerExpression(cst_node);
             break;
+        case 18: // preproc_arg
+            exitPreprocArg(cst_node);
+            break;
+        case 165: // preproc_def
+            exitPreprocDef(cst_node);
+            break;
+        case 312: // parenthesized_expression
+            exitParenthesizedExpr(cst_node);
+            break;
+        case 289: // unary_expression
+            exitUnaryExpr(cst_node);
+            break;
+        case 267: // if_statement
+            exitIfStatement(cst_node);
+            break;
+        case 268: // else_clause
+            exitElseClause(cst_node);
+            break;        
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;
             break;

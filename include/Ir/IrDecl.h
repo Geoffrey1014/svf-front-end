@@ -227,7 +227,16 @@ public:
         return nullptr;
     }
 
-    std::string toString() const{ return  functionDecl->toString();}
+    std::string toString() const{ 
+        std::string result = returnType->toString() + " ";
+        result += functionDecl->toString();
+        result += " {\n";
+        if (compoundStmt) {
+            result += compoundStmt->toString();  // Include the body
+        }
+        result += "\n}";
+        return result;
+    }
     std::string getFunctionName() { return functionDecl->toString();}
 
     std::string prettyPrint(std::string indentSpace) const override {

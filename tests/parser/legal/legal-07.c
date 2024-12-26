@@ -8,6 +8,7 @@ int abs ( int a ) {
   }
   return b;
 }
-int main ( ) {
-  return abs ( -2 );
-}
+
+// int main ( ) {
+//   return abs ( -2 );
+// }

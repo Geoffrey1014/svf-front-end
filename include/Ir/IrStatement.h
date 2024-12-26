@@ -2,6 +2,7 @@
 #define IR_STATEMENT_H
 #include "Ir.h"
 #include "IrExpr.h"
+#include "IrNonBinaryExpr.h"
 #include <deque>
 
 class IrStatement : public Ir {
@@ -50,7 +51,8 @@ public:
         return prettyString;
     }
     std::string toString() const{
-        return "IrStmtReturnExpr";
+        string s = "return " + result->toString();
+        return s;
     }
 
     virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
@@ -112,7 +114,7 @@ public:
     std::string toString() const{
         std::string s = "";
         for (IrStatement* statement: this->stmtsList) {
-            s += statement->toString();
+            s += statement->toString() + "\n";
         }
         return s;
     }
@@ -145,7 +147,80 @@ public:
     }
 
     std::string toString() const{
-        return "IrExprStmt";
+        string s = expr->toString();
+        return s;
+    }
+};
+
+class IrElseClause : public IrStatement {
+private:
+    IrStatement* alternative;
+
+public:
+    IrElseClause(IrStatement* alternative, const TSNode& node)
+        : IrStatement(node), alternative(alternative) {}
+
+    ~IrElseClause() {
+        delete alternative;
+    }
+
+    IrStatement* getAlternative() const {
+        return alternative;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--elseClause\n";
+        prettyString += alternative->prettyPrint(addIndent(indentSpace));
+        return prettyString;
+    }
+
+    std::string toString() const override {
+        std::string result = "else " + alternative->toString();
+        return result;
+    }
+};
+
+class IrIfStmt : public IrStatement {
+private:
+    IrParenthesizedExpr* condition;  
+    IrStatement* thenBody;
+    IrElseClause* elseBody;  
+public:
+    IrIfStmt(IrParenthesizedExpr* condition, IrStatement* thenBody, IrElseClause* elseBody, const TSNode& node)
+        : IrStatement(node), condition(condition), thenBody(thenBody), elseBody(elseBody) {}
+
+    ~IrIfStmt() {
+        delete condition;
+        delete thenBody;
+        delete elseBody;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--ifStmt\n";
+
+        // Print condition
+        prettyString += addIndent(indentSpace) + "|--condition\n";
+        prettyString += condition->prettyPrint(addIndent(indentSpace, 2));
+
+        // Print thenBody (if block)
+        prettyString += addIndent(indentSpace) + "|--consequence\n";
+        prettyString += thenBody->prettyPrint(addIndent(indentSpace, 2));
+
+        // Print elseBody (if exists)
+        if (elseBody) {
+            prettyString += addIndent(indentSpace) + "|--else\n";
+            prettyString += elseBody->prettyPrint(addIndent(indentSpace, 2));
+        }
+
+        return prettyString;
+    }
+
+    std::string toString() const override {
+        std::string result = "if " + condition->toString() + " " + thenBody->toString();
+        if (elseBody) {
+            result += " " + elseBody->toString();
+        }
+        return result;
     }
 
     virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{

@@ -1,6 +1,7 @@
 #ifndef IR_NON_BINARY_EXPR_H
 #define IR_NON_BINARY_EXPR_H
 #include "IrExpr.h"
+#include "IrDeclarator.h"
 #include "IrArg.h"
 
 class IrNonBinaryExpr : public IrExpr {
@@ -166,6 +167,61 @@ public:
 
     std::string toString() const{
         std::string op = isAddressOf ? "&" : "*";
+        return op + argument->toString();
+    }
+};
+
+class IrParenthesizedExpr : public IrNonBinaryExpr {
+private:
+    IrExpr* innerExpr;
+
+public:
+    IrParenthesizedExpr(IrExpr* expr, const TSNode & node) 
+        : Ir(node), IrNonBinaryExpr(node), innerExpr(expr) {}
+
+    ~IrParenthesizedExpr() {
+        delete innerExpr;
+    }
+
+    IrExpr* getInnerExpr() const { return innerExpr; }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--parenthesizedExpr\n";
+        if (innerExpr) {
+            prettyString += innerExpr->prettyPrint(addIndent(indentSpace));
+        }
+        return prettyString;
+    }
+
+    std::string toString() const override {
+        return "(" + innerExpr->toString() + ")";
+    }
+};
+
+class IrUnaryExpr : public IrNonBinaryExpr {
+private:
+    std::string op;  // Operator (e.g., '-', '!')
+    IrExpr* argument;
+
+public:
+    IrUnaryExpr(const std::string& op, IrExpr* arg, const TSNode &node) 
+        : Ir(node), IrNonBinaryExpr(node), op(op), argument(arg) {}
+
+    ~IrUnaryExpr() {
+        delete argument;
+    }
+
+    IrExpr* getArgument() const { return argument; }
+    std::string getOperator() const { return op; }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--unaryExpr\n";
+        prettyString += addIndent(indentSpace) + "|--op: " + op + "\n";
+        prettyString += argument->prettyPrint(addIndent(indentSpace));
+        return prettyString;
+    }
+
+    std::string toString() const override {
         return op + argument->toString();
     }
 };

@@ -109,7 +109,7 @@ public:
     }
 
     std::string toString() const{
-        return "IrLiteralNumber";
+        return std::to_string(value); // "IrLiteralNumber";
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{

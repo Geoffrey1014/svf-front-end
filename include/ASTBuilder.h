@@ -16,6 +16,7 @@
 #include "Ir/IrSubscriptExpr.h"
 #include "Ir/IrDeclarator.h"
 #include "Ir/IrTypeComposite.h"
+#include "Ir/IrPreproc.h"
 
 #include "main.h"
 
@@ -72,6 +73,12 @@ public:
     void exitTypeIdentifier(const TSNode & cst_node);
     void exitFieldExpression(const TSNode & cst_node);
     void exitPointerExpression(const TSNode & cst_node);
+    void exitPreprocArg(const TSNode & cst_node);
+    void exitPreprocDef(const TSNode & cst_node);
+    void exitInitList(const TSNode & cst_node); // unimplemented
+    void exitParenthesizedExpr(const TSNode & cst_node);
+    void exitIfStatement(const TSNode & cst_node);
+    void exitElseClause(const TSNode & cst_node);
 
     void debugStackState() const;
 

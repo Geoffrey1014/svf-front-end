@@ -125,6 +125,7 @@ public:
         return baseDeclarator->toString() + "*";
     }
 };
+
 class IrIdent : public IrDeclDeclarator, public IrExpr {
 private:
     const std::string name;
