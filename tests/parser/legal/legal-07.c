@@ -3,9 +3,9 @@ int abs ( int a ) {
   if ( a < 0 ) {
     b = -a;
   }
-  // else {
-  //   b = a;
-  // }
+  else {
+    b = a;
+  }
   return b;
 }
 
