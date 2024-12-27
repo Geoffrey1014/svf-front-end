@@ -69,11 +69,55 @@ public:
         result += update->toString()+ ") ";
 
         if (body) {
-            result += body->toString();
+            result += "\t\n" + body->toString();
         } else {
             result += "{}";
         }
         return result;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        if (initializer) {
+            initializer->generateLlIr(builder, symbolTable);
+        }
+
+
+        std::string* forLabel = new std::string();
+        forLabel->append("FOR_");
+        forLabel->append(builder.generateLabel());
+
+        std::string* bodyLabel = new std::string();
+        bodyLabel->append("FOR_BODY_");
+        bodyLabel->append(*forLabel);
+        
+        std::string* endLabel = new std::string();
+        endLabel->append("FOR_END_");
+        endLabel->append(*forLabel);
+
+        LlEmptyStmt* emptyStmtFor = new LlEmptyStmt();
+        builder.appendStatement(*forLabel, emptyStmtFor);
+
+        LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
+        LlJumpConditional* conditionalJump = new LlJumpConditional(bodyLabel,conditionVar);
+        builder.appendStatement(conditionalJump);
+        LlJumpUnconditional* jumpToForEnd = new LlJumpUnconditional(endLabel);
+        builder.appendStatement(jumpToForEnd);
+
+        LlEmptyStmt* emptyStmtForBody = new LlEmptyStmt();
+        builder.appendStatement(*bodyLabel, emptyStmtForBody);
+        if (body) {
+            body->generateLlIr(builder, symbolTable);
+        }
+
+        update->generateLlIr(builder, symbolTable);
+
+        LlJumpUnconditional* jumpToFor = new LlJumpUnconditional(forLabel);
+        builder.appendStatement(jumpToFor);
+
+        LlEmptyStmt* emptyStmtForEnd = new LlEmptyStmt();
+        builder.appendStatement(*endLabel, emptyStmtForEnd);
+
+        return nullptr;
     }
 };
 
