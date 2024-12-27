@@ -57,6 +57,7 @@ public:
             std::cerr << "StackSize " << labelCounter << std::endl;
         }
         else{
+            insertionOrder.push_back(label);
             statementTable[label] = statement;
         }
     }

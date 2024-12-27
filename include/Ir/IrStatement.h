@@ -235,11 +235,11 @@ public:
     virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
         LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
         std::string* ifLabel = new std::string();
-        ifLabel->append("if_");
+        ifLabel->append("IF_");
         ifLabel->append(builder.generateLabel());
         
         std::string* endLabel = new std::string();
-        endLabel->append("end_");
+        endLabel->append("END_");
         endLabel->append(*ifLabel);
 
         
@@ -248,11 +248,12 @@ public:
 
         if (elseBody) {
             std::string* elseLabel = new std::string();
-            elseLabel->append("else_");
+            elseLabel->append("ELSE_");
             elseLabel->append(builder.generateLabel());
-            LlEmptyStmt* emptyStmt = new LlEmptyStmt();
+            LlEmptyStmt* emptyStmtElse = new LlEmptyStmt();
             LlJumpUnconditional *jumpUnconditionalToElse = new LlJumpUnconditional(elseLabel);
             builder.appendStatement(jumpUnconditionalToElse);
+            builder.appendStatement(*elseLabel, emptyStmtElse);
             elseBody->generateLlIr(builder, symbolTable);
         }
         
