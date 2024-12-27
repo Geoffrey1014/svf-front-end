@@ -51,39 +51,33 @@ class IrAssignExpr : public IrNonBinaryExpr {
 private:
     IrExpr* lhs;
     IrExpr* rhs;
+    std::string op;
 public:
-    IrAssignExpr(IrExpr* lhs, IrExpr* rhs, const TSNode & node) 
-        : Ir(node), IrNonBinaryExpr(node), lhs(lhs), rhs(rhs) {}
+    IrAssignExpr(IrExpr* lhs, IrExpr* rhs, const std::string& op, const TSNode& node)
+        : Ir(node), IrNonBinaryExpr(node), lhs(lhs), rhs(rhs), op(op) {}
+
     ~IrAssignExpr() {
         delete lhs;
         delete rhs;
     }
-    IrExpr* getLhs() {
-        return this->lhs;
-    }
 
-    IrExpr* getRhs() {
-        return this->rhs;
-    }
+    IrExpr* getLhs() const { return lhs; }
+    IrExpr* getRhs() const { return rhs; }
+    std::string getOp() const { return op; }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--assignExpr\n";
-
-        // pretty print the lhs
         prettyString += addIndent(indentSpace) + "|--lhs\n";
-        prettyString += this->lhs->prettyPrint(addIndent(indentSpace, 2));
-
-        // pretty print the rhs
+        prettyString += lhs->prettyPrint(addIndent(indentSpace, 2));
+        prettyString += addIndent(indentSpace) + "|--op: " + op + "\n";
         prettyString += addIndent(indentSpace) + "|--rhs\n";
-        prettyString += this->rhs->prettyPrint(addIndent(indentSpace, 2));
-
+        prettyString += rhs->prettyPrint(addIndent(indentSpace, 2));
         return prettyString;
-    }    
-
-    std::string toString() const override{
-        return lhs->toString() + " = " + rhs->toString();
     }
 
+    std::string toString() const override {
+        return lhs->toString() + " " + op + " " + rhs->toString();
+    }
 };
 
 class IrFieldExpr : public IrNonBinaryExpr {

@@ -5,6 +5,6 @@ void bar ( int a ) {
   }
 }
 
-void main ( ) {
-  bar ( 10 );
-}
+// void main ( ) {
+//   bar ( 10 );
+// }

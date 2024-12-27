@@ -231,7 +231,6 @@ void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
             this->ast_stack.pop();
             compoundStmt->addStmtToFront(stmt);  // Preserve order
         } else {
-            std::cerr << "Error: Expected IrStatement, found something else." << std::endl;
             break;
         }
     }
@@ -278,24 +277,18 @@ void ASTBuilder::exitCallExpr(const TSNode & cst_node){
     }
 }
 
-void ASTBuilder::exitAssignExpr(const TSNode & cst_node){
-    Ir* node = nullptr;
-    // Use stack to get the type and name
-    if (this->ast_stack.size() < 2) {
-        std::cerr << "Error: Not enough elements on the stack for assign expression" << std::endl;
-    }
+void ASTBuilder::exitAssignExpr(const TSNode &cst_node) {
+    try {
+        TSNode operator_node = ts_node_child(cst_node, 1);  // Operator is the second child
+        std::string opText = getNodeText(operator_node);  // Retrieve operator ('=', '+=', etc.)
 
-    IrExpr* rhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
-    this->ast_stack.pop();
+        IrExpr* rhs = this->popFromStack<IrExpr>(cst_node);
+        IrExpr* lhs = this->popFromStack<IrExpr>(cst_node);
 
-    IrExpr* lhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
-    this->ast_stack.pop();
-
-    if (lhs && rhs) {
-        node = new IrAssignExpr(lhs, rhs, cst_node);
-        this->ast_stack.push(node);
-    } else {
-        std::cerr << "Error: Invalid assign expression" << std::endl;
+        IrAssignExpr* assignExpr = new IrAssignExpr(lhs, rhs, opText, cst_node);
+        this->ast_stack.push(assignExpr);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitAssignExpr: " << e.what() << std::endl;
     }
 }
 
