@@ -64,14 +64,6 @@ void ASTBuilder::exitIdentifier(const TSNode & cst_node) {
     this->ast_stack.push(node);
 }
 
-    // parameter_declaration: $ => seq(
-    //   $._declaration_specifiers,
-    //   optional(field('declarator', choice(
-    //     $._declarator,
-    //     $._abstract_declarator,
-    //   ))),
-    //   repeat($.attribute_specifier),
-    // ),
 // parameter_declaration
 void ASTBuilder::exitParameter(const TSNode &cst_node) {
     try {
@@ -437,20 +429,25 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
 
 void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
     try {
+        this->debugStackState();
         IrStorageClassSpecifier* specifier = nullptr;
-        std::vector<IrInitDeclarator*> initDecls;
+
+        std::deque<IrInitDeclarator*> initDecls;
+        std::deque<IrDeclDeclarator*> simpleDecls;
 
         while (!this->ast_stack.empty()) {
             IrInitDeclarator* initDecl = dynamic_cast<IrInitDeclarator*>(this->ast_stack.top());
-            if (!initDecl)
-                break;
-            this->ast_stack.pop();
-            initDecls.insert(initDecls.begin(), initDecl); // Insert at the front to preserve order
-        }
-
-        IrDeclDeclarator* declarator = nullptr;
-        if (initDecls.empty()) {
-            declarator = this->popFromStack<IrDeclDeclarator>(cst_node);
+            IrDeclDeclarator* simpleDecl = dynamic_cast<IrDeclDeclarator*>(this->ast_stack.top());
+            
+            if (initDecl) {
+                this->ast_stack.pop();
+                initDecls.push_front(initDecl);  // Preserve order
+            } else if (simpleDecl) {
+                this->ast_stack.pop();
+                simpleDecls.push_front(simpleDecl);
+            } else {
+                break;  // Stop if neither declarator is found
+            }            
         }
 
         IrType* type = this->popFromStack<IrType>(cst_node);
@@ -468,7 +465,7 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
             IrDecl* decl = new IrDecl(type, specifier, initDecls, cst_node);
             this->ast_stack.push(decl);
         } else {
-            IrDecl* decl = new IrDecl(type, specifier, declarator, cst_node);
+            IrDecl* decl = new IrDecl(type, specifier, simpleDecls, cst_node);
             this->ast_stack.push(decl);
         }
 

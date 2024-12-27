@@ -322,17 +322,17 @@ class IrDecl : public IrStatement {
 private:
     IrType* type;                        
     IrStorageClassSpecifier* specifier;   
-    std::vector<IrInitDeclarator*> initDeclarators;      
-    IrDeclDeclarator* simpleDeclarator;      
+    std::deque<IrInitDeclarator*> initDeclarators;      
+    std::deque<IrDeclDeclarator*> simpleDeclarators;      
 
 public:
     // Constructor for multiple initialized declarators
-    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, const std::vector<IrInitDeclarator*>& initDecls, const TSNode& node)
-        : IrStatement(node), type(type), specifier(specifier), initDeclarators(initDecls), simpleDeclarator(nullptr) {}
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, const std::deque<IrInitDeclarator*>& initDecls, const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier), initDeclarators(initDecls) {}
 
-    // Constructor for a simple single declarator
-    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrDeclDeclarator* declarator, const TSNode& node)
-        : IrStatement(node), type(type), specifier(specifier), simpleDeclarator(declarator) {}
+    // Constructor for simple declarators
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, const std::deque<IrDeclDeclarator*>& simpleDecls, const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier), simpleDeclarators(simpleDecls) {}
 
     ~IrDecl() override {
         delete type;
@@ -340,19 +340,24 @@ public:
         for (auto* initDecl : initDeclarators) {
             delete initDecl;
         }
-        delete simpleDeclarator;
-    }
-    std::string getName() const {
-        if (simpleDeclarator) {
-            return simpleDeclarator->getName();
+        for (auto* simpleDecl : simpleDeclarators) {
+            delete simpleDecl;
         }
-        return "";
     }
 
     IrType* getType() const { return type; }
     IrStorageClassSpecifier* getSpecifier() const { return specifier; }
-    const std::vector<IrInitDeclarator*>& getInitDeclarators() const { return initDeclarators; }
-    IrDeclDeclarator* getSimpleDeclarator() const { return simpleDeclarator; }
+    const std::deque<IrInitDeclarator*>& getInitDeclarators() const { return initDeclarators; }
+    const std::deque<IrDeclDeclarator*>& getSimpleDeclarators() const { return simpleDeclarators; }
+
+    std::string getName() const {
+        if (!initDeclarators.empty()) {
+            return initDeclarators.front()->getDeclarator()->getName();
+        } else if (!simpleDeclarators.empty()) {
+            return simpleDeclarators.front()->getName();
+        }
+        return "";
+    }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--declaration:\n";
@@ -367,8 +372,10 @@ public:
             for (auto* initDecl : initDeclarators) {
                 prettyString += initDecl->prettyPrint(addIndent(indentSpace));
             }
-        } else if (simpleDeclarator) {
-            prettyString += simpleDeclarator->prettyPrint(addIndent(indentSpace));
+        } else {
+            for (auto* simpleDecl : simpleDeclarators) {
+                prettyString += simpleDecl->prettyPrint(addIndent(indentSpace));
+            }
         }
 
         return prettyString;
@@ -385,11 +392,13 @@ public:
             for (auto* initDecl : initDeclarators) {
                 str += " " + initDecl->toString();
             }
-        } else if (simpleDeclarator) {
-            str += " " + simpleDeclarator->toString();
+        } else {
+            for (auto* simpleDecl : simpleDeclarators) {
+                str += " " + simpleDecl->toString();
+            }
         }
         return str;
     }
-};
+};;
 
 #endif

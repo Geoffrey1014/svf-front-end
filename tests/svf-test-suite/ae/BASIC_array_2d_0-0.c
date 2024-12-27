@@ -19,7 +19,7 @@ int main()
     a[2][1] = 7;
     a[2][2] = 8;
     int b = 2, c = 2;
-    svf_assert(a[b][c] == 8);   
+    svf_assert(a[b][c] == 8);
     return 0;
 }
 
