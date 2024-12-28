@@ -390,8 +390,18 @@ void ASTBuilder::exitStorageClassSpecifier(const TSNode & cst_node) {
 
 void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
     try {
+        std::cout << "Array declarator before exiting" << std::endl;
+        this->debugStackState();
         auto* sizeExpr = this->popFromStack<IrExpr>(cst_node);
-        auto* baseDeclarator = this->popFromStack<IrDeclDeclarator>(cst_node);
+        
+        IrDeclDeclarator* baseDeclarator = nullptr;
+        if (!this->ast_stack.empty() && 
+            dynamic_cast<IrPointerDeclarator*>(this->ast_stack.top())) {
+            baseDeclarator = this->popFromStack<IrPointerDeclarator>(cst_node);
+        } else {
+            baseDeclarator = this->popFromStack<IrDeclDeclarator>(cst_node);
+        }
+
         Ir* arrayDeclaratorNode = new IrArrayDeclarator(baseDeclarator, sizeExpr, cst_node);
         this->ast_stack.push(arrayDeclaratorNode);
     } catch (const std::runtime_error& e) {
@@ -429,7 +439,6 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
 
 void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
     try {
-        this->debugStackState();
         IrStorageClassSpecifier* specifier = nullptr;
 
         std::deque<IrInitDeclarator*> initDecls;
@@ -476,13 +485,10 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
 
 void ASTBuilder::exitInitDeclarator(const TSNode &cst_node) {
     try {
-        // Pop the initializer (expression, e.g., 2)
-        IrExpr* initializer = this->popFromStack<IrExpr>(cst_node);
 
-        // Pop the declarator (identifier, e.g., b)
+        IrExpr* initializer = this->popFromStack<IrExpr>(cst_node);
         IrDeclDeclarator* declarator = this->popFromStack<IrDeclDeclarator>(cst_node);
 
-        // Combine into an IrInitDeclarator node
         IrInitDeclarator* initDecl = new IrInitDeclarator(declarator, initializer, cst_node);
         this->ast_stack.push(initDecl);
     } catch (const std::runtime_error& e) {
@@ -511,6 +517,8 @@ void ASTBuilder::exitAbstractPointerDeclarator(const TSNode &cst_node) {
 
 void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
     try {
+        std::cout << "Pointer declarator before exiting" << std::endl;
+        this->debugStackState();
         IrDeclDeclarator* baseDeclarator = nullptr;
         baseDeclarator = popFromStack<IrDeclDeclarator>(cst_node);
  
@@ -922,14 +930,12 @@ void ASTBuilder::traverse_tree(const TSNode & node) {
         traverse_tree(child);
     }
 
+    exit_cst_node(node);
+}
+
     // uint32_t child_count = ts_node_child_count(node);
     // for (uint32_t i = 0; i < child_count; i++) {
     //     TSNode child = ts_node_child(node, i);
     //     traverse_tree(child);
     // }
-
-
-    exit_cst_node(node);
-}
-
 

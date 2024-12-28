@@ -321,7 +321,8 @@ public:
 class IrDecl : public IrStatement {
 private:
     IrType* type;                        
-    IrStorageClassSpecifier* specifier;   
+    IrStorageClassSpecifier* specifier;
+   
     std::deque<IrInitDeclarator*> initDeclarators;      
     std::deque<IrDeclDeclarator*> simpleDeclarators;      
 
