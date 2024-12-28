@@ -91,8 +91,12 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
         LlLocation* left = lhs->generateLlIr(builder, symbolTable);
         LlComponent* right = rhs->generateLlIr(builder, symbolTable);
-        LlAssignStmtRegular* assignStmt = new LlAssignStmtRegular(left, right);
-        builder.appendStatement(assignStmt);
+        std::string operation = op;
+        if (op != "=") {
+            operation = op.substr(0, op.size() - 1);
+            LlAssignStmtBinaryOp* assignStmt = new LlAssignStmtBinaryOp(left,left, operation, right);
+            builder.appendStatement(assignStmt);
+        }
         return left;
     }
 

@@ -6,6 +6,8 @@
 #include <vector>
 #include <stack>
 #include <sstream> // Include this header for std::stringstream
+#include <iomanip> 
+
 
 class LlBuilder {
 private:
@@ -122,8 +124,9 @@ public:
 
     std::string toString() {
         std::stringstream st;
-        for (auto& label : insertionOrder) {
-            st << label << " : " << statementTable[label]->toString() << "\n";
+        const int labelWidth = 15; // 设置标签宽度
+        for (const auto& label : insertionOrder) {
+            st << std::right << std::setw(labelWidth) << label << " : " << statementTable[label]->toString() << "\n";
         }
         return st.str();
     }

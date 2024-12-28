@@ -64,21 +64,21 @@ public:
             initializer->generateLlIr(builder, symbolTable);
         }
 
-
-        std::string* forLabel = new std::string();
-        forLabel->append("FOR_");
-        forLabel->append(builder.generateLabel());
+        std::string forLable = builder.generateLabel();
+        std::string* condLabel = new std::string();
+        condLabel->append("for.cond.");
+        condLabel->append(forLable);
 
         std::string* bodyLabel = new std::string();
-        bodyLabel->append("FOR_BODY_");
-        bodyLabel->append(*forLabel);
+        bodyLabel->append("for.body.");
+        bodyLabel->append(forLable);
         
         std::string* endLabel = new std::string();
-        endLabel->append("FOR_END_");
-        endLabel->append(*forLabel);
+        endLabel->append("for.end.");
+        endLabel->append(forLable);
 
         LlEmptyStmt* emptyStmtFor = new LlEmptyStmt();
-        builder.appendStatement(*forLabel, emptyStmtFor);
+        builder.appendStatement(*condLabel, emptyStmtFor);
 
         LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
         LlJumpConditional* conditionalJump = new LlJumpConditional(bodyLabel,conditionVar);
@@ -92,9 +92,14 @@ public:
             body->generateLlIr(builder, symbolTable);
         }
 
+        std::string* incLabel = new std::string();
+        incLabel->append("for.inc.");
+        incLabel->append(forLable);
+        LlEmptyStmt* emptyStmtForInc = new LlEmptyStmt();
+        builder.appendStatement(*incLabel, emptyStmtForInc);
         update->generateLlIr(builder, symbolTable);
 
-        LlJumpUnconditional* jumpToFor = new LlJumpUnconditional(forLabel);
+        LlJumpUnconditional* jumpToFor = new LlJumpUnconditional(condLabel);
         builder.appendStatement(jumpToFor);
 
         LlEmptyStmt* emptyStmtForEnd = new LlEmptyStmt();

@@ -234,22 +234,24 @@ public:
 
     virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
         LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
-        std::string* ifLabel = new std::string();
-        ifLabel->append("if.then.");
-        ifLabel->append(builder.generateLabel());
+
+        std::string label = builder.generateLabel();
+        std::string* ifThenLabel = new std::string();
+        ifThenLabel->append("if.then.");
+        ifThenLabel->append(label);
         
         std::string* endLabel = new std::string();
         endLabel->append("if.end.");
-        endLabel->append(builder.generateLabel());
+        endLabel->append(label);
 
         
-        LlJumpConditional* conditionalJump = new LlJumpConditional(ifLabel,conditionVar);
+        LlJumpConditional* conditionalJump = new LlJumpConditional(ifThenLabel,conditionVar);
         builder.appendStatement(conditionalJump);
 
         if (elseBody) {
             std::string* elseLabel = new std::string();
             elseLabel->append("if.else.");
-            elseLabel->append(builder.generateLabel());
+            elseLabel->append(label);
             LlEmptyStmt* emptyStmtElse = new LlEmptyStmt();
             LlJumpUnconditional *jumpUnconditionalToElse = new LlJumpUnconditional(elseLabel);
             builder.appendStatement(jumpUnconditionalToElse);
@@ -262,10 +264,8 @@ public:
 
         // add the label to the if body block
         LlEmptyStmt* emptyStmt = new LlEmptyStmt();
-        builder.appendStatement(*ifLabel, emptyStmt);
+        builder.appendStatement(*ifThenLabel, emptyStmt);
         thenBody->generateLlIr(builder, symbolTable);
-
-
 
 
         // append end if label
