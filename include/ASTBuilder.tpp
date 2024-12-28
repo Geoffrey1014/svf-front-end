@@ -30,4 +30,4 @@ T* ASTBuilder::popFromStack(const TSNode& node) {
     }
 }
 
-#endif // AST_BUILDER_TPP
+#endif

@@ -6,8 +6,9 @@ class IrExpr : public virtual Ir {
 public:
     IrExpr(const TSNode & node) : Ir(node) {}
     ~IrExpr() = default;
-    std::string toString() const{
-        return "IrExpr";
+    
+    std::string toString() const override {
+        return "baseIrExpr";
     }
 
     bool operator==(const IrExpr& other) const {
@@ -26,4 +27,4 @@ public:
     }
 };
 
-#endif
+#endif // IR_EXPR_H
