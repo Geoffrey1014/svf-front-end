@@ -223,7 +223,7 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
         std::string name = functionDecl->getName();
         LlEmptyStmt* emptyStmt = new LlEmptyStmt();
-        builder.appendStatement(emptyStmt);
+        builder.appendStatement(name, emptyStmt);
         this->compoundStmt->generateLlIr(builder, symbolTable);
         return nullptr;
     }

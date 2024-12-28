@@ -2,7 +2,9 @@
 #include "main.h"
 
 LlBuildersList* IrTransUnit::getLlBuilder() {
-    
+    if (program.is_used("--verbose"))
+        std::cout << "\n==== LlBuildersList:\n" << std::endl;
+
     LlBuildersList* llBuildersList = new LlBuildersList();
     for (IrDecl* decl: this->declerationList) {
         if (program.is_used("--verbose"))
@@ -25,7 +27,7 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
 
         LlSymbolTable* symbolTable = new LlSymbolTable(func->getFunctionName());
         func->generateLlIr(*builder, *symbolTable);
-        if (program.is_used("--verbose"))
+        if (program.is_used("--intermedial"))
             cout << builder->toString() << endl;
 
         
