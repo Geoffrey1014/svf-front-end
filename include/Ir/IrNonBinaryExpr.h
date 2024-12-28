@@ -97,6 +97,10 @@ public:
             LlAssignStmtBinaryOp* assignStmt = new LlAssignStmtBinaryOp(left,left, operation, right);
             builder.appendStatement(assignStmt);
         }
+        else {
+            LlAssignStmtRegular* assignStmt = new LlAssignStmtRegular(left, right);
+            builder.appendStatement(assignStmt);
+        }
         return left;
     }
 
