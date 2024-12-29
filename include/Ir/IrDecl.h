@@ -372,7 +372,6 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        // We show a single variable
         std::string prettyString = indentSpace + "|--declaration:\n";
 
         if (specifier) {
@@ -392,8 +391,6 @@ public:
     }
 
     std::string toString() const override {
-        // E.g. "static int a=10"
-        // or "int a"
         std::string str;
         if (specifier) {
             str += specifier->getValue() + " ";
@@ -435,9 +432,7 @@ public:
         return decls;
     }
 
-    // Pretty-print all contained decls
     std::string prettyPrint(std::string indentSpace) const override {
-        // This node itself is like a "meta" node
         std::string result = indentSpace + "|--multiDecl:\n";
         for (auto* d : decls) {
             result += d->prettyPrint(addIndent(indentSpace));
@@ -445,11 +440,10 @@ public:
         return result;
     }
 
-    // For .toString(), just join all declarations
     std::string toString() const override {
         std::string out;
         for (auto* d : decls) {
-            out += d->toString() + ";\n";  // or however you want to separate
+            out += d->toString() + ";\n";
         }
         return out;
     }

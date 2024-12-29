@@ -145,8 +145,6 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode &cst_node) {
 
 void ASTBuilder::exitFunctionDefinition(const TSNode &cst_node) {
     try {
-        std::cout << "Function definition before exiting" << std::endl;
-        this->debugStackState();
         // mandatory 3 elements
         IrCompoundStmt* compoundStmt = this->popFromStack<IrCompoundStmt>(cst_node);
         IrFunctionDecl* functionDecl = this->popFromStack<IrFunctionDecl>(cst_node);
@@ -154,8 +152,6 @@ void ASTBuilder::exitFunctionDefinition(const TSNode &cst_node) {
 
         IrFunctionDef* funcDef = new IrFunctionDef(returnType, functionDecl, compoundStmt, cst_node);
         this->ast_stack.push(funcDef);
-        std::cout << "Function definition after exiting" << std::endl;
-        this->debugStackState();
     } catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
     }
@@ -211,8 +207,6 @@ void ASTBuilder:: exitReturnStatement(const TSNode & cst_node){
 }
 
 void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
-    std::cout << "Compound statement before exiting" << std::endl;
-    this->debugStackState();
     IrCompoundStmt* compoundStmt = new IrCompoundStmt(cst_node);
 
     uint32_t stmt_count = ts_node_named_child_count(cst_node);
@@ -234,8 +228,6 @@ void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
         }
     }
     this->ast_stack.push(compoundStmt);
-    std::cout << "Compound statement after exiting" << std::endl;
-    this->debugStackState();
 }
 
 void ASTBuilder::exitLiteralNumber(const TSNode & cst_node){
@@ -399,8 +391,6 @@ void ASTBuilder::exitStorageClassSpecifier(const TSNode & cst_node) {
 
 void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
     try {
-        std::cout << "Array declarator before exiting" << std::endl;
-        this->debugStackState();
         auto* sizeExpr = this->popFromStack<IrExpr>(cst_node);
         
         IrDeclDeclarator* baseDeclarator = nullptr;
@@ -448,9 +438,6 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
 
 void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
     try {
-        std::cout << "Declaration before exiting" << std::endl;
-        this->debugStackState();
-
         // 1) Gather all declarators from the stack
         std::deque<IrInitDeclarator*> initDecls;
         std::deque<IrDeclDeclarator*> simpleDecls;
@@ -529,10 +516,6 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
 
         // 6) Finally, push ONE IrMultiDecl for this entire declaration
         this->ast_stack.push(multiDecl);
-
-        std::cout << "Declaration after exiting" << std::endl;
-        this->debugStackState();
-
     } catch (const std::runtime_error& e) {
         std::cerr << "Error in declaration: " << e.what() << std::endl;
     }
@@ -573,8 +556,6 @@ void ASTBuilder::exitAbstractPointerDeclarator(const TSNode &cst_node) {
 
 void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
     try {
-        std::cout << "Pointer declarator before exiting" << std::endl;
-        this->debugStackState();
         IrDeclDeclarator* baseDeclarator = nullptr;
         baseDeclarator = popFromStack<IrDeclDeclarator>(cst_node);
  
