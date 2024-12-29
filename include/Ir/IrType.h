@@ -7,11 +7,17 @@ class IrType : public Ir {
         IrType(const TSNode& node) : Ir(node) {}
         virtual ~IrType() = default;
         int hashCode() const;
+        virtual IrType* clone() const = 0;
 };
 
 class IrTypeBool : public IrType {
 public:
     IrTypeBool(const TSNode& node) : IrType(node) {}
+    ~IrTypeBool() override = default;
+
+    IrTypeBool* clone() const override {
+        return new IrTypeBool(*this);
+    }
 
     bool operator==(const Ir& that) const {
         if (&that == this) {
@@ -39,6 +45,11 @@ public:
 class IrTypeVoid : public IrType {
 public:
     IrTypeVoid(const TSNode& node) : IrType(node) {}
+    ~IrTypeVoid() override = default;
+
+    IrTypeVoid* clone() const override {
+        return new IrTypeVoid(*this);
+    }
 
     bool operator==(const Ir& that) const {
         if (&that == this) {
@@ -67,6 +78,11 @@ public:
 class IrTypeInt : public IrType {
 public:
     IrTypeInt(const TSNode& node) : IrType(node) {}
+    ~IrTypeInt() override = default;
+
+    IrTypeInt* clone() const override {
+        return new IrTypeInt(*this); 
+    }
 
     bool operator==(const Ir& that) const {
         if (&that == this) {
@@ -95,6 +111,11 @@ public:
 class IrTypeString : public IrType {
 public:
     IrTypeString(const TSNode& node) : IrType(node) {}
+    ~IrTypeString() override = default;
+
+    IrTypeString* clone() const override {
+        return new IrTypeString(*this);
+    }
 
     bool operator==(const Ir& that) const {
         if (&that == this) {
@@ -122,6 +143,11 @@ public:
 class IrTypeChar : public IrType {
 public:
     IrTypeChar(const TSNode& node) : IrType(node) {}
+    ~IrTypeChar() override = default;
+
+    IrTypeChar* clone() const override {
+        return new IrTypeChar(*this);
+    }
 
     bool operator==(const Ir& that) const {
         if (&that == this) {

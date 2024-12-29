@@ -145,6 +145,8 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode &cst_node) {
 
 void ASTBuilder::exitFunctionDefinition(const TSNode &cst_node) {
     try {
+        std::cout << "Function definition before exiting" << std::endl;
+        this->debugStackState();
         // mandatory 3 elements
         IrCompoundStmt* compoundStmt = this->popFromStack<IrCompoundStmt>(cst_node);
         IrFunctionDecl* functionDecl = this->popFromStack<IrFunctionDecl>(cst_node);
@@ -152,6 +154,8 @@ void ASTBuilder::exitFunctionDefinition(const TSNode &cst_node) {
 
         IrFunctionDef* funcDef = new IrFunctionDef(returnType, functionDecl, compoundStmt, cst_node);
         this->ast_stack.push(funcDef);
+        std::cout << "Function definition after exiting" << std::endl;
+        this->debugStackState();
     } catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
     }
@@ -207,6 +211,8 @@ void ASTBuilder:: exitReturnStatement(const TSNode & cst_node){
 }
 
 void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
+    std::cout << "Compound statement before exiting" << std::endl;
+    this->debugStackState();
     IrCompoundStmt* compoundStmt = new IrCompoundStmt(cst_node);
 
     uint32_t stmt_count = ts_node_named_child_count(cst_node);
@@ -219,6 +225,7 @@ void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
 
         // Pop statement from the stack and add to the compound statement
         IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
+        
         if (stmt) {
             this->ast_stack.pop();
             compoundStmt->addStmtToFront(stmt);  // Preserve order
@@ -227,6 +234,8 @@ void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
         }
     }
     this->ast_stack.push(compoundStmt);
+    std::cout << "Compound statement after exiting" << std::endl;
+    this->debugStackState();
 }
 
 void ASTBuilder::exitLiteralNumber(const TSNode & cst_node){
@@ -439,49 +448,96 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
 
 void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
     try {
-        IrStorageClassSpecifier* specifier = nullptr;
+        std::cout << "Declaration before exiting" << std::endl;
+        this->debugStackState();
 
+        // 1) Gather all declarators from the stack
         std::deque<IrInitDeclarator*> initDecls;
         std::deque<IrDeclDeclarator*> simpleDecls;
-
         while (!this->ast_stack.empty()) {
             IrInitDeclarator* initDecl = dynamic_cast<IrInitDeclarator*>(this->ast_stack.top());
             IrDeclDeclarator* simpleDecl = dynamic_cast<IrDeclDeclarator*>(this->ast_stack.top());
-            
+
             if (initDecl) {
                 this->ast_stack.pop();
-                initDecls.push_front(initDecl);  // Preserve order
-            } else if (simpleDecl) {
+                initDecls.push_front(initDecl);
+            } 
+            else if (simpleDecl) {
                 this->ast_stack.pop();
                 simpleDecls.push_front(simpleDecl);
-            } else {
-                break;  // Stop if neither declarator is found
-            }            
+            } 
+            else {
+                // Neither initDecl nor simpleDecl => stop
+                break;
+            }
         }
 
-        IrType* type = this->popFromStack<IrType>(cst_node);
+        // 2) Pop the base type (e.g. int)
+        IrType* originalType = this->popFromStack<IrType>(cst_node);
 
+        // 3) Optionally pop storage class specifier (e.g. static)
+        IrStorageClassSpecifier* specifier = nullptr;
         if (!this->ast_stack.empty()) {
             specifier = dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top());
             if (specifier) {
                 this->ast_stack.pop();
-            } else {
-                specifier = nullptr;
             }
         }
 
+        // 4) Create a container node for multiple single-variable declarations
+        IrMultiDecl* multiDecl = new IrMultiDecl(cst_node);
+
+        // If you want to skip the "bool flag" and always clone, you can.
+        // For demonstration, we show the bool-flag approach:
+        bool usedOriginalPointer = false;
+
+        // 5a) Handle initDeclarators (e.g. int a=1, b=2;)
         if (!initDecls.empty()) {
-            IrDecl* decl = new IrDecl(type, specifier, initDecls, cst_node);
-            this->ast_stack.push(decl);
-        } else {
-            IrDecl* decl = new IrDecl(type, specifier, simpleDecls, cst_node);
-            this->ast_stack.push(decl);
+            for (auto* initDecl : initDecls) {
+                // Decide whether to reuse the original pointer or clone
+                IrType* typeForThis = nullptr;
+                if (!usedOriginalPointer) {
+                    typeForThis = originalType; 
+                    usedOriginalPointer = true;
+                } else {
+                    // For subsequent variables, clone the type so each IrDecl has its own pointer
+                    typeForThis = originalType->clone();
+                }
+
+                // Build a single-variable IrDecl (initialized)
+                IrDecl* decl = new IrDecl(typeForThis, specifier, initDecl, cst_node);
+                // Add it to our container
+                multiDecl->addDeclaration(decl);
+            }
         }
+        // 5b) Handle simpleDeclarators (e.g. int a, b;)
+        else if (!simpleDecls.empty()) {
+            for (auto* simpleDecl : simpleDecls) {
+                IrType* typeForThis = nullptr;
+                if (!usedOriginalPointer) {
+                    typeForThis = originalType;
+                    usedOriginalPointer = true;
+                } else {
+                    typeForThis = originalType->clone();
+                }
+
+                // Build a single-variable IrDecl (uninitialized)
+                IrDecl* decl = new IrDecl(typeForThis, specifier, simpleDecl, cst_node);
+                multiDecl->addDeclaration(decl);
+            }
+        }
+
+        // 6) Finally, push ONE IrMultiDecl for this entire declaration
+        this->ast_stack.push(multiDecl);
+
+        std::cout << "Declaration after exiting" << std::endl;
+        this->debugStackState();
 
     } catch (const std::runtime_error& e) {
         std::cerr << "Error in declaration: " << e.what() << std::endl;
     }
 }
+
 
 void ASTBuilder::exitInitDeclarator(const TSNode &cst_node) {
     try {

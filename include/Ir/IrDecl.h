@@ -322,84 +322,137 @@ class IrDecl : public IrStatement {
 private:
     IrType* type;                        
     IrStorageClassSpecifier* specifier;
-   
-    std::deque<IrInitDeclarator*> initDeclarators;      
-    std::deque<IrDeclDeclarator*> simpleDeclarators;      
+
+    // Store exactly ONE of these (whichever applies):
+    IrInitDeclarator* initDecl;      
+    IrDeclDeclarator* simpleDecl;      
 
 public:
-    // Constructor for multiple initialized declarators
-    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, const std::deque<IrInitDeclarator*>& initDecls, const TSNode& node)
-        : IrStatement(node), type(type), specifier(specifier), initDeclarators(initDecls) {}
+    // Constructor for an initialized declarator (e.g. int a=10)
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrInitDeclarator* initDecl,
+           const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier), initDecl(initDecl), simpleDecl(nullptr) {}
 
-    // Constructor for simple declarators
-    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, const std::deque<IrDeclDeclarator*>& simpleDecls, const TSNode& node)
-        : IrStatement(node), type(type), specifier(specifier), simpleDeclarators(simpleDecls) {}
+    // Constructor for a simple declarator (e.g. int a)
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrDeclDeclarator* simpleDecl,
+           const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier),
+          initDecl(nullptr), simpleDecl(simpleDecl) {}
 
     ~IrDecl() override {
         delete type;
         delete specifier;
-        for (auto* initDecl : initDeclarators) {
-            delete initDecl;
-        }
-        for (auto* simpleDecl : simpleDeclarators) {
-            delete simpleDecl;
-        }
+        delete initDecl;
+        delete simpleDecl;
     }
 
-    IrType* getType() const { return type; }
-    IrStorageClassSpecifier* getSpecifier() const { return specifier; }
-    const std::deque<IrInitDeclarator*>& getInitDeclarators() const { return initDeclarators; }
-    const std::deque<IrDeclDeclarator*>& getSimpleDeclarators() const { return simpleDeclarators; }
+    IrType* getType() const {
+        return type;
+    }
+
+    IrStorageClassSpecifier* getSpecifier() const {
+        return specifier;
+    }
+
+    IrInitDeclarator* getInitDecl() const {
+        return initDecl;
+    }
+
+    IrDeclDeclarator* getSimpleDecl() const {
+        return simpleDecl;
+    }
 
     std::string getName() const {
-        if (!initDeclarators.empty()) {
-            return initDeclarators.front()->getDeclarator()->getName();
-        } else if (!simpleDeclarators.empty()) {
-            return simpleDeclarators.front()->getName();
+        if (initDecl) {
+            return initDecl->getDeclarator()->getName();
+        } else if (simpleDecl) {
+            return simpleDecl->getName();
         }
         return "";
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
+        // We show a single variable
         std::string prettyString = indentSpace + "|--declaration:\n";
 
         if (specifier) {
             prettyString += specifier->prettyPrint(addIndent(indentSpace));
         }
+        if (type) {
+            prettyString += type->prettyPrint(addIndent(indentSpace));
+        }
 
-        prettyString += type->prettyPrint(addIndent(indentSpace));
-
-        if (!initDeclarators.empty()) {
-            for (auto* initDecl : initDeclarators) {
-                prettyString += initDecl->prettyPrint(addIndent(indentSpace));
-            }
-        } else {
-            for (auto* simpleDecl : simpleDeclarators) {
-                prettyString += simpleDecl->prettyPrint(addIndent(indentSpace));
-            }
+        if (initDecl) {
+            prettyString += initDecl->prettyPrint(addIndent(indentSpace));
+        } else if (simpleDecl) {
+            prettyString += simpleDecl->prettyPrint(addIndent(indentSpace));
         }
 
         return prettyString;
     }
 
-    std::string toString() const {
-        std::string str = "";
+    std::string toString() const override {
+        // E.g. "static int a=10"
+        // or "int a"
+        std::string str;
         if (specifier) {
             str += specifier->getValue() + " ";
         }
-
-        str += type->toString();
-        if (!initDeclarators.empty()) {
-            for (auto* initDecl : initDeclarators) {
-                str += " " + initDecl->toString();
-            }
-        } else {
-            for (auto* simpleDecl : simpleDeclarators) {
-                str += " " + simpleDecl->toString();
-            }
+        if (type) {
+            str += type->toString();
+        }
+        if (initDecl) {
+            str += " " + initDecl->toString();
+        } else if (simpleDecl) {
+            str += " " + simpleDecl->toString();
         }
         return str;
     }
-};;
+};
+
+
+class IrMultiDecl : public IrStatement {
+private:
+    std::deque<IrDecl*> decls;
+
+public:
+    IrMultiDecl(const TSNode& node)
+        : IrStatement(node) {}
+
+    ~IrMultiDecl() override {
+        for (auto* d : decls) {
+            delete d;
+        }
+    }
+
+    // Add an IrDecl to this container
+    void addDeclaration(IrDecl* decl) {
+        decls.push_back(decl);
+    }
+
+    // Accessors if needed
+    const std::deque<IrDecl*>& getDeclarations() const {
+        return decls;
+    }
+
+    // Pretty-print all contained decls
+    std::string prettyPrint(std::string indentSpace) const override {
+        // This node itself is like a "meta" node
+        std::string result = indentSpace + "|--multiDecl:\n";
+        for (auto* d : decls) {
+            result += d->prettyPrint(addIndent(indentSpace));
+        }
+        return result;
+    }
+
+    // For .toString(), just join all declarations
+    std::string toString() const override {
+        std::string out;
+        for (auto* d : decls) {
+            out += d->toString() + ";\n";  // or however you want to separate
+        }
+        return out;
+    }
+};
 
 #endif

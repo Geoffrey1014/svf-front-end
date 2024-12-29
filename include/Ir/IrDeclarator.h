@@ -22,7 +22,7 @@ private:
 public:
     IrArrayDeclarator(IrDeclDeclarator* baseDeclarator, IrExpr* sizeExpr, const TSNode& node)
         : Ir(node), IrDeclDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
-
+        
     ~IrArrayDeclarator() {
         delete baseDeclarator;
         delete sizeExpr;
