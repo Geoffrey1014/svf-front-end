@@ -427,9 +427,13 @@ public:
         decls.push_back(decl);
     }
 
-    // Accessors if needed
-    const std::deque<IrDecl*>& getDeclarations() const {
-        return decls;
+    // Ownership-transfer method
+    std::deque<IrDecl*> releaseDeclarations() {
+        // Move the entire 'decls' out to a temporary. 
+        // 'decls' will become empty.
+        std::deque<IrDecl*> temp = std::move(decls); 
+        // now 'decls' is empty, so ~IrMultiDecl won't delete these pointers
+        return temp;
     }
 
     std::string prettyPrint(std::string indentSpace) const override {

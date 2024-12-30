@@ -310,13 +310,34 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
         Ir* node = this->ast_stack.top();
         this->ast_stack.pop();
 
-        // Process only valid types
-        if (dynamic_cast<IrDecl*>(node) || 
-            dynamic_cast<IrFunctionDef*>(node) || 
-            dynamic_cast<IrPreprocInclude*>(node) || 
-            dynamic_cast<IrTypeDef*>(node) || 
-            dynamic_cast<IrPreprocDef*>(node)) {
+        // If the node is IrMultiDecl, "release" its sub-declarations
+        if (auto* multiDecl = dynamic_cast<IrMultiDecl*>(node)) {
 
+            // This returns a non-const std::deque<IrDecl*>
+            auto allDecls = multiDecl->releaseDeclarations();
+
+            while (!allDecls.empty()) {
+                IrDecl* singleDecl = allDecls.front();
+                allDecls.pop_front();  // no error now!
+
+                if (auto decl = dynamic_cast<IrDecl*>(singleDecl)) {
+                    transUnitNode->addTopLevelNodeFront(decl);
+                } else {
+                    std::cerr << "Warning: Unrecognized node inside IrMultiDecl.\n";
+                    delete singleDecl; 
+                }
+            }
+
+            // 'multiDecl' now has an empty deque, so no double-delete
+            delete multiDecl;
+        }
+        // Else if it's already a known top-level node
+        else if (dynamic_cast<IrDecl*>(node) || 
+                 dynamic_cast<IrFunctionDef*>(node) ||
+                 dynamic_cast<IrPreprocInclude*>(node) ||
+                 dynamic_cast<IrTypeDef*>(node) ||
+                 dynamic_cast<IrPreprocDef*>(node)) 
+        {
             transUnitNode->addTopLevelNodeFront(node); 
         } else {
             std::cerr << "Warning: Skipping unrecognized node." << std::endl;

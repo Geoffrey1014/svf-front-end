@@ -95,9 +95,9 @@ public:
 
     std::string toString() const{
         if (baseDeclarator) {
-            return "IrAbstractPointerDeclarator: " + baseDeclarator->toString() + "*";
+            return baseDeclarator->toString() + "*";
         }
-        return "IrAbstractPointerDeclarator ";
+        return "*";
     }
 };
 
