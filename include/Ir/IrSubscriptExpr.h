@@ -52,6 +52,13 @@ public:
     std::string toString() const override{
         return baseExpr->toString() + "[" + indexExpr->toString() + "]";
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlLocation* indexLocation = indexExpr->generateLlIr(builder, symbolTable);
+        std::string* baseName = new std::string(baseExpr->toString());
+        LlLocationArray* array = new LlLocationArray(baseName, indexLocation);
+        return array;
+    }
 };
 
 #endif

@@ -25,6 +25,11 @@ public:
         std::cerr << "IrExpr Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
         return new LlLocationVar(new std::string("")); // Return empty location
     }
+
+    virtual const std::string getName() const {
+        static const std::string emptyString = "";
+        return emptyString;
+    }
 };
 
 #endif // IR_EXPR_H

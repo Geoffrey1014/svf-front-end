@@ -408,8 +408,19 @@ public:
         return *(this->getVarName()) + "[" + elementIndex->toString() + "] ";
     }
 
-    bool operator==(const LlLocationArray& other) const;
-    std::size_t hashCode() const override;
+    bool operator==(const LlLocationArray& other) const{
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherArray = dynamic_cast<const LlLocationArray*>(&other)) {
+            return *otherArray->getVarName() == *this->getVarName() &&
+                   *otherArray->elementIndex == *this->elementIndex;
+        }
+        return false;
+    }
+    std::size_t hashCode() const override{
+        return std::hash<std::string>()(*getVarName()) * elementIndex->hashCode();
+    }
 
     std::string getArrayHead(std::string arrayLocation) {
         int arrayHead = std::stoi(arrayLocation.substr(0, arrayLocation.length() - 6)) / 8;

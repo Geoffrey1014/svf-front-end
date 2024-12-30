@@ -394,8 +394,11 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
         if (simpleDeclarator) {
             LlLocation* location = simpleDeclarator->generateLlIr(builder, symbolTable);
-            if (location) {
+            if ( dynamic_cast<LlLocationVar*>(location) != nullptr) {
                 symbolTable.putOnStringTable(location ,*(location->getVarName()));
+            }
+            else if (LlLocationArray* llLocationArray = dynamic_cast<LlLocationArray*>(location) ) {
+                symbolTable.putOnArrayTable(llLocationArray, llLocationArray->getElementIndex());
             }
             return location;
         }

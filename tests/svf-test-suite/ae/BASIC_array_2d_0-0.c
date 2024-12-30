@@ -7,7 +7,7 @@ extern void svf_assert(bool);
 
 int main() 
 {   
-    int a[3][3];
+    int a[3][4];
     a[0][0] = 0;
     a[0][0] = 0;
     a[0][1] = 1;

@@ -65,6 +65,12 @@ public:
     std::string toString() const{
         return  baseDeclarator->toString() + "[" + sizeExpr->toString() + "]";
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlLocation* index = sizeExpr->generateLlIr(builder, symbolTable);
+        LlLocationArray* arrayLoc = new LlLocationArray(new std::string(getName()), index);
+        return arrayLoc;
+    }
 };
 
 class IrAbstractPointerDeclarator : public IrDeclDeclarator {
