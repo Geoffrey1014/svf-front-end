@@ -40,6 +40,13 @@ public:
         }
         return argsString;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        for (IrExpr* arg: this->argsList) {
+            arg->generateLlIr(builder, symbolTable);
+        }
+        return nullptr;
+    }
 };
 
 #endif

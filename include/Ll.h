@@ -38,7 +38,7 @@ class LlComponent: public Ll{
             return this == &other;
         }
         virtual std::size_t hashCode() const {
-            return 0;
+            return 3;
         }
 };
 
@@ -68,7 +68,7 @@ public:
     }
 
     std::size_t hashCode() const {
-        return 3;
+        return 5;
     }
 
 };
@@ -389,6 +389,60 @@ public:
     }
 };
 
+class LlLiteralChar : public LlLiteral {
+private:
+    char charValue;
+
+public:
+    LlLiteralChar(char charValue) : charValue(charValue) {}
+    virtual ~LlLiteralChar() {}
+
+    char getCharValue() {
+        return this->charValue;
+    }
+
+    std::string toString() override{
+        return std::string(1, this->charValue);
+    }
+
+    bool operator==(const LlLiteralChar& other) const {
+        if (&other == this) {
+            return true;
+        }
+        return this->charValue == other.charValue;
+    }
+    std::size_t hashCode() const {
+        return std::hash<char>()(this->charValue);
+    }
+};
+
+class LlLiteralString : public LlLiteral {
+private:
+    std::string* stringValue;
+public:
+    LlLiteralString(std::string* stringValue) : stringValue(stringValue) {}
+    virtual ~LlLiteralString() {
+        delete stringValue;
+    }
+
+    std::string* getStringValue() {
+        return this->stringValue;
+    }
+
+    std::string toString() override{
+        return *(this->stringValue);
+    }
+
+    bool operator==(const LlLiteralString& other) const {
+        if (&other == this) {
+            return true;
+        }
+        return *this->stringValue == *other.stringValue;
+    }
+    std::size_t hashCode() const {
+        return std::hash<std::string>()(*stringValue);
+    }
+};
 
 class LlLocationArray : public LlLocation {
 private:
@@ -494,8 +548,27 @@ public:
         return this->returnLocation->toString() + " = " + this->methodName + "(" + argsString +")" ;
     }
 
-    bool operator==(const LlMethodCallStmt& other) const;
-    std::size_t hashCode() const;
+    bool operator==(const LlMethodCallStmt& other) const{
+        if (&other == this) {
+            return true;
+        }
+        if (methodName != other.methodName || *returnLocation != *other.returnLocation || argsList.size() != other.argsList.size()) {
+            return false;
+        }
+        for (int i = 0; i < argsList.size(); i++) {
+            if (!(*argsList[i] == *other.argsList[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+    std::size_t hashCode() const {
+        std::size_t hash = std::hash<std::string>()(methodName) * returnLocation->hashCode();
+        for (auto arg : argsList) {
+            hash *= arg->hashCode();
+        }
+        return hash;
+    }
 };
 
 

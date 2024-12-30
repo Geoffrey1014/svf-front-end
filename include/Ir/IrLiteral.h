@@ -22,13 +22,9 @@ private:
 public:
     IrLiteralBool(bool value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
     ~IrLiteralBool() = default;
-    // IrType* getExpressionType() {
-    //     return new IrTypeBool(this->getLineNumber(), this->getColNumber());
-    // }
-
-    // std::string semanticCheck(ScopeStack* scopeStack) {
-    //     return "";
-    // }
+    IrType* getExpressionType() {
+        return new IrTypeBool(getNode());
+    }
 
     std::string prettyPrint(std::string indentSpace) {
         std::string prettyPrint = indentSpace + "|--boolLiteral\n";
@@ -57,15 +53,9 @@ private:
 public:
     IrLiteralChar(char value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
     ~IrLiteralChar() = default;
-    // IrType* getExpressionType() {
-    //     // it's definitely not of type void but it
-    //     // is also not of type int or type bool
-    //     return new IrTypeVoid(this->getLineNumber(), this->getColNumber());
-    // }
-
-    // std::string semanticCheck(ScopeStack* scopeStack) {
-    //     return "";
-    // }
+    IrType* getExpressionType() {
+        return new IrTypeVoid(getNode());
+    }
 
     std::string prettyPrint(std::string indentSpace) {
         std::string prettyPrint = indentSpace + "|--charLiteral\n";
@@ -77,9 +67,13 @@ public:
         return "IrLiteralChar";
     }
 
-    // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
-    //     return nullptr;
-    // }
+    LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
+        LlLiteralChar *llLiteralChar = new LlLiteralChar(this->value);
+        LlLocationVar *llLocationVar = builder->generateTemp();
+        LlAssignStmtRegular* regularAssignment  = new LlAssignStmtRegular(llLocationVar, llLiteralChar);
+        builder->appendStatement(regularAssignment);
+        return llLocationVar;
+    }
 };
 
 
@@ -94,13 +88,9 @@ public:
         return this->value;
     }
 
-    // IrType* getExpressionType() {
-    //     return new IrTypeInt(this->getLineNumber(), this->getColNumber());
-    // }
-
-    // std::string semanticCheck(ScopeStack* scopeStack) {
-    //     return "";
-    // }
+    IrType* getExpressionType() {
+        return new IrTypeInt(getNode());
+    }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyPrint = indentSpace + "|--NumberLiteral\n";
@@ -167,6 +157,14 @@ public:
 
     std::string toString() const{
         return "IrLiteralString";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        LlLiteralString * llLiteralString = new LlLiteralString(new string(this->stringContent->getValue()));
+        LlLocationVar *llLocationVar = builder.generateTemp();
+        LlAssignStmtRegular* regularAssignment  = new LlAssignStmtRegular(llLocationVar, llLiteralString);
+        builder.appendStatement(regularAssignment);
+        return llLocationVar;
     }
 };
 

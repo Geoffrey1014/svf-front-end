@@ -24,6 +24,10 @@ class Ir {
         return ts_node_start_point(node).column;
     }
 
+    const TSNode& getNode() {
+        return node;
+    }
+
     virtual bool operator==(const Ir& other) const {
         return this == &other;
     }
