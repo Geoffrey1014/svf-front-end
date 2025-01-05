@@ -20,9 +20,8 @@ private:
     IrExpr* sizeExpr;
 
 public:
-    IrArrayDeclarator(IrDeclDeclarator* baseDeclarator,
-        IrExpr* sizeExpr, const TSNode& node) : Ir(node), 
-        IrDeclDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
+    IrArrayDeclarator(IrDeclDeclarator* baseDeclarator,IrExpr* sizeExpr, const TSNode& node) 
+    : Ir(node), IrDeclDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
 
     ~IrArrayDeclarator() {
         delete baseDeclarator;
@@ -44,13 +43,31 @@ public:
         return "";
     }
 
+    static void flattenArrayDeclarators(IrDeclDeclarator* decl, IrDeclDeclarator*& trueBase, std::vector<IrExpr*>& dims) {
+        IrDeclDeclarator* current = decl;
+        while (auto arr = dynamic_cast<IrArrayDeclarator*>(current)) {
+            dims.push_back(arr->getSizeExpr());
+            current = arr->getBaseDeclarator();
+        }
+        trueBase = current;
+    }
+
+    static IrDeclDeclarator* rebuildArrayDeclarators(IrDeclDeclarator* trueBase, const std::vector<IrExpr*>& dims, const TSNode& cst_node) {
+        IrDeclDeclarator* result = trueBase;
+        for (int i = (int)dims.size() - 1; i >= 0; i--) {
+            IrExpr* size = dims[i];
+            result = new IrArrayDeclarator(result, size, cst_node);
+        }
+        return result;
+    }
+
     std::string prettyPrint(std::string indentSpace) const override {
         std::string str = indentSpace + "|--array_declarator\n";
-        if (baseDeclarator) {
-            str += baseDeclarator->prettyPrint(addIndent(indentSpace));
-        }
         if (sizeExpr) {
             str += sizeExpr->prettyPrint(addIndent(indentSpace));
+        }
+        if (baseDeclarator) {
+            str += baseDeclarator->prettyPrint(addIndent(indentSpace));
         }
         return str;
     }
@@ -179,14 +196,3 @@ public:
     }
 };
 #endif
-
-// Though this is not the named node, but it's kind of necessary to have this
-// Pop the declarator (_declaration_declarator: function, array, or variable)
-// _declaration_declarator: $ => choice(
-//   $.attributed_declarator,
-//   $.pointer_declarator,  --- done
-//   alias($._function_declaration_declarator, $.function_declarator),
-//   $.array_declarator,  --- done
-//   $.parenthesized_declarator,
-//   $.identifier,   --- done
-// ),
