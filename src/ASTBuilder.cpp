@@ -13,6 +13,12 @@ std::string ASTBuilder::getNodeText(const TSNode &node) {
     return source_code->substr(start, end - start); // Return by value
 }
 
+void flattenArrayDeclarators(IrDeclDeclarator* decl, 
+    IrDeclDeclarator*& trueBase, std::vector<IrExpr*>& dims);
+
+IrDeclDeclarator* rebuildArrayDeclarators(IrDeclDeclarator* trueBase,
+    const std::vector<IrExpr*>& dims, const TSNode& cst_node);
+
 void ASTBuilder::debugStackState() const {
     std::cout << "Stack state:\n";
     std::stack<Ir*> tempStack = this->ast_stack; // Copy the stack for debugging
@@ -409,22 +415,57 @@ void ASTBuilder::exitStorageClassSpecifier(const TSNode & cst_node) {
         std::cerr << "Error: Unable to retrieve storage class specifier text" << std::endl;
     }
 }
+void flattenArrayDeclarators(IrDeclDeclarator* decl,
+    IrDeclDeclarator*& trueBase, std::vector<IrExpr*>& dims)
+    {
+        IrDeclDeclarator* current = decl;
+        while (auto arr = dynamic_cast<IrArrayDeclarator*>(current)) {
+            dims.push_back(arr->getSizeExpr());
+            current = arr->getBaseDeclarator();
+        }
+        trueBase = current;
+    }
+
+    IrDeclDeclarator* rebuildArrayDeclarators(IrDeclDeclarator* trueBase,
+                                            const std::vector<IrExpr*>& dims,
+                                            const TSNode& cst_node)
+    {   IrDeclDeclarator* result = trueBase;
+        for (int i = (int)dims.size() - 1; i >= 0; i--) {
+            IrExpr* size = dims[i];
+            result = new IrArrayDeclarator(result, size, cst_node);
+        }
+        return result;
+    }
 
 void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
     try {
-        auto* sizeExpr = this->popFromStack<IrExpr>(cst_node);
-        
-        IrDeclDeclarator* baseDeclarator = nullptr;
-        if (!this->ast_stack.empty() && 
-            dynamic_cast<IrPointerDeclarator*>(this->ast_stack.top())) {
-            baseDeclarator = this->popFromStack<IrPointerDeclarator>(cst_node);
+        // 1) Pop the newly parsed dimension expression
+        IrExpr* newSize = this->popFromStack<IrExpr>(cst_node);
+
+        // 2) Pop the base (identifier, pointer, or existing array)
+        IrDeclDeclarator* base = nullptr;
+        if (!this->ast_stack.empty() &&
+            dynamic_cast<IrPointerDeclarator*>(this->ast_stack.top()))
+        {
+            base = this->popFromStack<IrPointerDeclarator>(cst_node);
         } else {
-            baseDeclarator = this->popFromStack<IrDeclDeclarator>(cst_node);
+            base = this->popFromStack<IrDeclDeclarator>(cst_node);
         }
 
-        Ir* arrayDeclaratorNode = new IrArrayDeclarator(baseDeclarator, sizeExpr, cst_node);
-        this->ast_stack.push(arrayDeclaratorNode);
-    } catch (const std::runtime_error& e) {
+        IrDeclDeclarator* trueBase = nullptr;
+        std::vector<IrExpr*> dims;
+        flattenArrayDeclarators(base, trueBase, dims);
+
+        // 4) Append the new dimension
+        dims.push_back(newSize);
+
+        // 5) Rebuild the chain (outermost dimension is dims[0], then dims[1], etc.)
+        IrDeclDeclarator* finalChain = rebuildArrayDeclarators(trueBase, dims, cst_node);
+
+        // 6) Push it on the stack
+        this->ast_stack.push(finalChain);
+    }
+    catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
     }
 }

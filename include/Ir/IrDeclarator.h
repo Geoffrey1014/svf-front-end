@@ -16,24 +16,23 @@ public:
 
 class IrArrayDeclarator : public IrDeclDeclarator {
 private:
-    IrDeclDeclarator* baseDeclarator; // Base declarator for the array
-    IrExpr* sizeExpr;       // Size expression for the current dimension
+    IrDeclDeclarator* baseDeclarator;
+    IrExpr* sizeExpr;
 
 public:
-    IrArrayDeclarator(IrDeclDeclarator* baseDeclarator, IrExpr* sizeExpr, const TSNode& node)
-        : Ir(node), IrDeclDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
-        
+    IrArrayDeclarator(IrDeclDeclarator* baseDeclarator,
+        IrExpr* sizeExpr, const TSNode& node) : Ir(node), 
+        IrDeclDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
+
     ~IrArrayDeclarator() {
         delete baseDeclarator;
         delete sizeExpr;
     }
 
-    // Getter for the base declarator
     IrDeclDeclarator* getBaseDeclarator() const {
         return baseDeclarator;
     }
 
-    // Getter for the size expression
     IrExpr* getSizeExpr() const {
         return sizeExpr;
     }
@@ -45,25 +44,36 @@ public:
         return "";
     }
 
-    // Pretty print method to adhere to the CST hierarchy
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--array_declarator\n";
-
+        std::string str = indentSpace + "|--array_declarator\n";
         if (baseDeclarator) {
-            prettyString += baseDeclarator->prettyPrint(addIndent(indentSpace));
-        } else{
-            std::cout << "Error: Invalid base declarator" << std::endl;
+            str += baseDeclarator->prettyPrint(addIndent(indentSpace));
         }
-
-        if (sizeExpr){
-            prettyString += sizeExpr->prettyPrint(addIndent(indentSpace));
+        if (sizeExpr) {
+            str += sizeExpr->prettyPrint(addIndent(indentSpace));
         }
-        
-        return prettyString;
+        return str;
     }
 
-    std::string toString() const{
-        return  baseDeclarator->toString() + "[" + sizeExpr->toString() + "]";
+    std::string toString() const override {
+        std::vector<IrExpr*> dims;
+        
+        const IrDeclDeclarator* walk = this;
+        while (auto arr = dynamic_cast<const IrArrayDeclarator*>(walk)) {
+            dims.push_back(arr->getSizeExpr());
+            walk = arr->getBaseDeclarator();
+        }
+
+        std::string result = (walk ? walk->toString() : "");
+
+        for (IrExpr* dim : dims) {
+            if (dim) {
+                result += "[" + dim->toString() + "]";
+            } else {
+                result += "[?]";
+            }
+        }
+        return result;
     }
 };
 

@@ -1,9 +1,8 @@
 int main() {
-	int a, b;
-	int bbb;
+    int a[5][7];
 	return 0;
 }	
-	// int* bbb[2][3];
+	
 	// int* source[2] = {&a, &b};
 
 	// int* source[2]: source is an array of 2 elements, each element in the array is a pointer to an int (int*)
