@@ -2,7 +2,15 @@ int main() {
     int* a[5][7];
 	return 0;
 }	
-	
+
+            // |--array_declarator
+            //   |--NumberLiteral
+            //     |--value: 5
+            //   |--array_declarator
+            //     |--NumberLiteral
+            //       |--value: 7
+            //     |--id: a
+
 	// int* source[2] = {&a, &b};
 
 	// int* source[2]: source is an array of 2 elements, each element in the array is a pointer to an int (int*)
@@ -10,8 +18,7 @@ int main() {
 	// &a, &b are the addresses of a and b
 	// You cannot assign the address of a variable to itself directly, but you can store it in a pointer.
 	// int source[2]* = { &a, &b, }; is not valid C++ syntax
-
-	// |--init_declarator: 		
+	
     // |--array_declarator
     //   |--pointer_declarator(*)
     //     |--id: source

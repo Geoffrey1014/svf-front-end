@@ -14,6 +14,35 @@ public:
     }
 };
 
+class IrPointerDeclarator : public IrDeclDeclarator {
+private:
+    IrDeclDeclarator* baseDeclarator;
+public:
+    IrPointerDeclarator(IrDeclDeclarator* base, const TSNode& node) : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
+    ~IrPointerDeclarator() { delete baseDeclarator; }
+
+    IrDeclDeclarator* getBaseDeclarator() const {
+        return baseDeclarator;
+    }
+
+    const std::string getName() const override {
+        if (baseDeclarator) {
+            return baseDeclarator->getName();
+        }
+        return "";
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string str = indentSpace + "|--pointer_declarator(*)\n";
+        str += baseDeclarator->prettyPrint(addIndent(indentSpace));
+        return str;
+    }
+
+    std::string toString() const{
+        return baseDeclarator->toString() + "*";
+    }
+};
+
 class IrArrayDeclarator : public IrDeclDeclarator {
 private:
     IrDeclDeclarator* baseDeclarator;
@@ -125,31 +154,6 @@ public:
             return baseDeclarator->toString() + "*";
         }
         return "*";
-    }
-};
-
-class IrPointerDeclarator : public IrDeclDeclarator {
-private:
-    IrDeclDeclarator* baseDeclarator;
-public:
-    IrPointerDeclarator(IrDeclDeclarator* base, const TSNode& node) : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
-    ~IrPointerDeclarator() { delete baseDeclarator; }
-
-    const std::string getName() const override {
-        if (baseDeclarator) {
-            return baseDeclarator->getName();
-        }
-        return "";
-    }
-
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string str = indentSpace + "|--pointer_declarator(*)\n";
-        str += baseDeclarator->prettyPrint(addIndent(indentSpace));
-        return str;
-    }
-
-    std::string toString() const{
-        return baseDeclarator->toString() + "*";
     }
 };
 
