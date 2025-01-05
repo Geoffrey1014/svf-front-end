@@ -66,8 +66,8 @@ public:
         return  baseDeclarator->toString() + "[" + sizeExpr->toString() + "]";
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
-        LlLocation* index = sizeExpr->generateLlIr(builder, symbolTable);
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlComponent* index = sizeExpr->generateLlIr(builder, symbolTable);
         LlLocationArray* arrayLoc = new LlLocationArray(new std::string(getName()), index);
         return arrayLoc;
     }
@@ -174,7 +174,7 @@ public:
         return name;
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
         return new LlLocationVar(new std::string(name));
     }
 

@@ -21,9 +21,9 @@ public:
         return 0;
     }
 
-    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
         std::cerr << "IrExpr Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("")); // Return empty location
+        return new LlLocationVar(new std::string("Error")); 
     }
 
     virtual const std::string getName() const {

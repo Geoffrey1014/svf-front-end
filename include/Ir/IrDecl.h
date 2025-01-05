@@ -220,7 +220,7 @@ public:
     IrFunctionDecl* getFunctionDecl() const { return functionDecl; }
     IrCompoundStmt* getCompoundStmt() const { return compoundStmt; }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
         std::string name = functionDecl->getName();
         LlEmptyStmt* emptyStmt = new LlEmptyStmt();
         builder.appendStatement(name, emptyStmt);
@@ -391,16 +391,19 @@ public:
         return str;
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
         if (simpleDeclarator) {
-            LlLocation* location = simpleDeclarator->generateLlIr(builder, symbolTable);
-            if ( dynamic_cast<LlLocationVar*>(location) != nullptr) {
+            LlComponent* compo = simpleDeclarator->generateLlIr(builder, symbolTable);
+            if (LlLocation* location = dynamic_cast<LlLocationVar*>(compo)) {
                 symbolTable.putOnStringTable(location ,*(location->getVarName()));
             }
-            else if (LlLocationArray* llLocationArray = dynamic_cast<LlLocationArray*>(location) ) {
+            else if (LlLocationArray* llLocationArray = dynamic_cast<LlLocationArray*>(compo) ) {
                 symbolTable.putOnArrayTable(llLocationArray, llLocationArray->getElementIndex());
             }
-            return location;
+            else {
+                std::throw_with_nested(std::runtime_error("Error: Invalid location type"));
+            }
+            
         }
         return nullptr;
     }

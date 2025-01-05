@@ -12,7 +12,8 @@ private:
     std::unordered_map<LlComponent*, std::string> llStringTable;
     std::unordered_map<LlLocation*, std::string> paramTable;
     std::unordered_map<LlLocation*, LlComponent*> arrayTable;
-
+    std::unordered_map<LlLocationVar*, int> globalArrays;
+    std::vector<LlLocationVar*> globalVars;
 
 public:
     LlSymbolTable(std::string methodName) : methodName(methodName) {}
