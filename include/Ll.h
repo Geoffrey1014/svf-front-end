@@ -552,7 +552,7 @@ public:
         if (&other == this) {
             return true;
         }
-        if (methodName != other.methodName || *returnLocation != *other.returnLocation || argsList.size() != other.argsList.size()) {
+        if (methodName != other.methodName || !(*returnLocation == *other.returnLocation) || argsList.size() != other.argsList.size()) {
             return false;
         }
         for (int i = 0; i < argsList.size(); i++) {
