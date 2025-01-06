@@ -33,13 +33,13 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string str = indentSpace + "|--pointer_declarator(*)\n";
+        std::string str = indentSpace + "|--pointer_declarator\n";
         str += baseDeclarator->prettyPrint(addIndent(indentSpace));
         return str;
     }
 
     std::string toString() const{
-        return baseDeclarator->toString() + "*";
+        return baseDeclarator->toString();
     }
 };
 
