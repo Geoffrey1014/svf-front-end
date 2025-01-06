@@ -60,7 +60,9 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        return indentSpace + "|--pointerType: " + baseType->toString() + "*\n";
+        std::string result = indentSpace + "|--pointer: *\n";
+        result += baseType->prettyPrint(addIndent(indentSpace));
+        return result;
     }
 
     IrType* getBaseType() const {

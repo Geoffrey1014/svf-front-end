@@ -430,19 +430,14 @@ void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
 
 void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
     try {
-        std::cout << "exitPointerDeclarator before" << std::endl;
-        this->debugStackState();
-        IrDeclDeclarator* baseDeclarator = nullptr;
-        baseDeclarator = popFromStack<IrDeclDeclarator>(cst_node);
-
-        // Pop the type and wrap it in IrPointerType
+        IrDeclDeclarator* baseDeclarator = popFromStack<IrDeclDeclarator>(cst_node);
+        
         IrType* baseType = dynamic_cast<IrType*>(ast_stack.top());
         ast_stack.pop();
+
         IrPointerType* pointerType = new IrPointerType(baseType, cst_node);
         ast_stack.push(pointerType);
-
-        IrPointerDeclarator* pointerDeclarator = new IrPointerDeclarator(baseDeclarator, cst_node);
-        this->ast_stack.push(pointerDeclarator);
+        ast_stack.push(baseDeclarator);
     } catch (const std::exception &e) {
         std::cerr << "Error in exitPointerDeclarator: " << e.what() << std::endl;
     }
@@ -461,7 +456,6 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
         return;
     }
 
-    // Pop the base expression (mandatory)
     if (!this->ast_stack.empty() && dynamic_cast<IrExpr*>(this->ast_stack.top())) {
         baseExpr = dynamic_cast<IrExpr*>(this->ast_stack.top());
         this->ast_stack.pop();
@@ -471,7 +465,6 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
         return;
     }
 
-    // Create a new IrSubscriptExpr node
     Ir* node = new IrSubscriptExpr(baseExpr, indexExpr, cst_node);
     this->ast_stack.push(node);
 }
