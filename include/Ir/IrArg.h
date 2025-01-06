@@ -33,7 +33,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         std::string argsString = "";
         for (IrExpr* arg: this->argsList) {
             argsString += arg->toString() + ", ";

@@ -41,7 +41,7 @@ public:
         return str;
     }
 
-    std::string toString() const {
+    std::string toString() const override{
         return type->toString() + " " + declarator->toString();
     }
 };
@@ -75,7 +75,7 @@ public:
         return str;
     }
 
-    std::string toString() const {
+    std::string toString() const override{
         std::string str = "";
         for (auto* fieldDecl : fieldDeclarations) {
             str += fieldDecl->toString() + ", ";
@@ -106,7 +106,7 @@ public:
         return this->declarator;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         if (declarator) {
             return paramType->toString() + " " + declarator->toString();
         }
@@ -147,7 +147,7 @@ public:
         this->paramsList.push_front(newParam);
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         std::string paramsString = "";
         for (IrParamDecl* paramDecl: this->paramsList) {
             paramsString += paramDecl->toString() + ", ";
@@ -190,7 +190,7 @@ public:
         return "";
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return getName() + " (" + paramsList->toString() + ")";
     }
 
@@ -228,7 +228,7 @@ public:
         return nullptr;
     }
 
-    std::string toString() const{ 
+    std::string toString() const override{
         std::string result = returnType->toString() + " ";
         result += functionDecl->toString();
         result += " {\n";
@@ -312,7 +312,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const {
+    std::string toString() const override{
         return declarator->toString() + " = " + initializer->toString();
     }
 };
@@ -321,38 +321,55 @@ public:
 class IrDecl : public IrStatement {
 private:
     IrType* type;                        
-    IrStorageClassSpecifier* specifier;   
-    std::vector<IrInitDeclarator*> initDeclarators;      
-    IrDeclDeclarator* simpleDeclarator;      
+    IrStorageClassSpecifier* specifier;
+
+    // Store exactly ONE of these (whichever applies):
+    IrInitDeclarator* initDecl;      
+    IrDeclDeclarator* simpleDecl;      
 
 public:
-    // Constructor for multiple initialized declarators
-    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, const std::vector<IrInitDeclarator*>& initDecls, const TSNode& node)
-        : IrStatement(node), type(type), specifier(specifier), initDeclarators(initDecls), simpleDeclarator(nullptr) {}
+    // Constructor for an initialized declarator (e.g. int a=10)
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrInitDeclarator* initDecl,
+           const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier), initDecl(initDecl), simpleDecl(nullptr) {}
 
-    // Constructor for a simple single declarator
-    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrDeclDeclarator* declarator, const TSNode& node)
-        : IrStatement(node), type(type), specifier(specifier), simpleDeclarator(declarator) {}
+    // Constructor for a simple declarator (e.g. int a)
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrDeclDeclarator* simpleDecl,
+           const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier),
+          initDecl(nullptr), simpleDecl(simpleDecl) {}
 
     ~IrDecl() override {
         delete type;
         delete specifier;
-        for (auto* initDecl : initDeclarators) {
-            delete initDecl;
-        }
-        delete simpleDeclarator;
+        delete initDecl;
+        delete simpleDecl;
     }
+
+    IrType* getType() const {
+        return type;
+    }
+
+    IrStorageClassSpecifier* getSpecifier() const {
+        return specifier;
+    }
+
+    IrInitDeclarator* getInitDecl() const {
+        return initDecl;
+    }
+
+    IrDeclDeclarator* getSimpleDecl() const {
+        return simpleDecl;
+    }
+
     std::string getName() const {
-        if (simpleDeclarator) {
-            return simpleDeclarator->getName();
+        if (initDecl) {
+            return initDecl->getDeclarator()->getName();
+        } else if (simpleDecl) {
+            return simpleDecl->getName();
         }
         return "";
     }
-
-    IrType* getType() const { return type; }
-    IrStorageClassSpecifier* getSpecifier() const { return specifier; }
-    const std::vector<IrInitDeclarator*>& getInitDeclarators() const { return initDeclarators; }
-    IrDeclDeclarator* getSimpleDeclarator() const { return simpleDeclarator; }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--declaration:\n";
@@ -360,40 +377,38 @@ public:
         if (specifier) {
             prettyString += specifier->prettyPrint(addIndent(indentSpace));
         }
+        if (type) {
+            prettyString += type->prettyPrint(addIndent(indentSpace));
+        }
 
-        prettyString += type->prettyPrint(addIndent(indentSpace));
-
-        if (!initDeclarators.empty()) {
-            for (auto* initDecl : initDeclarators) {
-                prettyString += initDecl->prettyPrint(addIndent(indentSpace));
-            }
-        } else if (simpleDeclarator) {
-            prettyString += simpleDeclarator->prettyPrint(addIndent(indentSpace));
+        if (initDecl) {
+            prettyString += initDecl->prettyPrint(addIndent(indentSpace));
+        } else if (simpleDecl) {
+            prettyString += simpleDecl->prettyPrint(addIndent(indentSpace));
         }
 
         return prettyString;
     }
 
-    std::string toString() const {
-        std::string str = "";
+    std::string toString() const override {
+        std::string str;
         if (specifier) {
             str += specifier->getValue() + " ";
         }
-
-        str += type->toString();
-        if (!initDeclarators.empty()) {
-            for (auto* initDecl : initDeclarators) {
-                str += " " + initDecl->toString();
-            }
-        } else if (simpleDeclarator) {
-            str += " " + simpleDeclarator->toString();
+        if (type) {
+            str += type->toString();
+        }
+        if (initDecl) {
+            str += " " + initDecl->toString();
+        } else if (simpleDecl) {
+            str += " " + simpleDecl->toString();
         }
         return str;
     }
 
     LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
-        if (simpleDeclarator) {
-            LlComponent* compo = simpleDeclarator->generateLlIr(builder, symbolTable);
+        if (simpleDecl) {
+            LlComponent* compo = simpleDecl->generateLlIr(builder, symbolTable);
             if (LlLocation* location = dynamic_cast<LlLocationVar*>(compo)) {
                 symbolTable.putOnStringTable(location ,*(location->getVarName()));
             }
@@ -406,6 +421,52 @@ public:
             
         }
         return nullptr;
+    }
+};
+
+
+class IrMultiDecl : public IrStatement {
+private:
+    std::deque<IrDecl*> decls;
+
+public:
+    IrMultiDecl(const TSNode& node)
+        : IrStatement(node) {}
+
+    ~IrMultiDecl() override {
+        for (auto* d : decls) {
+            delete d;
+        }
+    }
+
+    // Add an IrDecl to this container
+    void addDeclaration(IrDecl* decl) {
+        decls.push_back(decl);
+    }
+
+    // Ownership-transfer method
+    std::deque<IrDecl*> releaseDeclarations() {
+        // Move the entire 'decls' out to a temporary. 
+        // 'decls' will become empty.
+        std::deque<IrDecl*> temp = std::move(decls); 
+        // now 'decls' is empty, so ~IrMultiDecl won't delete these pointers
+        return temp;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string result = indentSpace + "|--multiDecl:\n";
+        for (auto* d : decls) {
+            result += d->prettyPrint(addIndent(indentSpace));
+        }
+        return result;
+    }
+
+    std::string toString() const override {
+        std::string out;
+        for (auto* d : decls) {
+            out += d->toString() + ";\n";
+        }
+        return out;
     }
 };
 

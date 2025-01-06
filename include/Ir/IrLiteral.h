@@ -92,7 +92,7 @@ public:
         return prettyPrint;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return std::to_string(value); // "IrLiteralNumber";
     }
 
@@ -118,7 +118,7 @@ public:
         return indentSpace + "|--stringContent: " + value + "\n";
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "IrLiteralStringContent";
     }
 };
@@ -146,7 +146,7 @@ public:
         return prettyPrint;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "IrLiteralString";
     }
 

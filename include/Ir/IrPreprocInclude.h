@@ -20,7 +20,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "#include " + path->getValue();
     }
 };

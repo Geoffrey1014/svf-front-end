@@ -146,7 +146,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         string s = expr->toString();
         return s;
     }

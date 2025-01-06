@@ -13,11 +13,15 @@ class IrTypeIdent : public IrType {
             : IrType(node), name(name) {}
         ~IrTypeIdent() = default;
 
+        IrTypeIdent* clone() const override {
+            return new IrTypeIdent(*this);
+        }
+
         const std::string& getName() const {
             return name;
         }
 
-        bool operator==(const Ir& that) const {
+        bool operator==(const Ir& that) const override{
             if (&that == this) {
                 return true;
             }
@@ -32,11 +36,11 @@ class IrTypeIdent : public IrType {
             return hasher(this->name);
         }
 
-        std::string prettyPrint(std::string indentSpace) const {
+        std::string prettyPrint(std::string indentSpace) const override{
             return indentSpace + "|--typeId: " + name + "\n";
         }
 
-        std::string toString() const{
+        std::string toString() const override{
             return name;
         }
 };
@@ -56,6 +60,10 @@ public:
         delete fieldDeclList;
     }
 
+    IrTypeStruct* clone() const override {
+        return new IrTypeStruct(*this);
+    }
+
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--type: struct\n";
         if (name) {
@@ -65,7 +73,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const {
+    std::string toString() const override{
         std::string str = "struct ";
         if (name) {
             str += name->toString();
@@ -96,7 +104,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const {
+    std::string toString() const override{
         return "typedef " + type->toString() + " " + alias->toString();
     }
 };

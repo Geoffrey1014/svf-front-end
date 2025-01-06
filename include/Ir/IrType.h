@@ -7,13 +7,19 @@ class IrType : public Ir {
         IrType(const TSNode& node) : Ir(node) {}
         virtual ~IrType() = default;
         int hashCode() const;
+        virtual IrType* clone() const = 0;
 };
 
 class IrTypeBool : public IrType {
 public:
     IrTypeBool(const TSNode& node) : IrType(node) {}
+    ~IrTypeBool() override = default;
 
-    bool operator==(const Ir& that) const {
+    IrTypeBool* clone() const override {
+        return new IrTypeBool(*this);
+    }
+
+    bool operator==(const Ir& that) const override{
         if (&that == this) {
             return true;
         }
@@ -27,11 +33,11 @@ public:
         return 11; // some arbitrary prime
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "bool";
     }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: bool\n";
     }
 };
@@ -39,8 +45,13 @@ public:
 class IrTypeVoid : public IrType {
 public:
     IrTypeVoid(const TSNode& node) : IrType(node) {}
+    ~IrTypeVoid() override = default;
 
-    bool operator==(const Ir& that) const {
+    IrTypeVoid* clone() const override {
+        return new IrTypeVoid(*this);
+    }
+
+    bool operator==(const Ir& that) const override{
         if (&that == this) {
             return true;
         }
@@ -55,11 +66,11 @@ public:
         return 13; // some arbitrary prime
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "void";
     }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: void\n";
     }
 };
@@ -67,8 +78,13 @@ public:
 class IrTypeInt : public IrType {
 public:
     IrTypeInt(const TSNode& node) : IrType(node) {}
+    ~IrTypeInt() override = default;
 
-    bool operator==(const Ir& that) const {
+    IrTypeInt* clone() const override {
+        return new IrTypeInt(*this); 
+    }
+
+    bool operator==(const Ir& that) const override{
         if (&that == this) {
             return true;
         }
@@ -83,11 +99,11 @@ public:
         return 17; // some arbitrary prime
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "int";
     }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: int\n";
     }
 };
@@ -95,8 +111,13 @@ public:
 class IrTypeString : public IrType {
 public:
     IrTypeString(const TSNode& node) : IrType(node) {}
+    ~IrTypeString() override = default;
 
-    bool operator==(const Ir& that) const {
+    IrTypeString* clone() const override {
+        return new IrTypeString(*this);
+    }
+
+    bool operator==(const Ir& that) const override{
         if (&that == this) {
             return true;
         }
@@ -110,11 +131,11 @@ public:
         return 7; // some arbitrary prime
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "string";
     }
 
-     std::string prettyPrint(std::string indentSpace) const {
+     std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: string\n";
     }
 };
@@ -122,8 +143,13 @@ public:
 class IrTypeChar : public IrType {
 public:
     IrTypeChar(const TSNode& node) : IrType(node) {}
+    ~IrTypeChar() override = default;
 
-    bool operator==(const Ir& that) const {
+    IrTypeChar* clone() const override {
+        return new IrTypeChar(*this);
+    }
+
+    bool operator==(const Ir& that) const override{
         if (&that == this) {
             return true;
         }
@@ -137,11 +163,11 @@ public:
         return 19; // some arbitrary prime
     }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: char\n";
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "char";
     }
 };

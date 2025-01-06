@@ -19,7 +19,7 @@ public:
         return indentSpace + "|--storageClassSpecifier: " + this->specifier + "\n";
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "IrStorageClassSpecifier: " + this->specifier;
     }
 };

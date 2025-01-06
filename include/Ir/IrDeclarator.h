@@ -14,26 +14,53 @@ public:
     }
 };
 
+class IrPointerDeclarator : public IrDeclDeclarator {
+private:
+    IrDeclDeclarator* baseDeclarator;
+public:
+    IrPointerDeclarator(IrDeclDeclarator* base, const TSNode& node) : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
+    ~IrPointerDeclarator() { delete baseDeclarator; }
+
+    IrDeclDeclarator* getBaseDeclarator() const {
+        return baseDeclarator;
+    }
+
+    const std::string getName() const override {
+        if (baseDeclarator) {
+            return baseDeclarator->getName();
+        }
+        return "";
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string str = indentSpace + "|--pointer_declarator(*)\n";
+        str += baseDeclarator->prettyPrint(addIndent(indentSpace));
+        return str;
+    }
+
+    std::string toString() const override{
+        return baseDeclarator->toString() + "*";
+    }
+};
+
 class IrArrayDeclarator : public IrDeclDeclarator {
 private:
-    IrDeclDeclarator* baseDeclarator; // Base declarator for the array
-    IrExpr* sizeExpr;       // Size expression for the current dimension
+    IrDeclDeclarator* baseDeclarator;
+    IrExpr* sizeExpr;
 
 public:
-    IrArrayDeclarator(IrDeclDeclarator* baseDeclarator, IrExpr* sizeExpr, const TSNode& node)
-        : Ir(node), IrDeclDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
+    IrArrayDeclarator(IrDeclDeclarator* baseDeclarator,IrExpr* sizeExpr, const TSNode& node)
+    : Ir(node), IrDeclDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
 
     ~IrArrayDeclarator() {
         delete baseDeclarator;
         delete sizeExpr;
     }
 
-    // Getter for the base declarator
     IrDeclDeclarator* getBaseDeclarator() const {
         return baseDeclarator;
     }
 
-    // Getter for the size expression
     IrExpr* getSizeExpr() const {
         return sizeExpr;
     }
@@ -45,25 +72,54 @@ public:
         return "";
     }
 
-    // Pretty print method to adhere to the CST hierarchy
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--array_declarator\n";
-
-        if (baseDeclarator) {
-            prettyString += baseDeclarator->prettyPrint(addIndent(indentSpace));
-        } else{
-            std::cout << "Error: Invalid base declarator" << std::endl;
+    static void flattenArrayDeclarators(IrDeclDeclarator* decl, IrDeclDeclarator*& trueBase, std::vector<IrExpr*>& dims) {
+        IrDeclDeclarator* current = decl;
+        while (auto arr = dynamic_cast<IrArrayDeclarator*>(current)) {
+            dims.push_back(arr->getSizeExpr());
+            current = arr->getBaseDeclarator();
         }
-
-        if (sizeExpr){
-            prettyString += sizeExpr->prettyPrint(addIndent(indentSpace));
-        }
-        
-        return prettyString;
+        trueBase = current;
     }
 
-    std::string toString() const{
-        return  baseDeclarator->toString() + "[" + sizeExpr->toString() + "]";
+    static IrDeclDeclarator* rebuildArrayDeclarators(IrDeclDeclarator* trueBase, const std::vector<IrExpr*>& dims, const TSNode& cst_node) {
+        IrDeclDeclarator* result = trueBase;
+        for (int i = (int)dims.size() - 1; i >= 0; i--) {
+            IrExpr* size = dims[i];
+            result = new IrArrayDeclarator(result, size, cst_node);
+        }
+        return result;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string str = indentSpace + "|--array_declarator\n";
+        if (sizeExpr) {
+            str += sizeExpr->prettyPrint(addIndent(indentSpace));
+        }
+        if (baseDeclarator) {
+            str += baseDeclarator->prettyPrint(addIndent(indentSpace));
+        }
+        return str;
+    }
+
+    std::string toString() const override {
+        std::vector<IrExpr*> dims;
+
+        const IrDeclDeclarator* walk = this;
+        while (auto arr = dynamic_cast<const IrArrayDeclarator*>(walk)) {
+            dims.push_back(arr->getSizeExpr());
+            walk = arr->getBaseDeclarator();
+        }
+
+        std::string result = (walk ? walk->toString() : "");
+
+        for (IrExpr* dim : dims) {
+            if (dim) {
+                result += "[" + dim->toString() + "]";
+            } else {
+                result += "[?]";
+            }
+        }
+        return result;
     }
 
     LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
@@ -99,36 +155,11 @@ public:
         return str;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         if (baseDeclarator) {
-            return "IrAbstractPointerDeclarator: " + baseDeclarator->toString() + "*";
+            return baseDeclarator->toString() + "*";
         }
-        return "IrAbstractPointerDeclarator ";
-    }
-};
-
-class IrPointerDeclarator : public IrDeclDeclarator {
-private:
-    IrDeclDeclarator* baseDeclarator;
-public:
-    IrPointerDeclarator(IrDeclDeclarator* base, const TSNode& node) : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
-    ~IrPointerDeclarator() { delete baseDeclarator; }
-
-    const std::string getName() const override {
-        if (baseDeclarator) {
-            return baseDeclarator->getName();
-        }
-        return "";
-    }
-
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string str = indentSpace + "|--pointer_declarator(*)\n";
-        str += baseDeclarator->prettyPrint(addIndent(indentSpace));
-        return str;
-    }
-
-    std::string toString() const{
-        return baseDeclarator->toString() + "*";
+        return "*";
     }
 };
 
@@ -145,7 +176,7 @@ public:
         return name;
     }
 
-    bool operator==(const Ir & that) const {
+    bool operator==(const Ir & that) const override{
         if (&that == this) {
             return true;
         }
@@ -162,7 +193,7 @@ public:
         bool isType() const { return isTypeAlias; }
     void markAsTypeAlias() { isTypeAlias = true; }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--id: " + name + "\n";
     }
 
@@ -170,7 +201,7 @@ public:
         return name;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return name;
     }
 
@@ -180,14 +211,3 @@ public:
 
 };
 #endif
-
-// Though this is not the named node, but it's kind of necessary to have this
-// Pop the declarator (_declaration_declarator: function, array, or variable)
-// _declaration_declarator: $ => choice(
-//   $.attributed_declarator,
-//   $.pointer_declarator,  --- done
-//   alias($._function_declaration_declarator, $.function_declarator),
-//   $.array_declarator,  --- done
-//   $.parenthesized_declarator,
-//   $.identifier,   --- done
-// ),
