@@ -64,14 +64,6 @@ void ASTBuilder::exitIdentifier(const TSNode & cst_node) {
     this->ast_stack.push(node);
 }
 
-    // parameter_declaration: $ => seq(
-    //   $._declaration_specifiers,
-    //   optional(field('declarator', choice(
-    //     $._declarator,
-    //     $._abstract_declarator,
-    //   ))),
-    //   repeat($.attribute_specifier),
-    // ),
 // parameter_declaration
 void ASTBuilder::exitParameter(const TSNode &cst_node) {
     try {
@@ -227,6 +219,7 @@ void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
 
         // Pop statement from the stack and add to the compound statement
         IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
+        
         if (stmt) {
             this->ast_stack.pop();
             compoundStmt->addStmtToFront(stmt);  // Preserve order
@@ -317,13 +310,34 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
         Ir* node = this->ast_stack.top();
         this->ast_stack.pop();
 
-        // Process only valid types
-        if (dynamic_cast<IrDecl*>(node) || 
-            dynamic_cast<IrFunctionDef*>(node) || 
-            dynamic_cast<IrPreprocInclude*>(node) || 
-            dynamic_cast<IrTypeDef*>(node) || 
-            dynamic_cast<IrPreprocDef*>(node)) {
+        // If the node is IrMultiDecl, "release" its sub-declarations
+        if (auto* multiDecl = dynamic_cast<IrMultiDecl*>(node)) {
 
+            // This returns a non-const std::deque<IrDecl*>
+            auto allDecls = multiDecl->releaseDeclarations();
+
+            while (!allDecls.empty()) {
+                IrDecl* singleDecl = allDecls.front();
+                allDecls.pop_front();  // no error now!
+
+                if (auto decl = dynamic_cast<IrDecl*>(singleDecl)) {
+                    transUnitNode->addTopLevelNodeFront(decl);
+                } else {
+                    std::cerr << "Warning: Unrecognized node inside IrMultiDecl.\n";
+                    delete singleDecl; 
+                }
+            }
+
+            // 'multiDecl' now has an empty deque, so no double-delete
+            delete multiDecl;
+        }
+        // Else if it's already a known top-level node
+        else if (dynamic_cast<IrDecl*>(node) || 
+                 dynamic_cast<IrFunctionDef*>(node) ||
+                 dynamic_cast<IrPreprocInclude*>(node) ||
+                 dynamic_cast<IrTypeDef*>(node) ||
+                 dynamic_cast<IrPreprocDef*>(node)) 
+        {
             transUnitNode->addTopLevelNodeFront(node); 
         } else {
             std::cerr << "Warning: Skipping unrecognized node." << std::endl;
@@ -398,12 +412,40 @@ void ASTBuilder::exitStorageClassSpecifier(const TSNode & cst_node) {
 
 void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
     try {
-        auto* sizeExpr = this->popFromStack<IrExpr>(cst_node);
-        auto* baseDeclarator = this->popFromStack<IrDeclDeclarator>(cst_node);
-        Ir* arrayDeclaratorNode = new IrArrayDeclarator(baseDeclarator, sizeExpr, cst_node);
-        this->ast_stack.push(arrayDeclaratorNode);
-    } catch (const std::runtime_error& e) {
+        std::cout << "exitArrayDeclarator before" << std::endl;
+        this->debugStackState();
+
+        IrExpr* newSize = this->popFromStack<IrExpr>(cst_node);
+
+        IrDeclDeclarator* base = nullptr;
+        base = this->popFromStack<IrDeclDeclarator>(cst_node);
+
+        IrDeclDeclarator* trueBase = nullptr;
+        std::vector<IrExpr*> dims;
+        IrArrayDeclarator::flattenArrayDeclarators(base, trueBase, dims);
+        dims.push_back(newSize);
+
+        // Rebuild the chain (outermost dimension is dims[0], then dims[1], etc.)
+        IrDeclDeclarator* finalChain = IrArrayDeclarator::rebuildArrayDeclarators(trueBase, dims, cst_node);
+        this->ast_stack.push(finalChain);
+    }
+    catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
+    try {
+        std::cout << "exitPointerDeclarator before" << std::endl;
+        this->debugStackState();
+        IrDeclDeclarator* baseDeclarator = nullptr;
+        baseDeclarator = popFromStack<IrDeclDeclarator>(cst_node);
+ 
+        IrPointerDeclarator* pointerDeclarator = new IrPointerDeclarator(baseDeclarator, cst_node);
+
+        this->ast_stack.push(pointerDeclarator);
+    } catch (const std::exception &e) {
+        std::cerr << "Error in exitPointerDeclarator: " << e.what() << std::endl;
     }
 }
 
@@ -437,55 +479,96 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
 
 void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
     try {
-        IrStorageClassSpecifier* specifier = nullptr;
-        std::vector<IrInitDeclarator*> initDecls;
-
+        // 1) Gather all declarators from the stack
+        std::deque<IrInitDeclarator*> initDecls;
+        std::deque<IrDeclDeclarator*> simpleDecls;
         while (!this->ast_stack.empty()) {
             IrInitDeclarator* initDecl = dynamic_cast<IrInitDeclarator*>(this->ast_stack.top());
-            if (!initDecl)
+            IrDeclDeclarator* simpleDecl = dynamic_cast<IrDeclDeclarator*>(this->ast_stack.top());
+
+            if (initDecl) {
+                this->ast_stack.pop();
+                initDecls.push_front(initDecl);
+            } 
+            else if (simpleDecl) {
+                this->ast_stack.pop();
+                simpleDecls.push_front(simpleDecl);
+            } 
+            else {
+                // Neither initDecl nor simpleDecl => stop
                 break;
-            this->ast_stack.pop();
-            initDecls.insert(initDecls.begin(), initDecl); // Insert at the front to preserve order
+            }
         }
 
-        IrDeclDeclarator* declarator = nullptr;
-        if (initDecls.empty()) {
-            declarator = this->popFromStack<IrDeclDeclarator>(cst_node);
-        }
+        // 2) Pop the base type (e.g. int)
+        IrType* originalType = this->popFromStack<IrType>(cst_node);
 
-        IrType* type = this->popFromStack<IrType>(cst_node);
-
+        // 3) Optionally pop storage class specifier (e.g. static)
+        IrStorageClassSpecifier* specifier = nullptr;
         if (!this->ast_stack.empty()) {
             specifier = dynamic_cast<IrStorageClassSpecifier*>(this->ast_stack.top());
             if (specifier) {
                 this->ast_stack.pop();
-            } else {
-                specifier = nullptr;
             }
         }
 
+        // 4) Create a container node for multiple single-variable declarations
+        IrMultiDecl* multiDecl = new IrMultiDecl(cst_node);
+
+        // If you want to skip the "bool flag" and always clone, you can.
+        // For demonstration, we show the bool-flag approach:
+        bool usedOriginalPointer = false;
+
+        // 5a) Handle initDeclarators (e.g. int a=1, b=2;)
         if (!initDecls.empty()) {
-            IrDecl* decl = new IrDecl(type, specifier, initDecls, cst_node);
-            this->ast_stack.push(decl);
-        } else {
-            IrDecl* decl = new IrDecl(type, specifier, declarator, cst_node);
-            this->ast_stack.push(decl);
+            for (auto* initDecl : initDecls) {
+                // Decide whether to reuse the original pointer or clone
+                IrType* typeForThis = nullptr;
+                if (!usedOriginalPointer) {
+                    typeForThis = originalType; 
+                    usedOriginalPointer = true;
+                } else {
+                    // For subsequent variables, clone the type so each IrDecl has its own pointer
+                    typeForThis = originalType->clone();
+                }
+
+                // Build a single-variable IrDecl (initialized)
+                IrDecl* decl = new IrDecl(typeForThis, specifier, initDecl, cst_node);
+                // Add it to our container
+                multiDecl->addDeclaration(decl);
+            }
+        }
+        // 5b) Handle simpleDeclarators (e.g. int a, b;)
+        else if (!simpleDecls.empty()) {
+            for (auto* simpleDecl : simpleDecls) {
+                IrType* typeForThis = nullptr;
+                if (!usedOriginalPointer) {
+                    typeForThis = originalType;
+                    usedOriginalPointer = true;
+                } else {
+                    typeForThis = originalType->clone();
+                }
+
+                // Build a single-variable IrDecl (uninitialized)
+                IrDecl* decl = new IrDecl(typeForThis, specifier, simpleDecl, cst_node);
+                multiDecl->addDeclaration(decl);
+            }
         }
 
+        // 6) Finally, push ONE IrMultiDecl for this entire declaration
+        this->ast_stack.push(multiDecl);
     } catch (const std::runtime_error& e) {
         std::cerr << "Error in declaration: " << e.what() << std::endl;
     }
 }
 
+
 void ASTBuilder::exitInitDeclarator(const TSNode &cst_node) {
     try {
-        // Pop the initializer (expression, e.g., 2)
-        IrExpr* initializer = this->popFromStack<IrExpr>(cst_node);
 
-        // Pop the declarator (identifier, e.g., b)
+        IrExpr* initializer = this->popFromStack<IrExpr>(cst_node);
         IrDeclDeclarator* declarator = this->popFromStack<IrDeclDeclarator>(cst_node);
 
-        // Combine into an IrInitDeclarator node
         IrInitDeclarator* initDecl = new IrInitDeclarator(declarator, initializer, cst_node);
         this->ast_stack.push(initDecl);
     } catch (const std::runtime_error& e) {
@@ -509,19 +592,6 @@ void ASTBuilder::exitAbstractPointerDeclarator(const TSNode &cst_node) {
         this->ast_stack.push(pointerDeclarator);
     } catch (const std::exception& e) {
         std::cerr << "Error in exitAbstractPointerDeclarator: " << e.what() << std::endl;
-    }
-}
-
-void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
-    try {
-        IrDeclDeclarator* baseDeclarator = nullptr;
-        baseDeclarator = popFromStack<IrDeclDeclarator>(cst_node);
- 
-        IrPointerDeclarator* pointerDeclarator = new IrPointerDeclarator(baseDeclarator, cst_node);
-
-        this->ast_stack.push(pointerDeclarator);
-    } catch (const std::exception &e) {
-        std::cerr << "Error in exitPointerDeclarator: " << e.what() << std::endl;
     }
 }
 
@@ -925,14 +995,12 @@ void ASTBuilder::traverse_tree(const TSNode & node) {
         traverse_tree(child);
     }
 
+    exit_cst_node(node);
+}
+
     // uint32_t child_count = ts_node_child_count(node);
     // for (uint32_t i = 0; i < child_count; i++) {
     //     TSNode child = ts_node_child(node, i);
     //     traverse_tree(child);
     // }
-
-
-    exit_cst_node(node);
-}
-
 

@@ -13,6 +13,10 @@ class IrTypeIdent : public IrType {
             : IrType(node), name(name) {}
         ~IrTypeIdent() = default;
 
+        IrTypeIdent* clone() const override {
+            return new IrTypeIdent(*this);
+        }
+
         const std::string& getName() const {
             return name;
         }
@@ -54,6 +58,10 @@ public:
     ~IrTypeStruct() {
         delete name;
         delete fieldDeclList;
+    }
+
+    IrTypeStruct* clone() const override {
+        return new IrTypeStruct(*this);
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
