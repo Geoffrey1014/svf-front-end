@@ -21,7 +21,7 @@ class IrTypeIdent : public IrType {
             return name;
         }
 
-        bool operator==(const Ir& that) const {
+        bool operator==(const Ir& that) const override{
             if (&that == this) {
                 return true;
             }
@@ -36,11 +36,11 @@ class IrTypeIdent : public IrType {
             return hasher(this->name);
         }
 
-        std::string prettyPrint(std::string indentSpace) const {
+        std::string prettyPrint(std::string indentSpace) const override{
             return indentSpace + "|--typeId: " + name + "\n";
         }
 
-        std::string toString() const{
+        std::string toString() const override{
             return name;
         }
 };
@@ -73,7 +73,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const {
+    std::string toString() const override{
         std::string str = "struct ";
         if (name) {
             str += name->toString();
@@ -104,7 +104,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const {
+    std::string toString() const override{
         return "typedef " + type->toString() + " " + alias->toString();
     }
 };

@@ -50,7 +50,7 @@ public:
 
         return prettyString;
     }
-    std::string toString() const{
+    std::string toString() const override{
         string s = "return " + result->toString();
         return s;
     }
@@ -75,7 +75,7 @@ public:
         std::string prettyString = indentSpace + "|--returnVoid\n";
         return prettyString;
     }
-    std::string toString() const{
+    std::string toString() const override{
         return "IrStmtReturnVoid";
     }
     virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
@@ -111,7 +111,7 @@ public:
 
         return prettyString;
     }
-    std::string toString() const{
+    std::string toString() const override{
         std::string s = "";
         for (IrStatement* statement: this->stmtsList) {
             s += statement->toString() + "\n";
@@ -146,7 +146,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         string s = expr->toString();
         return s;
     }

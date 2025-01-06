@@ -38,7 +38,7 @@ public:
         return str;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return baseDeclarator->toString() + "*";
     }
 };
@@ -155,7 +155,7 @@ public:
         return str;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         if (baseDeclarator) {
             return baseDeclarator->toString() + "*";
         }
@@ -176,7 +176,7 @@ public:
         return name;
     }
 
-    bool operator==(const Ir & that) const {
+    bool operator==(const Ir & that) const override{
         if (&that == this) {
             return true;
         }
@@ -193,7 +193,7 @@ public:
         bool isType() const { return isTypeAlias; }
     void markAsTypeAlias() { isTypeAlias = true; }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--id: " + name + "\n";
     }
 
@@ -201,7 +201,7 @@ public:
         return name;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return name;
     }
 

@@ -170,7 +170,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         std::string op = isAddressOf ? "&" : "*";
         return op + argument->toString();
     }

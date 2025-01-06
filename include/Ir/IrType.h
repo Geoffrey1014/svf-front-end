@@ -19,7 +19,7 @@ public:
         return new IrTypeBool(*this);
     }
 
-    bool operator==(const Ir& that) const {
+    bool operator==(const Ir& that) const override{
         if (&that == this) {
             return true;
         }
@@ -33,11 +33,11 @@ public:
         return 11; // some arbitrary prime
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "bool";
     }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: bool\n";
     }
 };
@@ -51,7 +51,7 @@ public:
         return new IrTypeVoid(*this);
     }
 
-    bool operator==(const Ir& that) const {
+    bool operator==(const Ir& that) const override{
         if (&that == this) {
             return true;
         }
@@ -66,11 +66,11 @@ public:
         return 13; // some arbitrary prime
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "void";
     }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: void\n";
     }
 };
@@ -84,7 +84,7 @@ public:
         return new IrTypeInt(*this); 
     }
 
-    bool operator==(const Ir& that) const {
+    bool operator==(const Ir& that) const override{
         if (&that == this) {
             return true;
         }
@@ -99,11 +99,11 @@ public:
         return 17; // some arbitrary prime
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "int";
     }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: int\n";
     }
 };
@@ -117,7 +117,7 @@ public:
         return new IrTypeString(*this);
     }
 
-    bool operator==(const Ir& that) const {
+    bool operator==(const Ir& that) const override{
         if (&that == this) {
             return true;
         }
@@ -131,11 +131,11 @@ public:
         return 7; // some arbitrary prime
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "string";
     }
 
-     std::string prettyPrint(std::string indentSpace) const {
+     std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: string\n";
     }
 };
@@ -149,7 +149,7 @@ public:
         return new IrTypeChar(*this);
     }
 
-    bool operator==(const Ir& that) const {
+    bool operator==(const Ir& that) const override{
         if (&that == this) {
             return true;
         }
@@ -163,11 +163,11 @@ public:
         return 19; // some arbitrary prime
     }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: char\n";
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "char";
     }
 };

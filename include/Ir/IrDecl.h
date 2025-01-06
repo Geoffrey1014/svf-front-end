@@ -41,7 +41,7 @@ public:
         return str;
     }
 
-    std::string toString() const {
+    std::string toString() const override{
         return type->toString() + " " + declarator->toString();
     }
 };
@@ -75,7 +75,7 @@ public:
         return str;
     }
 
-    std::string toString() const {
+    std::string toString() const override{
         std::string str = "";
         for (auto* fieldDecl : fieldDeclarations) {
             str += fieldDecl->toString() + ", ";
@@ -106,7 +106,7 @@ public:
         return this->declarator;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         if (declarator) {
             return paramType->toString() + " " + declarator->toString();
         }
@@ -147,7 +147,7 @@ public:
         this->paramsList.push_front(newParam);
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         std::string paramsString = "";
         for (IrParamDecl* paramDecl: this->paramsList) {
             paramsString += paramDecl->toString() + ", ";
@@ -190,7 +190,7 @@ public:
         return "";
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return getName() + " (" + paramsList->toString() + ")";
     }
 
@@ -228,7 +228,7 @@ public:
         return nullptr;
     }
 
-    std::string toString() const{ 
+    std::string toString() const override{
         std::string result = returnType->toString() + " ";
         result += functionDecl->toString();
         result += " {\n";
@@ -312,7 +312,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const {
+    std::string toString() const override{
         return declarator->toString() + " = " + initializer->toString();
     }
 };
@@ -407,8 +407,8 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
-        if (simpleDeclarator) {
-            LlLocation* location = simpleDeclarator->generateLlIr(builder, symbolTable);
+        if (simpleDecl) {
+            LlLocation* location = simpleDecl->generateLlIr(builder, symbolTable);
             if ( dynamic_cast<LlLocationVar*>(location) != nullptr) {
                 symbolTable.putOnStringTable(location ,*(location->getVarName()));
             }

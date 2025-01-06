@@ -6,46 +6,42 @@
 #include <vector>
 
 class Ll{
-private:
-    /* data */
 public:
     Ll (){};
     virtual ~Ll()=default;
     virtual std::string toString()=0;
+    virtual bool operator==(const Ll& other) const = 0;
+    virtual std::size_t hashCode() const = 0;
 };
 
 class LlStatement: public Ll{
-private:
-    /* data */
 public:
-    LlStatement (){};
-    virtual ~LlStatement ()=default;
-    virtual std::string toString() override{
+    LlStatement ()= default;
+    ~LlStatement () override =default;
+    std::string toString() override{
         return "LlStatement";
     }
 };
 
 class LlComponent: public Ll{
-    private:
-        /* data */
     public:
-        LlComponent (){};
-        virtual ~LlComponent ()=default;
-        virtual std::string toString() override{
+        LlComponent ()= default;
+        ~LlComponent () override =default;
+        std::string toString() override{
             return "LlComponent";
         }
-        virtual bool operator==(const LlComponent& other) const {
+        bool operator==(const Ll& other) const override{
             return this == &other;
         }
-        virtual std::size_t hashCode() const {
+        std::size_t hashCode() const override{
             return 3;
         }
 };
 
 class LlLiteral: public LlComponent{
     public:
-        LlLiteral (){};
-        virtual ~LlLiteral ()=default;
+        LlLiteral ()= default;
+        ~LlLiteral () override =default;
         std::string toString() override{
             return "LlLiteral";
         }
@@ -54,20 +50,20 @@ class LlLiteral: public LlComponent{
 
 class LlEmptyStmt : public LlStatement {
 public:
-    LlEmptyStmt() {};
-    virtual ~LlEmptyStmt() {};
+    LlEmptyStmt() = default;
+    ~LlEmptyStmt() override = default;
     std::string toString() override{
         return "EMPTY_STATEMENT";
     }
 
-   bool operator==(const LlStatement& other) const {
+   bool operator==(const Ll& other) const override{
         if (dynamic_cast<const LlEmptyStmt*>(&other) == nullptr) 
             return false;
         else
             return true;
     }
 
-    std::size_t hashCode() const {
+    std::size_t hashCode() const override{
         return 5;
     }
 
@@ -80,7 +76,7 @@ private:
     const std::string* varName;
 public:
     LlLocation (const std::string* varName): varName(varName){};
-    virtual ~LlLocation (){delete varName;};
+    ~LlLocation () override{delete varName;};
     
     std::string toString() override{
         return *(this->varName);
@@ -90,7 +86,7 @@ public:
         return varName;
     }
 
-    bool operator==(const LlComponent& other) const override{
+    bool operator==(const Ll& other) const override{
         if (dynamic_cast<const LlLocation*>(&other) == nullptr) 
             return false;
         else 
@@ -118,8 +114,6 @@ public:
     std::string toString() override{
         return this->storeLocation->toString() + " = ";
     }
-    virtual bool operator==(const LlAssignStmt& other) const = 0;
-    virtual std::size_t hashCode() const =0;
 };
 
 
@@ -129,7 +123,7 @@ private:
 
 public:
     LlAssignStmtRegular(LlLocation* storeLocation, LlComponent* rightHandSide) : LlAssignStmt(storeLocation), rightHandSide(rightHandSide) {}
-    virtual ~LlAssignStmtRegular() {
+    ~LlAssignStmtRegular() override {
         delete rightHandSide;
     }
 
@@ -141,7 +135,7 @@ public:
         return this->storeLocation->toString() + " = " + this->rightHandSide->toString();
     }
 
-    bool operator==(const LlAssignStmt& other) const override {
+    bool operator==(const Ll& other) const override {
         if (&other == this) {
             return true;
         }
@@ -167,7 +161,7 @@ public:
     LlAssignStmtBinaryOp(LlLocation* storeLocation, LlComponent* leftOperand, std::string operation, LlComponent* rightOperand)
         : LlAssignStmt(storeLocation), leftOperand(leftOperand), operation(operation), rightOperand(rightOperand) {}
 
-    virtual ~LlAssignStmtBinaryOp() {
+    ~LlAssignStmtBinaryOp() override {
         delete leftOperand;
         delete rightOperand;
     }
@@ -188,7 +182,7 @@ public:
         return this->storeLocation->toString() + " = " + this->leftOperand->toString() + " " + (this->operation)  + " " + this->rightOperand->toString();
     }
 
-    bool operator==(const LlAssignStmt& other) const override {
+    bool operator==(const Ll& other) const override {
         if (&other == this) {
             return true;
         }
@@ -218,7 +212,7 @@ private:
 public:
     LlAssignStmtUnaryOp(LlLocation* storeLocation, LlComponent* operand, std::string* operator_)
         : LlAssignStmt(storeLocation), operand(operand), operator_(operator_) {}
-    virtual ~LlAssignStmtUnaryOp() {
+    ~LlAssignStmtUnaryOp() override {
         delete operand;
         delete operator_;
     }
@@ -235,7 +229,7 @@ public:
         return this->storeLocation->toString() + " = " + *(operator_) + " " + operand->toString();
     }
 
-    bool operator==(const LlAssignStmt& other) const {
+    bool operator==(const Ll& other) const override{
         if (&other == this) {
             return true;
         }
@@ -257,7 +251,7 @@ protected:
 
 public:
     LlJump(std::string* jumpToLabel) : jumpToLabel(jumpToLabel) {}
-    virtual ~LlJump() {
+    ~LlJump() override {
         delete jumpToLabel;
     }
 
@@ -268,15 +262,16 @@ public:
     std::string toString() override{
         return "goto " + *(this->jumpToLabel);
     }
-    bool operator==(const LlJump& other) const {
+    bool operator==(const Ll& other) const override{
         if (&other == this) {
             return true;
         }
         if (auto otherJump = dynamic_cast<const LlJump*>(&other)) {
             return *jumpToLabel == *otherJump->jumpToLabel;
         }
+        return false;
     }
-    virtual std::size_t hashCode() const {
+    virtual std::size_t hashCode() const override{
         return std::hash<std::string>()(*jumpToLabel);
     }
 };
@@ -290,7 +285,7 @@ public:
     LlJumpConditional(std::string* jumpToLabel, LlComponent* condition) 
         : LlJump(jumpToLabel), condition(condition) {}
     
-    virtual ~LlJumpConditional() {
+    ~LlJumpConditional() override {
         delete condition;
     }
 
@@ -302,7 +297,7 @@ public:
         return "if " + condition->toString() + " goto " + *(this->jumpToLabel);
     }
 
-    bool operator==(const LlJumpConditional& other) const{
+    bool operator==(const Ll& other) const override{
         if (&other == this) {
             return true;
         }
@@ -310,6 +305,7 @@ public:
             return *jumpToLabel == *otherJump->jumpToLabel &&
                    *condition == *otherJump->condition;
         }
+        return false;
     }
     std::size_t hashCode() const override {
         return std::hash<std::string>()(*jumpToLabel) * condition->hashCode();
@@ -320,19 +316,20 @@ class LlJumpUnconditional : public LlJump {
 public:
     LlJumpUnconditional(std::string* jumpToLabel) : LlJump(jumpToLabel) {}
 
-    virtual ~LlJumpUnconditional() {}
+    ~LlJumpUnconditional() override {}
 
     std::string toString() override{
         return "goto " + *(this->jumpToLabel);
     }
 
-    bool operator==(const LlJumpUnconditional& other) const {
+    bool operator==(const Ll& other) const override{
         if (&other == this) {
             return true;
         }
         if (auto otherJump = dynamic_cast<const LlJumpUnconditional*>(&other)) {
             return *jumpToLabel == *otherJump->jumpToLabel;
         }
+        return false;
     }
     std::size_t hashCode() const override {
         return std::hash<std::string>()(*jumpToLabel);
@@ -346,7 +343,7 @@ private:
 
 public:
     LlLiteralBool(bool boolValue) : boolValue(boolValue) {}
-    virtual ~LlLiteralBool() {}
+    ~LlLiteralBool() override {}
 
     bool getBoolValue() {
         return this->boolValue;
@@ -356,8 +353,14 @@ public:
         return this->boolValue ? "true" : "false";
     }
 
-    bool operator==(const LlLiteralBool& other) const{
-        return this->boolValue == other.boolValue;
+    bool operator==(const Ll& other) const override{
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherBool = dynamic_cast<const LlLiteralBool*>(&other)) {
+            return this->boolValue == otherBool->boolValue;
+        }
+        return false;
     }
     std::size_t hashCode() const override {
         return std::hash<bool>()(this->boolValue);
@@ -371,7 +374,7 @@ private:
 
 public:
     LlLiteralInt(long intValue) : intValue(intValue) {}
-    virtual ~LlLiteralInt() {}
+    ~LlLiteralInt() override {}
 
     long getIntValue() {
         return this->intValue;
@@ -381,8 +384,14 @@ public:
         return std::to_string(this->intValue);
     }
 
-    bool operator==(const LlLiteralInt& other) const {
-        return this->intValue == other.intValue;
+    bool operator==(const Ll& other) const override{
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherInt = dynamic_cast<const LlLiteralInt*>(&other)) {
+            return this->intValue == otherInt->intValue;
+        }
+        return false;
     }
     std::size_t hashCode() const override {
         return std::hash<long>()(this->intValue);
@@ -395,7 +404,7 @@ private:
 
 public:
     LlLiteralChar(char charValue) : charValue(charValue) {}
-    virtual ~LlLiteralChar() {}
+    ~LlLiteralChar() override {}
 
     char getCharValue() {
         return this->charValue;
@@ -405,13 +414,16 @@ public:
         return std::string(1, this->charValue);
     }
 
-    bool operator==(const LlLiteralChar& other) const {
+    bool operator==(const Ll& other) const override{
         if (&other == this) {
             return true;
         }
-        return this->charValue == other.charValue;
+        if (auto otherChar = dynamic_cast<const LlLiteralChar*>(&other)) {
+            return this->charValue == otherChar->charValue;
+        }
+        return false;
     }
-    std::size_t hashCode() const {
+    std::size_t hashCode() const override{
         return std::hash<char>()(this->charValue);
     }
 };
@@ -421,7 +433,7 @@ private:
     std::string* stringValue;
 public:
     LlLiteralString(std::string* stringValue) : stringValue(stringValue) {}
-    virtual ~LlLiteralString() {
+    ~LlLiteralString() override {
         delete stringValue;
     }
 
@@ -433,13 +445,16 @@ public:
         return *(this->stringValue);
     }
 
-    bool operator==(const LlLiteralString& other) const {
+    bool operator==(const Ll& other) const override{
         if (&other == this) {
             return true;
         }
-        return *this->stringValue == *other.stringValue;
+        if (auto otherLlString = dynamic_cast<const LlLiteralString*>(&other)) {
+            return *otherLlString->stringValue == *this->stringValue;
+        }
+        return false;
     }
-    std::size_t hashCode() const {
+    std::size_t hashCode() const override{
         return std::hash<std::string>()(*stringValue);
     }
 };
@@ -450,7 +465,7 @@ private:
 
 public:
     LlLocationArray(std::string* varName, LlComponent* elementIndex) : LlLocation(varName), elementIndex(elementIndex) {}
-    virtual ~LlLocationArray() {
+    ~LlLocationArray() override {
         delete elementIndex;
     }
 
@@ -462,7 +477,7 @@ public:
         return *(this->getVarName()) + "[" + elementIndex->toString() + "] ";
     }
 
-    bool operator==(const LlLocationArray& other) const{
+    bool operator==(const Ll& other) const override{
         if (&other == this) {
             return true;
         }
@@ -485,14 +500,14 @@ public:
 class LlLocationVar : public LlLocation {
 public:
     LlLocationVar(const std::string* varName) : LlLocation(varName) {}
-    virtual ~LlLocationVar() {}
+    ~LlLocationVar() override {}
 
 
     std::string toString() override{
         return *(this->getVarName());
     }
 
-    bool operator==(const LlComponent& other) const override{
+    bool operator==(const Ll& other) const override{
         if (&other == this) {
             return true;
         }
@@ -521,7 +536,7 @@ private:
 public:
     LlMethodCallStmt(const std::string methodName, std::vector<LlComponent*> argsList, LlLocation* returnLocation) 
         : methodName(methodName), argsList(argsList), returnLocation(returnLocation) {}
-    virtual ~LlMethodCallStmt() {
+    ~LlMethodCallStmt() override {
         delete returnLocation;
         for (LlComponent* arg : argsList) {
             delete arg;
@@ -540,7 +555,7 @@ public:
         return this->argsList;  // Return a copy of the vector
     }
 
-    std::string toString() {
+    std::string toString() override{
         std::string argsString = "";
         for(auto &arg : argsList){
             argsString +=  arg->toString() +",";
@@ -548,21 +563,24 @@ public:
         return this->returnLocation->toString() + " = " + this->methodName + "(" + argsString +")" ;
     }
 
-    bool operator==(const LlMethodCallStmt& other) const{
+    bool operator==(const Ll& other) const override{
         if (&other == this) {
             return true;
         }
-        if (methodName != other.methodName || !(*returnLocation == *other.returnLocation) || argsList.size() != other.argsList.size()) {
-            return false;
-        }
-        for (int i = 0; i < argsList.size(); i++) {
-            if (!(*argsList[i] == *other.argsList[i])) {
+        if (auto otherMethod = dynamic_cast<const LlMethodCallStmt*>(&other)) {
+            if (methodName != otherMethod->methodName || !(*returnLocation == *otherMethod->returnLocation) || argsList.size() != otherMethod->argsList.size()) {
                 return false;
             }
+            for (int i = 0; i < argsList.size(); i++) {
+                if (!(*argsList[i] == *otherMethod->argsList[i])) {
+                    return false;
+                }
+            }
+            return true;
         }
-        return true;
+        return false;
     }
-    std::size_t hashCode() const {
+    std::size_t hashCode() const override{
         std::size_t hash = std::hash<std::string>()(methodName) * returnLocation->hashCode();
         for (auto arg : argsList) {
             hash *= arg->hashCode();
@@ -578,14 +596,11 @@ private:
 
 public:
     LlParallelMethodStmt(std::string methodName) : parallelMethodName(methodName) {}
-    virtual ~LlParallelMethodStmt() {}
+    ~LlParallelMethodStmt() override {}
 
-    std::string toString() {
+    std::string toString() override {
         return "create_and_run_threads(" + this->parallelMethodName + ")";
     }
-
-    bool operator==(const LlParallelMethodStmt& other) const;
-    std::size_t hashCode() const;
 };
 
 
@@ -595,7 +610,7 @@ private:
 
 public:
     LlReturn(LlComponent* returnValue) : returnValue(returnValue) {}
-    virtual ~LlReturn() {
+    ~LlReturn() override {
         delete returnValue;
     }
 
@@ -603,14 +618,14 @@ public:
         return this->returnValue;
     }
 
-    std::string toString() {
+    std::string toString() override{
         if (this->returnValue == nullptr) {
             return "return ";
         }
         return "return " + this->returnValue->toString();
     }
 
-    bool operator==(const LlReturn& other) const{
+    bool operator==(const Ll& other) const override{
         if (&other == this) {
             return true;
         }
@@ -622,7 +637,7 @@ public:
         }
         return false;
     }
-    std::size_t hashCode() const {
+    std::size_t hashCode() const override{
         if (returnValue == nullptr) {
             return 13;
         }

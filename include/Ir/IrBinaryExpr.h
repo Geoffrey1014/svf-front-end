@@ -28,7 +28,7 @@ public:
         return this->operation;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return leftOperand->toString() + " " + operation + " " + rightOperand->toString();
     }
 
