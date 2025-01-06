@@ -20,7 +20,7 @@ private:
     IrExpr* sizeExpr;
 
 public:
-    IrArrayDeclarator(IrDeclDeclarator* baseDeclarator,IrExpr* sizeExpr, const TSNode& node) 
+    IrArrayDeclarator(IrDeclDeclarator* baseDeclarator,IrExpr* sizeExpr, const TSNode& node)
     : Ir(node), IrDeclDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
 
     ~IrArrayDeclarator() {
@@ -74,7 +74,7 @@ public:
 
     std::string toString() const override {
         std::vector<IrExpr*> dims;
-        
+
         const IrDeclDeclarator* walk = this;
         while (auto arr = dynamic_cast<const IrArrayDeclarator*>(walk)) {
             dims.push_back(arr->getSizeExpr());
@@ -91,6 +91,12 @@ public:
             }
         }
         return result;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlLocation* index = sizeExpr->generateLlIr(builder, symbolTable);
+        LlLocationArray* arrayLoc = new LlLocationArray(new std::string(getName()), index);
+        return arrayLoc;
     }
 };
 
@@ -120,7 +126,7 @@ public:
         return str;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         if (baseDeclarator) {
             return baseDeclarator->toString() + "*";
         }
@@ -141,7 +147,7 @@ public:
         return name;
     }
 
-    bool operator==(const Ir & that) const {
+    bool operator==(const Ir & that) const override{
         if (&that == this) {
             return true;
         }
@@ -158,7 +164,7 @@ public:
     bool isType() const { return isTypeAlias; }
     void markAsTypeAlias() { isTypeAlias = true; }
 
-    std::string prettyPrint(std::string indentSpace) const {
+    std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--id: " + name + "\n";
     }
 
@@ -166,8 +172,13 @@ public:
         return name;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return name;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        return new LlLocationVar(new std::string(name));
+    }
+
 };
 #endif

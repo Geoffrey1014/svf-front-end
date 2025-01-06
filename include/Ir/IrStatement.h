@@ -12,13 +12,22 @@ public:
     std::string toString() const override{
         return "IrStatement";
     }
+    
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
+        return new LlLocationVar(new std::string("")); // Return empty location
+    }
 };
 
 class IrStmtReturn : public IrStatement {
 public:
     IrStmtReturn(const TSNode& node) : IrStatement(node) {}
     virtual ~IrStmtReturn() = default;
-    // virtual IrType* getExpressionType() = 0; // pure virtual function
+    
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
+        return new LlLocationVar(new std::string("")); // Return empty location
+    }
 };
 
 class IrStmtReturnExpr : public IrStmtReturn {
@@ -27,7 +36,7 @@ private:
 
 public:
     IrStmtReturnExpr(IrExpr* result, const TSNode& node) : IrStmtReturn(node), result(result) {}
-    ~IrStmtReturnExpr() {
+    virtual ~IrStmtReturnExpr() {
         delete result;
     }
     // IrType* getExpressionType() override {
@@ -41,16 +50,23 @@ public:
 
         return prettyString;
     }
-    std::string toString() const{
+    std::string toString() const override{
         string s = "return " + result->toString();
         return s;
+    }
+
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        LlLocation* resultVar = this->result->generateLlIr(builder, symbolTable);
+        LlReturn* returnStmt = new LlReturn(resultVar);
+        builder.appendStatement(returnStmt);
+        return resultVar;
     }
 };
 
 class IrStmtReturnVoid : public IrStmtReturn {
 public:
     IrStmtReturnVoid(const TSNode& node) : IrStmtReturn(node) {}
-    ~IrStmtReturnVoid() = default;
+    virtual ~IrStmtReturnVoid() = default;
     // IrType* getExpressionType() override {
     //     return new IrTypeVoid(this->getLineNumber(), this->getColNumber());
     // }
@@ -59,8 +75,13 @@ public:
         std::string prettyString = indentSpace + "|--returnVoid\n";
         return prettyString;
     }
-    std::string toString() const{
+    std::string toString() const override{
         return "IrStmtReturnVoid";
+    }
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        LlReturn* returnStmt = new LlReturn(nullptr);
+        builder.appendStatement(returnStmt);
+        return nullptr;
     }
 };
 
@@ -71,7 +92,7 @@ public:
     IrCompoundStmt(const TSNode& node)
         : IrStatement(node),
           stmtsList() {}
-    ~IrCompoundStmt() {
+    virtual ~IrCompoundStmt() {
         for (IrStatement* stmt: this->stmtsList) {
             delete stmt;
         }
@@ -90,12 +111,19 @@ public:
 
         return prettyString;
     }
-    std::string toString() const{
+    std::string toString() const override{
         std::string s = "";
         for (IrStatement* statement: this->stmtsList) {
             s += statement->toString() + "\n";
         }
         return s;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        for (IrStatement* stmt: this->stmtsList) {
+            stmt->generateLlIr(builder, symbolTable);
+        }
+        return nullptr;
     }
 };
 
@@ -104,7 +132,7 @@ private:
     IrExpr* expr;
 public:
     IrExprStmt(IrExpr* expr, const TSNode& node) : IrStatement(node), expr(expr) {}
-    ~IrExprStmt() {
+    virtual ~IrExprStmt() {
         delete expr;
     }
 
@@ -114,15 +142,17 @@ public:
 
     std::string prettyPrint(std::string indentSpace)const override  {
         std::string prettyString = indentSpace + "|--exprStmt\n";
-
-        // pretty print the expression
         prettyString += this->expr->prettyPrint(addIndent(indentSpace));
-
         return prettyString;
     }
-    std::string toString() const{
+
+    std::string toString() const override{
         string s = expr->toString();
         return s;
+    }
+
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        return expr->generateLlIr(builder, symbolTable);
     }
 };
 
@@ -151,6 +181,11 @@ public:
     std::string toString() const override {
         std::string result = "else " + alternative->toString();
         return result;
+    }
+
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        alternative->generateLlIr(builder, symbolTable);
+        return nullptr;
     }
 };
 
@@ -195,6 +230,48 @@ public:
             result += " " + elseBody->toString();
         }
         return result;
+    }
+
+    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
+
+        std::string label = builder.generateLabel();
+        std::string* ifThenLabel = new std::string();
+        ifThenLabel->append("if.then.");
+        ifThenLabel->append(label);
+        
+        std::string* endLabel = new std::string();
+        endLabel->append("if.end.");
+        endLabel->append(label);
+
+        
+        LlJumpConditional* conditionalJump = new LlJumpConditional(ifThenLabel,conditionVar);
+        builder.appendStatement(conditionalJump);
+
+        if (elseBody) {
+            std::string* elseLabel = new std::string();
+            elseLabel->append("if.else.");
+            elseLabel->append(label);
+            LlEmptyStmt* emptyStmtElse = new LlEmptyStmt();
+            LlJumpUnconditional *jumpUnconditionalToElse = new LlJumpUnconditional(elseLabel);
+            builder.appendStatement(jumpUnconditionalToElse);
+            builder.appendStatement(*elseLabel, emptyStmtElse);
+            elseBody->generateLlIr(builder, symbolTable);
+        }
+        
+        LlJumpUnconditional *jumpUnconditionalToEnd = new LlJumpUnconditional(endLabel);
+        builder.appendStatement(jumpUnconditionalToEnd);
+
+        // add the label to the if body block
+        LlEmptyStmt* emptyStmt = new LlEmptyStmt();
+        builder.appendStatement(*ifThenLabel, emptyStmt);
+        thenBody->generateLlIr(builder, symbolTable);
+
+
+        // append end if label
+        LlEmptyStmt* endIfEmptyStmt = new LlEmptyStmt();
+        builder.appendStatement(*endLabel, endIfEmptyStmt);
+        return nullptr;
     }
 };
 

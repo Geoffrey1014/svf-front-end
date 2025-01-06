@@ -52,11 +52,60 @@ public:
         result += update->toString()+ ") ";
 
         if (body) {
-            result += body->toString();
+            result += "\t\n" + body->toString();
         } else {
             result += "{}";
         }
         return result;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        if (initializer) {
+            initializer->generateLlIr(builder, symbolTable);
+        }
+
+        std::string forLable = builder.generateLabel();
+        std::string* condLabel = new std::string();
+        condLabel->append("for.cond.");
+        condLabel->append(forLable);
+
+        std::string* bodyLabel = new std::string();
+        bodyLabel->append("for.body.");
+        bodyLabel->append(forLable);
+        
+        std::string* endLabel = new std::string();
+        endLabel->append("for.end.");
+        endLabel->append(forLable);
+
+        LlEmptyStmt* emptyStmtFor = new LlEmptyStmt();
+        builder.appendStatement(*condLabel, emptyStmtFor);
+
+        LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
+        LlJumpConditional* conditionalJump = new LlJumpConditional(bodyLabel,conditionVar);
+        builder.appendStatement(conditionalJump);
+        LlJumpUnconditional* jumpToForEnd = new LlJumpUnconditional(endLabel);
+        builder.appendStatement(jumpToForEnd);
+
+        LlEmptyStmt* emptyStmtForBody = new LlEmptyStmt();
+        builder.appendStatement(*bodyLabel, emptyStmtForBody);
+        if (body) {
+            body->generateLlIr(builder, symbolTable);
+        }
+
+        std::string* incLabel = new std::string();
+        incLabel->append("for.inc.");
+        incLabel->append(forLable);
+        LlEmptyStmt* emptyStmtForInc = new LlEmptyStmt();
+        builder.appendStatement(*incLabel, emptyStmtForInc);
+        update->generateLlIr(builder, symbolTable);
+
+        LlJumpUnconditional* jumpToFor = new LlJumpUnconditional(condLabel);
+        builder.appendStatement(jumpToFor);
+
+        LlEmptyStmt* emptyStmtForEnd = new LlEmptyStmt();
+        builder.appendStatement(*endLabel, emptyStmtForEnd);
+
+        return nullptr;
     }
 };
 

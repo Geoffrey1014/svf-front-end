@@ -24,14 +24,18 @@ class Ir {
         return ts_node_start_point(node).column;
     }
 
+    const TSNode& getNode() {
+        return node;
+    }
+
     virtual bool operator==(const Ir& other) const {
         return this == &other;
     }
 
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
     virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable){
-        std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("")); // Return empty location
+        std::cerr << "Ir Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
+        return new LlLocationVar(new std::string("Error")); 
     };
     
     virtual std::string prettyPrint(std::string indentSpace) const =0;

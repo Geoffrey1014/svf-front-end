@@ -18,6 +18,11 @@ void parse_command_line(argparse::ArgumentParser& program, int argc, char *argv[
   .default_value(false)
   .implicit_value(true);
 
+  program.add_argument("-i", "--intermedial")
+  .help("specify the output file for intermedial code.")
+  .default_value(false)
+  .implicit_value(true);
+
   program.add_argument("-o", "--output")
   .default_value(std::string("-"))
   .required()
@@ -53,7 +58,6 @@ void write_cst_to_file(const char *filename, TSTree *tree) {
 
 // read cpp file function
 std::string* read_file(const std::string &filename) {
-  std::cout << "Reading file: " << filename << std::endl;
   std::ifstream file(filename);
   if (!file.is_open()) {
     std::cerr << "Failed to open file: " << filename << std::endl;

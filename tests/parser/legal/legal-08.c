@@ -4,7 +4,6 @@ void bar ( int a ) {
     a = a - 1;
   }
 }
-
-// void main ( ) {
-//   bar ( 10 );
-// }
+int main ( ) {
+  bar ( 10 );
+}

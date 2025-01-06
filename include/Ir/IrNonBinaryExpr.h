@@ -32,11 +32,8 @@ public:
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--callExpr\n";
 
-        // print the function name
         prettyString += addIndent(indentSpace) + "|--functionName\n";
         prettyString += this->functionName->prettyPrint(addIndent(indentSpace, 2));
-
-        // print the argument list
         prettyString += this->argList->prettyPrint(addIndent(indentSpace));
 
         return prettyString;
@@ -44,6 +41,18 @@ public:
 
     std::string toString() const override{
         return functionName->toString() + " (" + argList->toString() + ")";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        std::vector<LlComponent*> argsList;
+        for(auto& arg : this->argList->getArgsList()) {
+            argsList.push_back(arg->generateLlIr(builder, symbolTable));
+        }
+        LlLocationVar* returnLocation = builder.generateTemp();
+
+        LlMethodCallStmt* methodCallStmt = new LlMethodCallStmt(functionName->getName(), argsList, returnLocation);
+        builder.appendStatement(methodCallStmt);
+        return returnLocation;
     }
 };
 
@@ -78,6 +87,23 @@ public:
     std::string toString() const override {
         return lhs->toString() + " " + op + " " + rhs->toString();
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlLocation* left = lhs->generateLlIr(builder, symbolTable);
+        LlComponent* right = rhs->generateLlIr(builder, symbolTable);
+        std::string operation = op;
+        if (op != "=") {
+            operation = op.substr(0, op.size() - 1);
+            LlAssignStmtBinaryOp* assignStmt = new LlAssignStmtBinaryOp(left,left, operation, right);
+            builder.appendStatement(assignStmt);
+        }
+        else {
+            LlAssignStmtRegular* assignStmt = new LlAssignStmtRegular(left, right);
+            builder.appendStatement(assignStmt);
+        }
+        return left;
+    }
+
 };
 
 class IrFieldExpr : public IrNonBinaryExpr {
@@ -144,7 +170,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         std::string op = isAddressOf ? "&" : "*";
         return op + argument->toString();
     }
@@ -175,6 +201,10 @@ public:
     std::string toString() const override {
         return "(" + innerExpr->toString() + ")";
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        return innerExpr->generateLlIr(builder, symbolTable);
+    }
 };
 
 class IrUnaryExpr : public IrNonBinaryExpr {
@@ -202,6 +232,14 @@ public:
 
     std::string toString() const override {
         return op + argument->toString();
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlLocation* arg = argument->generateLlIr(builder, symbolTable);
+        LlLocation* returnLocation = builder.generateTemp();
+        LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new std::string(op));
+        builder.appendStatement(unaryOp);
+        return returnLocation;
     }
 };
 

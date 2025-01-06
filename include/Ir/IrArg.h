@@ -33,12 +33,19 @@ public:
         return prettyString;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         std::string argsString = "";
         for (IrExpr* arg: this->argsList) {
             argsString += arg->toString() + ", ";
         }
         return argsString;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        for (IrExpr* arg: this->argsList) {
+            arg->generateLlIr(builder, symbolTable);
+        }
+        return nullptr;
     }
 };
 

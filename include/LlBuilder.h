@@ -6,28 +6,39 @@
 #include <vector>
 #include <stack>
 #include <sstream> // Include this header for std::stringstream
+#include <iomanip> 
+
 
 class LlBuilder {
 private:
     std::string name;
     std::unordered_map<std::string, LlStatement*> statementTable;
+    std::vector<std::string> insertionOrder;
     int labelCounter = 0;
     int tempCounter = 0;
-    std::vector<LlLocationVar*> params;
+    std::deque<LlLocationVar*> params;
     bool arrLeftSide = false;
     std::stack<std::string> currentBlockLabel;
     std::string currentLoopCondition;
-    
+    Ll* pocket = nullptr;
 
 public:
     LlBuilder(std::string name) : name(name) {}
+    ~LlBuilder() {
+        for(auto& pair : statementTable){
+            delete pair.second;
+        }
+        for(auto& param : params){
+            delete param;
+        }
+    }
 
     std::string getName() {
         return this->name;
     }
 
     void addParam(LlLocationVar* param) {
-        params.push_back(param);
+        params.push_front(param);
     }
 
     void setStatementTable(std::unordered_map<std::string, LlStatement*> statementTable) {
@@ -36,6 +47,7 @@ public:
 
     void appendStatement(LlStatement* statement){
         std::string label = this->generateLabel();
+        insertionOrder.push_back(label);
         statementTable[label] = statement;
     }
 
@@ -47,6 +59,7 @@ public:
             std::cerr << "StackSize " << labelCounter << std::endl;
         }
         else{
+            insertionOrder.push_back(label);
             statementTable[label] = statement;
         }
     }
@@ -55,27 +68,31 @@ public:
        return "L" + std::to_string(labelCounter++);
     }
 
-    LlLocationVar generateTemp(){
-        std::string t = "#_t" + std::to_string(tempCounter++);
-        return LlLocationVar(&t);
+    LlLocationVar* generateTemp(){
+        std::string* t =  new std::string();
+        t->append("#_t");
+        t->append(std::to_string(tempCounter++));
+        return new LlLocationVar(t);
     }
 
-    LlLocationVar generateStrTemp(){
-        std::string t = "#str_t" + std::to_string(tempCounter++);
-        return LlLocationVar(&t);
+    LlLocationVar* generateStrTemp(){
+        std::string* t =  new std::string();
+        t->append("#str_t");
+        t->append(std::to_string(tempCounter++));
+        return new LlLocationVar(t);
     }
 
-    // void putInPocket(std::any o){
-    //     this->pocket = o;
-    // }
+    void putInPocket(Ll* o){
+        this->pocket = o;
+    }
 
-    // void emptyPocket(){
-    //     this->pocket.reset();
-    // }
+    void emptyPocket(){
+        this->pocket = nullptr;
+    }
 
-    // std::any pickPocket(){
-    //     return this->pocket;
-    // }
+    Ll* pickPocket(){
+        return this->pocket;
+    }
 
     std::unordered_map<std::string, LlStatement*> getStatementTable() {
         return statementTable;
@@ -107,8 +124,9 @@ public:
 
     std::string toString() {
         std::stringstream st;
-        for(auto& pair : statementTable){
-            st << pair.first << " : " << pair.second->toString() << "\n";
+        const int labelWidth = 15; // 设置标签宽度
+        for (const auto& label : insertionOrder) {
+            st << std::right << std::setw(labelWidth) << label << " : " << statementTable[label]->toString() << "\n";
         }
         return st.str();
     }
