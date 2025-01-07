@@ -22,9 +22,8 @@ void ASTBuilder::debugStackState() const {
         tempStack.pop();
 
         if (node) {
-            std::cout << "- " << typeid(*node).name() << "\n";
-        } else {
-            std::cout << "- null\n";
+            std::cout << "- " << typeid(*node).name() <<
+            " -value " << node->toString() << "\n";
         }
     }
     std::cout << "End of stack.\n";
@@ -419,6 +418,7 @@ void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
         IrArrayDeclarator::flattenArrayDeclarators(base, trueBase, dims);
         dims.push_back(newSize);
 
+        this->debugStackState();
         // Rebuild the chain (outermost dimension is dims[0], then dims[1], etc.)
         IrDeclDeclarator* finalChain = IrArrayDeclarator::rebuildArrayDeclarators(trueBase, dims, cst_node);
         this->ast_stack.push(finalChain);
