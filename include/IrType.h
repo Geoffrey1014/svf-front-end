@@ -1,6 +1,7 @@
 #ifndef IR_TYPE_H
 #define IR_TYPE_H
 #include "Ir.h"
+#include "IrExpr.h"
 
 class IrType : public Ir {
     public:
@@ -173,5 +174,49 @@ public:
     std::string prettyPrint(std::string indentSpace) const {
         return indentSpace + "|--type: char\n";
     }
+};
+
+class IrTypeArray : public IrType {
+private:
+    IrType* elementType;
+    IrExpr* arrayLength;
+public:
+    IrTypeArray(IrType* elementType, IrExpr* arrayLength, const TSNode& node)
+        : elementType(elementType), arrayLength(arrayLength), IrType(node) {}
+    ~IrTypeArray() {
+        delete elementType;
+        delete arrayLength;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--array_type\n";
+        prettyString += elementType->prettyPrint("  " + indentSpace);
+        prettyString += arrayLength->prettyPrint("  " + indentSpace);
+        return prettyString;
+    }
+};
+
+class IrTypeUnit : public IrType {
+    private:
+    public:
+        IrTypeUnit(const TSNode& node) : IrType(node) {}
+
+        bool operator==(const Ir& that) const {
+            if (&that == this) {
+                return true;
+            }
+            if (dynamic_cast<const IrTypeUnit*>(&that) == nullptr) {
+                return false;
+            }
+            return true;
+        }
+
+        int hashCode() const {
+            return 29; // some arbitrary prime
+        }
+
+        std::string prettyPrint(std::string indentSpace) const {
+            return indentSpace + "|--type: unit\n";
+        }
 };
 #endif

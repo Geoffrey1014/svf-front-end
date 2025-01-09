@@ -41,6 +41,27 @@ void ASTBuilder::exitPrimitiveType(const TSNode & cst_node) {
     }
 }
 
+void ASTBuilder::exitArrayType(const TSNode & cst_node) {
+    Ir* node = nullptr;
+    // Use stack to get the type and size
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for array type" << std::endl;
+    }
+
+    IrExpr* arraySize = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrType* arrayType = dynamic_cast<IrType*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (arrayType && arraySize) {
+        node = new IrTypeArray(arrayType, arraySize, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid array type or size" << std::endl;
+    }
+}
+
 void ASTBuilder::exitIdentifier(const TSNode & cst_node) {
     std::string* node_text = getNodeText(cst_node);
     Ir* node = new IrIdent(node_text, cst_node);
@@ -59,10 +80,10 @@ void ASTBuilder::exitParameter(const TSNode & cst_node) {
         std::cerr << "Error: Not enough elements on the stack for parameter declaration" << std::endl;
     }
 
-    IrIdent* paramName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+    IrType* paramType = dynamic_cast<IrType*>( this->ast_stack.top());
     this->ast_stack.pop();
 
-    IrType* paramType = dynamic_cast<IrType*>( this->ast_stack.top());
+    IrIdent* paramName = dynamic_cast<IrIdent*>(this->ast_stack.top());
     this->ast_stack.pop();
 
     // Check for mutable binding
@@ -117,7 +138,6 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
         return;
     }
 
-    cout << "is mutable: " << is_mutable << endl;
     // Create the declaration node
     node = new IrDecl(declName, declType, is_mutable, cst_node);
     this->ast_stack.push(node);
@@ -166,16 +186,30 @@ void ASTBuilder::exitFunctionDefinition(const TSNode & cst_node){
     }
 
     IrCompoundStmt* compoundStmt = dynamic_cast<IrCompoundStmt*>(this->ast_stack.top());
+    this->ast_stack.pop(); // block
+
+    // Check for return type (optional)
+    IrType* returnType = nullptr;
+    if (this->ast_stack.size() > 0) {
+        returnType = dynamic_cast<IrType*>(this->ast_stack.top());
+        if (returnType) {
+            this->ast_stack.pop();
+        }
+    }
+
+    // If return type is not specified, default to unit type `()`
+    if (!returnType) {
+        returnType = new IrTypeUnit(cst_node); // Assuming IrTypeUnit represents the unit type `()`
+    }
+
+    IrParamList* paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
+    this->ast_stack.pop(); 
+    
+    IrIdent* ident = dynamic_cast<IrIdent*>(this->ast_stack.top());
     this->ast_stack.pop();
 
-    IrFunctionDecl* functionDecl = dynamic_cast<IrFunctionDecl*>(this->ast_stack.top());
-    this->ast_stack.pop();
-
-    IrType* returnType = dynamic_cast<IrType*>(this->ast_stack.top());
-    this->ast_stack.pop();
-
-    if (returnType && functionDecl && compoundStmt) {
-        node = new IrFunctionDef(returnType, functionDecl, compoundStmt, cst_node);
+    if (ident && paramList && returnType && compoundStmt) {
+        node = new IrFunctionDef(ident, paramList, returnType, compoundStmt, cst_node);
         this->ast_stack.push(node);
     } else {
         std::cerr << "Error: Invalid function definition" << std::endl;
@@ -367,7 +401,7 @@ void ASTBuilder::exitAssignExpr(const TSNode & cst_node){
         std::cerr << "Error: Not enough elements on the stack for assign expression" << std::endl;
     }
 
-    IrExpr* rhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    IrExpr* rhs = dynamic_cast<IrNonBinaryExpr*>(this->ast_stack.top());
     this->ast_stack.pop();
 
     IrExpr* lhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
@@ -451,37 +485,40 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 30: // primitive_type
             exitPrimitiveType(cst_node);
             break;
-        case 260: // parameter_declaration
+        case 218: // array_type
+            exitArrayType(cst_node);
+            break;
+        case 211: // parameter_declaration
             exitParameter(cst_node);
             break;
         case 201: // let_declaration
             exitDeclaration(cst_node);
             break;
-        case 258: // parameter_list
+        case 208: // parameters
             exitParamList(cst_node);
             break;
         case 230: // function_declarator
             exitFunctionDeclarator(cst_node);
             break;
-        case 290: // binary expression
+        case 247: // binary expression
             exitBinaryExpr(cst_node);
             break;
-        case 125: // literal_number
+        case 125: // integer_literal
             exitLiteralNumber(cst_node);
             break;
         case 275: // return_statement
             exitReturnStatement(cst_node);
             break;
-        case 241: // compound_statement
+        case 290: // block
             exitCompoundStatement(cst_node);
             break;
-        case 196: // function_definition
+        case 186: // function_item
             exitFunctionDefinition(cst_node);
             break;
-        case 309: // arg_list
+        case 254: // arguments
             exitArgList(cst_node);
             break;
-        case 299: // call_expr
+        case 253: // call_expr
             exitCallExpr(cst_node);
             break;
         case 248: // assign_expr

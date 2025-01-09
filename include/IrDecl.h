@@ -163,20 +163,23 @@ public:
 
 class IrFunctionDef : public Ir {
 private:
+    IrIdent* ident;
+    IrParamList* paramList;
     IrType* returnType;
-    IrFunctionDecl* functionDecl;
     IrCompoundStmt* compoundStmt;
 public:
-    IrFunctionDef(IrType* returnType ,IrFunctionDecl* functionDecl, IrCompoundStmt* compoundStmt, const TSNode& node) : returnType(returnType), functionDecl(functionDecl), compoundStmt(compoundStmt), Ir(node) {}
+    IrFunctionDef(IrIdent* ident, IrParamList* paramList, IrType* returnType, IrCompoundStmt* compoundStmt, const TSNode& node) : ident(ident), paramList(paramList), returnType(returnType), compoundStmt(compoundStmt), Ir(node) {}
     ~IrFunctionDef() {
+        delete ident;
+        delete paramList;
         delete returnType;
-        delete functionDecl;
         delete compoundStmt;
     }
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--function_definition\n";
+        prettyString += ident->prettyPrint("  " + indentSpace);
+        prettyString += paramList->prettyPrint("  " + indentSpace);
         prettyString += returnType->prettyPrint("  " + indentSpace);
-        prettyString += functionDecl->prettyPrint("  " + indentSpace);
         prettyString += compoundStmt->prettyPrint("  " + indentSpace);
         return prettyString;
     }
