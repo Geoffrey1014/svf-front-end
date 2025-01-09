@@ -18,6 +18,26 @@ private:
 public:
     LlSymbolTable(std::string methodName) : methodName(methodName) {}
 
+    std::string toString(){
+        std::stringstream str;
+        const int labelWidth = 15; 
+        
+        str << std::right << std::setw(labelWidth) << "LlSymbolTable"  << " : " << this->methodName << "\n";
+        str << std::right << std::setw(labelWidth) <<  "String Table"  << " : " << "\n";
+        for(auto pair : this->llStringTable){
+            str << std::right << std::setw(labelWidth) <<  pair.first->toString() + " : " + pair.second + "\n";
+        }
+        str << "\n" << std::right << std::setw(labelWidth) <<  "Param Table" << " : " << "\n";
+        for(auto pair : this->paramTable){
+            str << std::right << std::setw(labelWidth) <<  pair.first->toString() + " : " + pair.second + "\n";
+        }
+        str << "\n" << std::right << std::setw(labelWidth) <<  "Array Table" << " : " << "\n";
+        for(auto pair : this->arrayTable){
+            str << std::right << std::setw(labelWidth) <<  pair.first->toString() + " : " + pair.second->toString() + "\n";
+        }
+        return str.str();
+    }
+
     std::string getMethodName() {
         return this->methodName;
     }

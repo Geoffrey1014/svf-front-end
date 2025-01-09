@@ -468,6 +468,13 @@ public:
         }
         return out;
     }
+
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        for (auto* d : decls) {
+            d->generateLlIr(builder, symbolTable);
+        }
+        return nullptr;
+    }
 };
 
 #endif
