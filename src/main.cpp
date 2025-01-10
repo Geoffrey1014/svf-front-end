@@ -46,10 +46,11 @@ int main(int argc, char *argv[]) {
   Ir* ast_root = ast_builder.build(root_node);
 
   if (program["--verbose"] == true) {
-    std::cout << "\n======== AST:\n" << ast_root->prettyPrint("") << std::endl;
-    std::cout << "\n==== AST toString():\n" << ast_root->toString() << std::endl;
+    std::cout << "\n======= AST:\n" << ast_root->prettyPrint("") << std::endl;
+    std::cout << "\n======= AST toString():\n" << ast_root->toString() << std::endl;
   }
   IrTransUnit* unit = dynamic_cast<IrTransUnit*>(ast_root);
+  std::cout << "\n=======IR:\n" << std::endl;
   unit->getLlBuilder();
 
   // Clean up
