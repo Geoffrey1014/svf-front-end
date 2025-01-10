@@ -5,18 +5,45 @@
 #include <string>
 #include <vector>
 #include "Ll.h"
-
+class IrType;
 class LlSymbolTable {
 private:
     std::string methodName;
     std::unordered_map<LlComponent*, std::string> llStringTable;
     std::unordered_map<LlLocation*, std::string> paramTable;
     std::unordered_map<LlLocation*, LlComponent*> arrayTable;
-    std::unordered_map<LlLocationVar*, int> globalArrays;
-    std::vector<LlLocationVar*> globalVars;
+    std::unordered_map<std::string, LlComponent*> varTable;
+    std::unordered_map<std::string, int> arraySizeTable;
+   std::unordered_map<std::string, IrType*> table;
 
 public:
     LlSymbolTable(std::string methodName) : methodName(methodName) {}
+
+    ~LlSymbolTable() {
+    }
+
+    void putOnVarTable(std::string key, LlComponent* value){
+        this->varTable[key] = value;
+    }
+
+    LlComponent* getFromVarTable(std::string key){
+        auto it = this->varTable.find(key);
+        if(it != this->varTable.end()){
+            return it->second;
+        }
+        return nullptr;
+    }
+
+    std::unordered_map<std::string, LlComponent*> getVarTable(){
+        return this->varTable;
+    }
+
+    void putOnArraySizeTable(std::string key, int value){
+        this->arraySizeTable[key] = value;
+    }
+
+
+
 
     std::string toString(){
         std::stringstream str;
@@ -69,14 +96,6 @@ public:
     std::unordered_map<LlLocation*, std::string> getParamTable(){
         return this->paramTable;
     }
-
-    // void setUseDef(std::unordered_map<CFG.SymbolDef, std::vector<CFG.Tuple>> useDef){
-    //     this->useDef = useDef;
-    // }
-
-    // std::unordered_map<CFG.SymbolDef, std::vector<CFG.Tuple>> getUseDef(){
-    //     return this->useDef;
-    // }
 
     void putOnArrayTable(LlLocation* key, LlComponent* val){
         this->arrayTable[key] = val;

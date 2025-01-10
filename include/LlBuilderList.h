@@ -10,8 +10,6 @@ class LlBuildersList {
 private:
     std::vector<LlBuilder*> builders;
     std::vector<LlSymbolTable*> symbolTables;
-    std::unordered_map<LlLocationArray*, int> globalArrays;
-    std::vector<LlLocationVar*> globalVars;
 
 public:
     LlBuildersList() {
@@ -31,22 +29,6 @@ public:
 
     std::vector<LlSymbolTable*> getSymbolTables() {
         return symbolTables;
-    }
-
-    void addGlobalArray(LlLocationArray* array, int size) {
-        globalArrays[array] = size;
-    }
-
-    std::unordered_map<LlLocationArray*, int> getGlobalArrays() {
-        return globalArrays;
-    }
-
-    void addGlobalVar(LlLocationVar* var) {
-        globalVars.push_back(var);
-    }
-
-    std::vector<LlLocationVar*> getGlobalVars() {
-        return globalVars;
     }
 };
 
