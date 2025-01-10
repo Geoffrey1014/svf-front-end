@@ -55,7 +55,7 @@ include_directories(
   argparse/include)
 
 # Automatically add all .cpp files in the src directory to the SOURCES list
-file(GLOB SOURCES "src/*.cpp" "tree-sitter-c/src/parser.c")
+file(GLOB SOURCES "src/*.cpp" "src/Ir/*.cpp" "tree-sitter-c/src/parser.c")
 
 add_executable(svf_frontend ${SOURCES})
 
