@@ -15,6 +15,10 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
         std::cout << "array: " << pair.first->toString() << " size: " << pair.second->toString() << std::endl;
     }
 
+    for (auto pair :symbolTableGlobal->getLlStringTable()) {
+        std::cout << "var: " << pair.first->toString() << std::endl;
+    }
+
     llBuildersList->addBuilder(builderGlobal);
     llBuildersList->addSymbolTable(symbolTableGlobal);
 
@@ -29,8 +33,11 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
 
         LlSymbolTable* symbolTable = new LlSymbolTable(func->getFunctionName());
         func->generateLlIr(*builder, *symbolTable);
-        if (program.is_used("--intermedial"))
+        if (program.is_used("--intermedial")){
+            cout << symbolTable->toString() << endl;
             cout << builder->toString() << endl;
+        }
+            
 
         
         llBuildersList->addBuilder(builder);

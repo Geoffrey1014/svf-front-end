@@ -8,9 +8,9 @@ public:
 
     virtual ~IrLiteral() = default;
 
-    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
         std::cerr << "IrLiteral Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("")); // Return empty location
+        return new LlLocationVar(new std::string("Error")); 
     }
 };
 
@@ -36,12 +36,9 @@ public:
         return "IrLiteralBool";
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
         LlLiteralBool *llLiteralBool = new LlLiteralBool(this->value);
-        LlLocationVar *llLocationVar = builder.generateTemp();
-        LlAssignStmtRegular* regularAssignment  = new LlAssignStmtRegular(llLocationVar, llLiteralBool);
-        builder.appendStatement(regularAssignment);
-        return llLocationVar;
+        return llLiteralBool;
     }
 };
 
@@ -67,12 +64,9 @@ public:
         return "IrLiteralChar";
     }
 
-    LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
+    LlComponent* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
         LlLiteralChar *llLiteralChar = new LlLiteralChar(this->value);
-        LlLocationVar *llLocationVar = builder->generateTemp();
-        LlAssignStmtRegular* regularAssignment  = new LlAssignStmtRegular(llLocationVar, llLiteralChar);
-        builder->appendStatement(regularAssignment);
-        return llLocationVar;
+        return llLiteralChar;
     }
 };
 
@@ -102,12 +96,9 @@ public:
         return std::to_string(value); // "IrLiteralNumber";
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
         LlLiteralInt * llLiteralInt = new LlLiteralInt(this->value);
-        LlLocationVar *llLocationVar = builder.generateTemp();
-        LlAssignStmtRegular* regularAssignment  = new LlAssignStmtRegular(llLocationVar, llLiteralInt);
-        builder.appendStatement(regularAssignment);
-        return llLocationVar;
+        return llLiteralInt;
     }
 };
 
@@ -159,12 +150,8 @@ public:
         return "IrLiteralString";
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
-        LlLiteralString * llLiteralString = new LlLiteralString(new string(this->stringContent->getValue()));
-        LlLocationVar *llLocationVar = builder.generateTemp();
-        LlAssignStmtRegular* regularAssignment  = new LlAssignStmtRegular(llLocationVar, llLiteralString);
-        builder.appendStatement(regularAssignment);
-        return llLocationVar;
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+        return new LlLiteralString(new string(this->stringContent->getValue()));
     }
 };
 

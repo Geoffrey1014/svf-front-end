@@ -376,7 +376,7 @@ public:
     LlLiteralInt(long intValue) : intValue(intValue) {}
     ~LlLiteralInt() override {}
 
-    long getIntValue() {
+    long getValue() {
         return this->intValue;
     }
 
@@ -406,7 +406,7 @@ public:
     LlLiteralChar(char charValue) : charValue(charValue) {}
     ~LlLiteralChar() override {}
 
-    char getCharValue() {
+    char getValue() {
         return this->charValue;
     }
 
@@ -437,7 +437,7 @@ public:
         delete stringValue;
     }
 
-    std::string* getStringValue() {
+    std::string* getValue() {
         return this->stringValue;
     }
 

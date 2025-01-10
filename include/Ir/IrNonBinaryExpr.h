@@ -43,7 +43,7 @@ public:
         return functionName->toString() + " (" + argList->toString() + ")";
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
         std::vector<LlComponent*> argsList;
         for(auto& arg : this->argList->getArgsList()) {
             argsList.push_back(arg->generateLlIr(builder, symbolTable));
@@ -88,20 +88,21 @@ public:
         return lhs->toString() + " " + op + " " + rhs->toString();
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
-        LlLocation* left = lhs->generateLlIr(builder, symbolTable);
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlComponent* left = lhs->generateLlIr(builder, symbolTable);
         LlComponent* right = rhs->generateLlIr(builder, symbolTable);
+        LlLocation* location = dynamic_cast<LlLocation*>(left);
         std::string operation = op;
         if (op != "=") {
             operation = op.substr(0, op.size() - 1);
-            LlAssignStmtBinaryOp* assignStmt = new LlAssignStmtBinaryOp(left,left, operation, right);
+            LlAssignStmtBinaryOp* assignStmt = new LlAssignStmtBinaryOp(location,left, operation, right);
             builder.appendStatement(assignStmt);
         }
         else {
-            LlAssignStmtRegular* assignStmt = new LlAssignStmtRegular(left, right);
+            LlAssignStmtRegular* assignStmt = new LlAssignStmtRegular(location, right);
             builder.appendStatement(assignStmt);
         }
-        return left;
+        return nullptr;
     }
 
 };
@@ -202,7 +203,7 @@ public:
         return "(" + innerExpr->toString() + ")";
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
         return innerExpr->generateLlIr(builder, symbolTable);
     }
 };
@@ -234,8 +235,8 @@ public:
         return op + argument->toString();
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
-        LlLocation* arg = argument->generateLlIr(builder, symbolTable);
+    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+        LlComponent* arg = argument->generateLlIr(builder, symbolTable);
         LlLocation* returnLocation = builder.generateTemp();
         LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new std::string(op));
         builder.appendStatement(unaryOp);
