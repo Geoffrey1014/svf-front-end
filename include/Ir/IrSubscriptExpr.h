@@ -53,7 +53,7 @@ public:
         return baseExpr->toString() + "[" + indexExpr->toString() + "]";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         LlComponent* indexLocation = indexExpr->generateLlIr(builder, symbolTable);
         std::string* baseName = new std::string(baseExpr->toString());
         LlLocationArray* array = new LlLocationArray(baseName, indexLocation);

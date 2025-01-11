@@ -5,7 +5,7 @@
 #include <vector>
 #include "Ll.h"
 #include "LlBuilder.h"
-#include "LlSymbolTable.h"
+#include "SymbolTable.h"
 
 using namespace std;
 
@@ -33,7 +33,7 @@ class Ir {
     }
 
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
-    virtual LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable){
+    virtual LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable){
         std::cerr << "Ir Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
         return new LlLocationVar(new std::string("Error")); 
     };

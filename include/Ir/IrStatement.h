@@ -13,7 +13,7 @@ public:
         return "IrStatement";
     }
     
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
         return new LlLocationVar(new std::string("")); // Return empty location
     }
@@ -24,7 +24,7 @@ public:
     IrStmtReturn(const TSNode& node) : IrStatement(node) {}
     virtual ~IrStmtReturn() = default;
     
-    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
         return new LlLocationVar(new std::string("")); // Return empty location
     }
@@ -55,7 +55,7 @@ public:
         return s;
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlComponent* resultVar = this->result->generateLlIr(builder, symbolTable);
         LlReturn* returnStmt = new LlReturn(resultVar);
         builder.appendStatement(returnStmt);
@@ -78,7 +78,7 @@ public:
     std::string toString() const override{
         return "IrStmtReturnVoid";
     }
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlReturn* returnStmt = new LlReturn(nullptr);
         builder.appendStatement(returnStmt);
         return nullptr;
@@ -119,7 +119,7 @@ public:
         return s;
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         for (IrStatement* stmt: this->stmtsList) {
             stmt->generateLlIr(builder, symbolTable);
         }
@@ -151,7 +151,7 @@ public:
         return s;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         return expr->generateLlIr(builder, symbolTable);
     }
 };
@@ -183,7 +183,7 @@ public:
         return result;
     }
 
-    virtual LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         alternative->generateLlIr(builder, symbolTable);
         return nullptr;
     }
@@ -232,7 +232,7 @@ public:
         return result;
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlComponent* conditionVar = this->condition->generateLlIr(builder, symbolTable);
 
         std::string label = builder.generateLabel();

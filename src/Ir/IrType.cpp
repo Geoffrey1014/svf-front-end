@@ -23,9 +23,16 @@ std::string IrTypeArray::prettyPrint(std::string indentSpace) const {
 }
 
 std::string IrTypeArray::toString() const{
-    std::string str = baseType->toString() + " [";
+    std::string str = baseType->toString();
     for (auto* dim : dimension) {
-    str += dim->toString() + " ";
+        str += "[" + dim->toString() + "]";
     }
-    return str + "]";
+    return str;
+}
+
+IrTypeArray::~IrTypeArray() {
+    delete baseType;
+    for (auto* dim : dimension) {
+        delete dim;
+    }
 }

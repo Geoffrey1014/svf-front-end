@@ -8,7 +8,7 @@ public:
 
     virtual ~IrLiteral() = default;
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         std::cerr << "IrLiteral Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
         return new LlLocationVar(new std::string("Error")); 
     }
@@ -21,7 +21,7 @@ private:
 
 public:
     IrLiteralBool(bool value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
-    ~IrLiteralBool() = default;
+    ~IrLiteralBool() override = default;
     IrType* getExpressionType() {
         return new IrTypeBool(getNode());
     }
@@ -36,7 +36,7 @@ public:
         return "IrLiteralBool";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlLiteralBool *llLiteralBool = new LlLiteralBool(this->value);
         return llLiteralBool;
     }
@@ -49,7 +49,7 @@ private:
 
 public:
     IrLiteralChar(char value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
-    ~IrLiteralChar() = default;
+    ~IrLiteralChar() override = default;
     IrType* getExpressionType() {
         return new IrTypeVoid(getNode());
     }
@@ -60,11 +60,11 @@ public:
         return prettyPrint;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "IrLiteralChar";
     }
 
-    LlComponent* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
+    LlComponent* generateLlIr(LlBuilder* builder, SymbolTable* symbolTable) {
         LlLiteralChar *llLiteralChar = new LlLiteralChar(this->value);
         return llLiteralChar;
     }
@@ -77,7 +77,7 @@ private:
 
 public:
     IrLiteralNumber(long value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
-    ~IrLiteralNumber() = default;
+    ~IrLiteralNumber() override = default;
     long getValue() {
         return this->value;
     }
@@ -96,7 +96,7 @@ public:
         return std::to_string(value); // "IrLiteralNumber";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlLiteralInt * llLiteralInt = new LlLiteralInt(this->value);
         return llLiteralInt;
     }
@@ -109,6 +109,8 @@ private:
 public:
     IrLiteralStringContent(const std::string& value, const TSNode& node)
         : IrLiteral(node), Ir(node), value(value) {}
+
+        ~IrLiteralStringContent() override = default;
 
     const std::string& getValue() const {
         return value;
@@ -150,7 +152,7 @@ public:
         return "IrLiteralString";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         return new LlLiteralString(new string(this->stringContent->getValue()));
     }
 };
