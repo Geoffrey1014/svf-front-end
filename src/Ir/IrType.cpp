@@ -29,3 +29,10 @@ std::string IrTypeArray::toString() const{
     }
     return str + "]";
 }
+
+IrTypeArray::~IrTypeArray() {
+    delete baseType;
+    for (auto* dim : dimension) {
+        delete dim;
+    }
+}

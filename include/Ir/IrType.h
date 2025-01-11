@@ -181,12 +181,7 @@ private:
 public:
     IrTypeArray(IrType* baseType, deque<IrLiteral*> dimension, const TSNode& node)
             : IrType(node), baseType(baseType), dimension(dimension) {}
-    ~IrTypeArray() {
-        delete baseType;
-//        for (auto* dim : dimension) {
-//            delete dim;
-//        }
-    }
+    ~IrTypeArray();
 
     IrType* getBaseType() const {
         return baseType;
