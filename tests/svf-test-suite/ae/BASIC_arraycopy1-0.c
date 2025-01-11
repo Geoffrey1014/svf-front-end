@@ -1,5 +1,5 @@
 int main() {
-    int* a[5][7];
+    int a[5][7];
 	return 0;
 }	
 

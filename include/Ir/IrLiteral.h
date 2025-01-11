@@ -21,7 +21,7 @@ private:
 
 public:
     IrLiteralBool(bool value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
-    ~IrLiteralBool() = default;
+    ~IrLiteralBool() override = default;
     IrType* getExpressionType() {
         return new IrTypeBool(getNode());
     }
@@ -49,7 +49,7 @@ private:
 
 public:
     IrLiteralChar(char value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
-    ~IrLiteralChar() = default;
+    ~IrLiteralChar() override = default;
     IrType* getExpressionType() {
         return new IrTypeVoid(getNode());
     }
@@ -60,7 +60,7 @@ public:
         return prettyPrint;
     }
 
-    std::string toString() const{
+    std::string toString() const override{
         return "IrLiteralChar";
     }
 
@@ -77,7 +77,7 @@ private:
 
 public:
     IrLiteralNumber(long value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
-    ~IrLiteralNumber() = default;
+    ~IrLiteralNumber() override = default;
     long getValue() {
         return this->value;
     }
@@ -109,6 +109,8 @@ private:
 public:
     IrLiteralStringContent(const std::string& value, const TSNode& node)
         : IrLiteral(node), Ir(node), value(value) {}
+
+        ~IrLiteralStringContent() override = default;
 
     const std::string& getValue() const {
         return value;

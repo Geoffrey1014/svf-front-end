@@ -28,6 +28,7 @@ class ASTBuilder {
     const std::string* source_code;
     const TSLanguage* language;
     Ir* root_node;
+    int arraylevel = 0;
 public:
     ASTBuilder(const string* source_code, const TSLanguage* language)
         : source_code(source_code), language(language), ast_stack(),root_node(nullptr) {

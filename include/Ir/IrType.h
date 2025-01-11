@@ -6,7 +6,7 @@ class IrType : public Ir {
     public:
         IrType(const TSNode& node) : Ir(node) {}
         virtual ~IrType() = default;
-        int hashCode() const;
+        int hashCode() const{ return 0;}
         virtual IrType* clone() const = 0;
 };
 
@@ -170,6 +170,57 @@ public:
     std::string toString() const override{
         return "char";
     }
+};
+
+class IrLiteral;
+class IrTypeArray : public IrType {
+private:
+    IrType* baseType;
+    deque<IrLiteral*> dimension;
+
+public:
+    IrTypeArray(IrType* baseType, deque<IrLiteral*> dimension, const TSNode& node)
+            : IrType(node), baseType(baseType), dimension(dimension) {}
+    ~IrTypeArray();
+
+    IrType* getBaseType() const {
+        return baseType;
+    }
+
+    deque<IrLiteral*> getDimension() const {
+        return dimension;
+    }
+
+    IrTypeArray* clone() const override {
+        return new IrTypeArray(*this);
+    }
+
+    bool operator==(const Ir& that) const override{
+        if (&that == this) {
+            return true;
+        }
+        if (auto thatTypeArray = dynamic_cast<const IrTypeArray*>(&that)) {
+            if (this->baseType != thatTypeArray->baseType) {
+                return false;
+            }
+            if (this->dimension.size() != thatTypeArray->dimension.size()) {
+                return false;
+            }
+            for (int i = 0; i < this->dimension.size(); i++) {
+                if (this->dimension[i] != thatTypeArray->dimension[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    int hashCode() const;
+
+    std::string prettyPrint(std::string indentSpace) const override ;
+
+    std::string toString() const override;
 };
 
 #endif

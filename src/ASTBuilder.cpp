@@ -22,9 +22,8 @@ void ASTBuilder::debugStackState() const {
         tempStack.pop();
 
         if (node) {
-            std::cout << "- " << typeid(*node).name() << "\n";
-        } else {
-            std::cout << "- null\n";
+            std::cout << "- " << typeid(*node).name() <<
+            " -value " << node->toString() << "\n";
         }
     }
     std::cout << "End of stack.\n";
@@ -327,11 +326,8 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
                     delete singleDecl; 
                 }
             }
-
-            // 'multiDecl' now has an empty deque, so no double-delete
             delete multiDecl;
         }
-        // Else if it's already a known top-level node
         else if (dynamic_cast<IrDecl*>(node) || 
                  dynamic_cast<IrFunctionDef*>(node) ||
                  dynamic_cast<IrPreprocInclude*>(node) ||
@@ -412,22 +408,40 @@ void ASTBuilder::exitStorageClassSpecifier(const TSNode & cst_node) {
 
 void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
     try {
-        std::cout << "exitArrayDeclarator before" << std::endl;
-        this->debugStackState();
 
-        IrExpr* newSize = this->popFromStack<IrExpr>(cst_node);
+        if (arraylevel <= 0) {
+            throw std::runtime_error("Error: Invalid array level");
+        }
+        arraylevel -= 1;
+        if (arraylevel == 0) {
+            this->debugStackState();
+            deque<IrLiteral*> dims;
+            while (dynamic_cast<IrLiteral*>(this->ast_stack.top()) ) {
+                IrLiteral* literal = this->popFromStack<IrLiteral>(cst_node);
+                dims.push_front(literal);
+            }
+            IrIdent* id = this->popFromStack<IrIdent>(cst_node);
+            IrType* baseType = this->popFromStack<IrType>(cst_node);
+            IrTypeArray* arrayType = new IrTypeArray(baseType, dims, cst_node);
+            ast_stack.push(arrayType);
+            ast_stack.push(id);
+        }
 
-        IrDeclDeclarator* base = nullptr;
-        base = this->popFromStack<IrDeclDeclarator>(cst_node);
 
-        IrDeclDeclarator* trueBase = nullptr;
-        std::vector<IrExpr*> dims;
-        IrArrayDeclarator::flattenArrayDeclarators(base, trueBase, dims);
-        dims.push_back(newSize);
+//        IrExpr* newSize = this->popFromStack<IrExpr>(cst_node);
+//
+//        IrDeclDeclarator* base = nullptr;
+//        base = this->popFromStack<IrDeclDeclarator>(cst_node);
+//
+//        IrDeclDeclarator* trueBase = nullptr;
+//        std::vector<IrExpr*> dims;
+//        IrArrayDeclarator::flattenArrayDeclarators(base, trueBase, dims);
+//        dims.push_back(newSize);
+
 
         // Rebuild the chain (outermost dimension is dims[0], then dims[1], etc.)
-        IrDeclDeclarator* finalChain = IrArrayDeclarator::rebuildArrayDeclarators(trueBase, dims, cst_node);
-        this->ast_stack.push(finalChain);
+//        IrDeclDeclarator* finalChain = IrArrayDeclarator::rebuildArrayDeclarators(trueBase, dims, cst_node);
+//        this->ast_stack.push(finalChain);
     }
     catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
@@ -436,14 +450,14 @@ void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
 
 void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
     try {
-        std::cout << "exitPointerDeclarator before" << std::endl;
-        this->debugStackState();
-        IrDeclDeclarator* baseDeclarator = nullptr;
-        baseDeclarator = popFromStack<IrDeclDeclarator>(cst_node);
- 
-        IrPointerDeclarator* pointerDeclarator = new IrPointerDeclarator(baseDeclarator, cst_node);
+        IrDeclDeclarator* baseDeclarator = popFromStack<IrDeclDeclarator>(cst_node);
+        
+        IrType* baseType = dynamic_cast<IrType*>(ast_stack.top());
+        ast_stack.pop();
 
-        this->ast_stack.push(pointerDeclarator);
+        IrPointerType* pointerType = new IrPointerType(baseType, cst_node);
+        ast_stack.push(pointerType);
+        ast_stack.push(baseDeclarator);
     } catch (const std::exception &e) {
         std::cerr << "Error in exitPointerDeclarator: " << e.what() << std::endl;
     }
@@ -462,7 +476,6 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
         return;
     }
 
-    // Pop the base expression (mandatory)
     if (!this->ast_stack.empty() && dynamic_cast<IrExpr*>(this->ast_stack.top())) {
         baseExpr = dynamic_cast<IrExpr*>(this->ast_stack.top());
         this->ast_stack.pop();
@@ -472,14 +485,12 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
         return;
     }
 
-    // Create a new IrSubscriptExpr node
     Ir* node = new IrSubscriptExpr(baseExpr, indexExpr, cst_node);
     this->ast_stack.push(node);
 }
 
 void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
     try {
-        // 1) Gather all declarators from the stack
         std::deque<IrInitDeclarator*> initDecls;
         std::deque<IrDeclDeclarator*> simpleDecls;
         while (!this->ast_stack.empty()) {
@@ -501,7 +512,7 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
         }
 
         // 2) Pop the base type (e.g. int)
-        IrType* originalType = this->popFromStack<IrType>(cst_node);
+        IrType* originalType = this->popFromStack<IrType>(cst_node);        
 
         // 3) Optionally pop storage class specifier (e.g. static)
         IrStorageClassSpecifier* specifier = nullptr;
@@ -851,7 +862,7 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 360: // field_identifier, map field_identifier to exitIdentifier
             exitIdentifier(cst_node);
             break;
-        case 362: 
+        case 362: // type_identifier
             exitTypeIdentifier(cst_node);
             break;
         case 93: // primitive_type
@@ -978,10 +989,11 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
 }
 
 void ASTBuilder::enter_cst_node(const TSNode & cst_node){
-    // TSSymbol symbol_type = ts_node_symbol(cst_node);
-    // if (symbol_type == 290){
-    //     std::cout << "ENTERING CST node: " << ts_language_symbol_name(this->language, symbol_type) <<", " << ts_node_grammar_type(cst_node) << std::endl;
-    // }
+     TSSymbol symbol_type = ts_node_symbol(cst_node);
+     if (symbol_type == 236){
+         arraylevel += 1;
+         std::cout << "ENTERING CST node: " << ts_language_symbol_name(this->language, symbol_type) <<", " << ts_node_grammar_type(cst_node) << std::endl;
+     }
     
 }
 

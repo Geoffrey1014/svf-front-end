@@ -14,35 +14,6 @@ public:
     }
 };
 
-class IrPointerDeclarator : public IrDeclDeclarator {
-private:
-    IrDeclDeclarator* baseDeclarator;
-public:
-    IrPointerDeclarator(IrDeclDeclarator* base, const TSNode& node) : Ir(node), IrDeclDeclarator(node), baseDeclarator(base) {}
-    ~IrPointerDeclarator() { delete baseDeclarator; }
-
-    IrDeclDeclarator* getBaseDeclarator() const {
-        return baseDeclarator;
-    }
-
-    const std::string getName() const override {
-        if (baseDeclarator) {
-            return baseDeclarator->getName();
-        }
-        return "";
-    }
-
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string str = indentSpace + "|--pointer_declarator(*)\n";
-        str += baseDeclarator->prettyPrint(addIndent(indentSpace));
-        return str;
-    }
-
-    std::string toString() const override{
-        return baseDeclarator->toString() + "*";
-    }
-};
-
 class IrArrayDeclarator : public IrDeclDeclarator {
 private:
     IrDeclDeclarator* baseDeclarator;
@@ -190,7 +161,7 @@ public:
         std::hash<std::string> hasher;
         return hasher(this->name);
     }
-        bool isType() const { return isTypeAlias; }
+    bool isType() const { return isTypeAlias; }
     void markAsTypeAlias() { isTypeAlias = true; }
 
     std::string prettyPrint(std::string indentSpace) const override{
