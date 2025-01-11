@@ -8,7 +8,7 @@ public:
 
     virtual ~IrLiteral() = default;
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         std::cerr << "IrLiteral Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
         return new LlLocationVar(new std::string("Error")); 
     }
@@ -36,7 +36,7 @@ public:
         return "IrLiteralBool";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlLiteralBool *llLiteralBool = new LlLiteralBool(this->value);
         return llLiteralBool;
     }
@@ -64,7 +64,7 @@ public:
         return "IrLiteralChar";
     }
 
-    LlComponent* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
+    LlComponent* generateLlIr(LlBuilder* builder, SymbolTable* symbolTable) {
         LlLiteralChar *llLiteralChar = new LlLiteralChar(this->value);
         return llLiteralChar;
     }
@@ -96,7 +96,7 @@ public:
         return std::to_string(value); // "IrLiteralNumber";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlLiteralInt * llLiteralInt = new LlLiteralInt(this->value);
         return llLiteralInt;
     }
@@ -152,7 +152,7 @@ public:
         return "IrLiteralString";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override{
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         return new LlLiteralString(new string(this->stringContent->getValue()));
     }
 };

@@ -6,7 +6,7 @@
 #include <vector>
 #include "Ll.h"
 class IrType;
-class LlSymbolTable {
+class SymbolTable {
 private:
     std::string methodName;
     std::unordered_map<LlComponent*, std::string> llStringTable;
@@ -17,9 +17,9 @@ private:
    std::unordered_map<std::string, IrType*> table;
 
 public:
-    LlSymbolTable(std::string methodName) : methodName(methodName) {}
+    SymbolTable(std::string methodName) : methodName(methodName) {}
 
-    ~LlSymbolTable() {
+    ~SymbolTable() {
     }
 
     void putOnVarTable(std::string key, LlComponent* value){
@@ -43,13 +43,11 @@ public:
     }
 
 
-
-
     std::string toString(){
         std::stringstream str;
         const int labelWidth = 15; 
         
-        str << std::right << std::setw(labelWidth) << "LlSymbolTable"  << " : " << this->methodName << "\n";
+        str << std::right << std::setw(labelWidth) << "SymbolTable"  << " : " << this->methodName << "\n";
         str << std::right << std::setw(labelWidth) <<  "String Table"  << " : " << "\n";
         for(auto pair : this->llStringTable){
             str << std::right << std::setw(labelWidth) <<  pair.first->toString() + " : " + pair.second + "\n";

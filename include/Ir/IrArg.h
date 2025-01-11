@@ -41,7 +41,7 @@ public:
         return argsString;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         for (IrExpr* arg: this->argsList) {
             arg->generateLlIr(builder, symbolTable);
         }

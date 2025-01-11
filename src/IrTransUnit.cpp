@@ -6,7 +6,7 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
     LlBuildersList* llBuildersList = new LlBuildersList();
 
     LlBuilder* builderGlobal = new LlBuilder(("global_decl"));
-    LlSymbolTable* symbolTableGlobal = new LlSymbolTable("global_decl");
+    SymbolTable* symbolTableGlobal = new SymbolTable("global_decl");
     for (IrDecl* decl: this->declerationList) {
         decl->generateLlIr(*builderGlobal, *symbolTableGlobal);
     }
@@ -31,7 +31,7 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
             builder->addParam(new LlLocationVar(&name));
         }
 
-        LlSymbolTable* symbolTable = new LlSymbolTable(func->getFunctionName());
+        SymbolTable* symbolTable = new SymbolTable(func->getFunctionName());
         func->generateLlIr(*builder, *symbolTable);
         if (program.is_used("--intermedial")){
             cout << symbolTable->toString() << endl;

@@ -3,13 +3,13 @@
 
 #include <vector>
 #include <unordered_map>
-#include "LlSymbolTable.h"
+#include "SymbolTable.h"
 #include "LlBuilder.h"
 
 class LlBuildersList {
 private:
     std::vector<LlBuilder*> builders;
-    std::vector<LlSymbolTable*> symbolTables;
+    std::vector<SymbolTable*> symbolTables;
 
 public:
     LlBuildersList() {
@@ -19,7 +19,7 @@ public:
         builders.push_back(builder);
     }
 
-    void addSymbolTable(LlSymbolTable* symbolTable) {
+    void addSymbolTable(SymbolTable* symbolTable) {
         symbolTables.push_back(symbolTable);
     }
 
@@ -27,7 +27,7 @@ public:
         return builders;
     }
 
-    std::vector<LlSymbolTable*> getSymbolTables() {
+    std::vector<SymbolTable*> getSymbolTables() {
         return symbolTables;
     }
 };

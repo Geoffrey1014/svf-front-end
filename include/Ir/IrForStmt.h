@@ -59,7 +59,7 @@ public:
         return result;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) override {
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         if (initializer) {
             initializer->generateLlIr(builder, symbolTable);
         }
