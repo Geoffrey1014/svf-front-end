@@ -11,14 +11,6 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
         decl->generateLlIr(*builderGlobal, *symbolTableGlobal);
     }
 
-    for (auto pair :symbolTableGlobal->getArrayTable()) {
-        std::cout << "array: " << pair.first->toString() << " size: " << pair.second->toString() << std::endl;
-    }
-
-    for (auto pair :symbolTableGlobal->getLlStringTable()) {
-        std::cout << "var: " << pair.first->toString() << std::endl;
-    }
-
     llBuildersList->addBuilder(builderGlobal);
     llBuildersList->addSymbolTable(symbolTableGlobal);
 
