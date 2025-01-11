@@ -191,6 +191,10 @@ public:
         return dimension;
     }
 
+    int getDimensionSize() const {
+        return dimension.size();
+    }
+
     IrTypeArray* clone() const override {
         return new IrTypeArray(*this);
     }
