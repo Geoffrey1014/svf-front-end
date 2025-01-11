@@ -414,20 +414,6 @@ public:
                 symbolTable.putOnTable(*(location->getVarName()), arrayType);
             }
         }
-//        if (simpleDecl) {
-//            LlComponent* compo = simpleDecl->generateLlIr(builder, symbolTable);
-//            if (LlLocation* location = dynamic_cast<LlLocationVar*>(compo)) {
-//                cout << "Adding to symbol table: " << *(location->getVarName()) << endl;
-//
-//            }
-//            else if (LlLocationArray* llLocationArray = dynamic_cast<LlLocationArray*>(compo) ) {
-//                symbolTable.putOnArrayTable(llLocationArray, llLocationArray->getElementIndex());
-//            }
-//            else {
-//                std::throw_with_nested(std::runtime_error("Error: Invalid location type"));
-//            }
-//
-//        }
         return nullptr;
     }
 };

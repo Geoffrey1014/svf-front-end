@@ -428,20 +428,6 @@ void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
         }
 
 
-//        IrExpr* newSize = this->popFromStack<IrExpr>(cst_node);
-//
-//        IrDeclDeclarator* base = nullptr;
-//        base = this->popFromStack<IrDeclDeclarator>(cst_node);
-//
-//        IrDeclDeclarator* trueBase = nullptr;
-//        std::vector<IrExpr*> dims;
-//        IrArrayDeclarator::flattenArrayDeclarators(base, trueBase, dims);
-//        dims.push_back(newSize);
-
-
-        // Rebuild the chain (outermost dimension is dims[0], then dims[1], etc.)
-//        IrDeclDeclarator* finalChain = IrArrayDeclarator::rebuildArrayDeclarators(trueBase, dims, cst_node);
-//        this->ast_stack.push(finalChain);
     }
     catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
@@ -485,7 +471,8 @@ void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
         return;
     }
 
-    Ir* node = new IrSubscriptExpr(baseExpr, indexExpr, cst_node);
+    IrSubscriptExpr* node = new IrSubscriptExpr(baseExpr, indexExpr, cst_node);
+    node->setLevel(arraylevel);
     this->ast_stack.push(node);
 }
 
@@ -923,6 +910,7 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 298: // subscript_expression
             exitSubscriptExpression(cst_node);
+            arraylevel -= 1;
             break;
         case 198: // declaration
             exitDeclaration(cst_node);
@@ -992,7 +980,9 @@ void ASTBuilder::enter_cst_node(const TSNode & cst_node){
      TSSymbol symbol_type = ts_node_symbol(cst_node);
      if (symbol_type == 236){
          arraylevel += 1;
-         std::cout << "ENTERING CST node: " << ts_language_symbol_name(this->language, symbol_type) <<", " << ts_node_grammar_type(cst_node) << std::endl;
+     }
+     else if (symbol_type == 298){
+         arraylevel += 1;
      }
     
 }

@@ -3,7 +3,7 @@
 #include "Ir.h"
 
 class IrType : public Ir {
-    private:
+protected:
     int width = 0;
 
     public:
@@ -11,13 +11,13 @@ class IrType : public Ir {
         virtual ~IrType() = default;
         int hashCode() const{ return 0;}
         virtual IrType* clone() const = 0;
+        int getWidth() const { return width; }
 };
 
 class IrTypeBool : public IrType {
-private:
-    int width = 1;
+
 public:
-    IrTypeBool(const TSNode& node) : IrType(node) {}
+    IrTypeBool(const TSNode& node) : IrType(node) {width = 1;}
     ~IrTypeBool() override = default;
 
     IrTypeBool* clone() const override {
@@ -48,8 +48,7 @@ public:
 };
 
 class IrTypeVoid : public IrType {
-private:
-    int width = 0;
+
 public:
     IrTypeVoid(const TSNode& node) : IrType(node) {}
     ~IrTypeVoid() override = default;
@@ -83,10 +82,9 @@ public:
 };
 
 class IrTypeInt : public IrType {
-private:
-    int width = 4;
+
 public:
-    IrTypeInt(const TSNode& node) : IrType(node) {}
+    IrTypeInt(const TSNode& node) : IrType(node) { width = 4;}
     ~IrTypeInt() override = default;
 
     IrTypeInt* clone() const override {
@@ -118,8 +116,7 @@ public:
 };
 
 class IrTypeString : public IrType {
-private:
-    int width = 0;
+
 public:
     IrTypeString(const TSNode& node) : IrType(node) {}
     ~IrTypeString() override = default;
@@ -152,10 +149,8 @@ public:
 };
 
 class IrTypeChar : public IrType {
-private:
-    int width = 1;
 public:
-    IrTypeChar(const TSNode& node) : IrType(node) {}
+    IrTypeChar(const TSNode& node) : IrType(node) { width = 1;}
     ~IrTypeChar() override = default;
 
     IrTypeChar* clone() const override {
@@ -239,6 +234,7 @@ public:
     std::string prettyPrint(std::string indentSpace) const override ;
 
     std::string toString() const override;
+
 };
 
 #endif
