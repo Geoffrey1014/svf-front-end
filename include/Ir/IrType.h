@@ -3,6 +3,9 @@
 #include "Ir.h"
 
 class IrType : public Ir {
+    private:
+    int width = 0;
+
     public:
         IrType(const TSNode& node) : Ir(node) {}
         virtual ~IrType() = default;
@@ -11,6 +14,8 @@ class IrType : public Ir {
 };
 
 class IrTypeBool : public IrType {
+private:
+    int width = 1;
 public:
     IrTypeBool(const TSNode& node) : IrType(node) {}
     ~IrTypeBool() override = default;
@@ -43,6 +48,8 @@ public:
 };
 
 class IrTypeVoid : public IrType {
+private:
+    int width = 0;
 public:
     IrTypeVoid(const TSNode& node) : IrType(node) {}
     ~IrTypeVoid() override = default;
@@ -76,6 +83,8 @@ public:
 };
 
 class IrTypeInt : public IrType {
+private:
+    int width = 4;
 public:
     IrTypeInt(const TSNode& node) : IrType(node) {}
     ~IrTypeInt() override = default;
@@ -109,6 +118,8 @@ public:
 };
 
 class IrTypeString : public IrType {
+private:
+    int width = 0;
 public:
     IrTypeString(const TSNode& node) : IrType(node) {}
     ~IrTypeString() override = default;
@@ -141,6 +152,8 @@ public:
 };
 
 class IrTypeChar : public IrType {
+private:
+    int width = 1;
 public:
     IrTypeChar(const TSNode& node) : IrType(node) {}
     ~IrTypeChar() override = default;
@@ -177,6 +190,7 @@ class IrTypeArray : public IrType {
 private:
     IrType* baseType;
     deque<IrLiteral*> dimension;
+    int width = 0;
 
 public:
     IrTypeArray(IrType* baseType, deque<IrLiteral*> dimension, const TSNode& node)

@@ -23,6 +23,14 @@ public:
         this->table[key] = value;
     }
 
+    IrType* getFromTable(std::string key){
+        auto it = this->table.find(key);
+        if(it != this->table.end()){
+            return it->second;
+        }
+        return nullptr;
+    }
+
     void putOnVarTable(std::string key, LlComponent* value){
         this->varTable[key] = value;
     }
