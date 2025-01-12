@@ -9,7 +9,6 @@ class IrType;
 class SymbolTable {
 private:
     std::string methodName;
-    std::unordered_map<LlLocation*, std::string> paramTable;
     std::unordered_map<std::string, LlComponent*> varTable;
     std::unordered_map<std::string, IrType*> table;
 
@@ -52,23 +51,6 @@ public:
 
     std::string getMethodName() {
         return this->methodName;
-    }
-
-
-    void putOnParamTable(LlLocationVar* key, std::string value){
-        this->paramTable[key] = value;
-    }
-
-    std::string getFromParamTable(LlLocationVar* key){
-       auto it = this->paramTable.find(key);
-       if(it != this->paramTable.end()){
-           return it->second;
-       }
-       return "";
-    }
-
-    std::unordered_map<LlLocation*, std::string> getParamTable(){
-        return this->paramTable;
     }
 
 };

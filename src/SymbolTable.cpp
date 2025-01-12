@@ -12,10 +12,5 @@ std::string SymbolTable::toString(){
         str << std::right << std::setw(labelWidth) <<  pair.first << " : " << pair.second->toString() << "\n";
     }
 
-    str << "\n" << std::right << std::setw(labelWidth) <<  "Param Table" << " : " << "\n";
-    for(auto pair : this->paramTable){
-        str << std::right << std::setw(labelWidth) <<  pair.first->toString() + " : " + pair.second + "\n";
-    }
-
     return str.str();
 }
