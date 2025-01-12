@@ -450,6 +450,7 @@ void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
 }
 
 void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
+    this->debugStackState();
     IrExpr* indexExpr = nullptr;
     IrExpr* baseExpr = nullptr;
 

@@ -2,12 +2,6 @@
 #define IR_SUBSCRIPT_EXPR_H
 
 #include "IrExpr.h"
-    // subscript_expression: $ => prec(PREC.SUBSCRIPT, seq(
-    //   field('argument', $.expression),
-    //   '[',
-    //   field('index', $.expression),
-    //   ']',
-    // )),
 class IrSubscriptExpr : public IrNonBinaryExpr {
 private:
     IrExpr* baseExpr;   // The array or object being indexed
@@ -89,6 +83,7 @@ public:
                 return nullptr;
             }
 
+            // Get the size of the current dimension
             IrLiteral* dimLiteral = dims[currentLevel - 1];
             int dimSize = dynamic_cast<IrLiteralNumber*>(dimLiteral)->getValue();
 
@@ -105,12 +100,15 @@ public:
                 builder.appendStatement(new LlAssignStmtBinaryOp(addTemp, offsetTemp, "+", mulTemp));
                 offsetTemp = addTemp;
             }
-
             cumulativeMultiplier *= dimSize;
 
             currentExpr = sub->getBaseExpr();
             currentLevel--;
         }
+        //LlLocation* baseLocation = dynamic_cast<LlLocation*>(currentExpr->generateLlIr(builder, symbolTable));
+        // LlLocation* finalTemp = builder.generateTemp();
+        // builder.appendStatement(new LlAssignStmtBinaryOp(finalTemp, baseLocation, "+", offsetTemp));
+        // return new LlLocationArray(new std::string(baseName), finalTemp);
         return new LlLocationArray(new std::string(baseName), offsetTemp);
     }
 };
