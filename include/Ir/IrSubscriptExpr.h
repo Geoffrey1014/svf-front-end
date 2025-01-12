@@ -12,14 +12,23 @@ class IrSubscriptExpr : public IrNonBinaryExpr {
 private:
     IrExpr* baseExpr;   // The array or object being indexed
     IrExpr* indexExpr;  // The index expression
+    int level = 0;
 
 public:
     IrSubscriptExpr(IrExpr* baseExpr, IrExpr* indexExpr, const TSNode& node)
-        : Ir(node), IrNonBinaryExpr(node), baseExpr(baseExpr), indexExpr(indexExpr) {}
+        : Ir(node), IrNonBinaryExpr(node), baseExpr(baseExpr), indexExpr(indexExpr){}
 
     ~IrSubscriptExpr() {
         delete baseExpr;
         delete indexExpr;
+    }
+
+    void setLevel(int l){
+        level = l;
+    }
+
+    const std::string getName() const override {
+        return baseExpr->getName();
     }
 
     IrExpr* getBaseExpr() const {
@@ -54,10 +63,42 @@ public:
     }
 
     LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlComponent* indexLocation = indexExpr->generateLlIr(builder, symbolTable);
-        std::string* baseName = new std::string(baseExpr->toString());
-        LlLocationArray* array = new LlLocationArray(baseName, indexLocation);
-        return array;
+        std::string* baseName = new std::string(baseExpr->getName());
+
+        IrType* type = symbolTable.getFromTable(*baseName);
+        IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type);
+
+        int width = arrayType->getBaseType()->getWidth();
+
+        deque<IrLiteral*> dims = arrayType->getDimension();
+        int arrSize = dims.size();
+
+        // accordding to level, get the level-th dimension,
+        // TODO: can noly handel 2 dims array now. need to be modified
+
+        LlLocation *location = builder.generateTemp();
+        if(level == 1){
+            LlComponent* indexLocation = indexExpr->generateLlIr(builder, symbolTable);
+            LlStatement* stmt = new LlAssignStmtBinaryOp(location, indexLocation, "*", new LlLiteralInt(width));
+            builder.appendStatement(stmt);
+
+        }
+        else{
+            IrLiteral* dim = dims[arrSize-level+1];
+            LlLiteralInt* llDim = new LlLiteralInt(dynamic_cast<IrLiteralNumber*>(dim)->getValue()*width);
+            LlComponent* indexLocation = indexExpr->generateLlIr(builder, symbolTable);
+            LlStatement* stmt = new LlAssignStmtBinaryOp(location, indexLocation, "*", llDim);
+            builder.appendStatement(stmt);
+            return location;
+        }
+
+        LlLocation *location2 = dynamic_cast<LlLocation *>(baseExpr->generateLlIr(builder, symbolTable));
+
+        LlLocation *location3 = builder.generateTemp();
+        LlStatement* stmt2 = new LlAssignStmtBinaryOp(location3, location2, "+", location);
+        builder.appendStatement(stmt2);
+
+        return new LlLocationArray(baseName, location3);
     }
 };
 

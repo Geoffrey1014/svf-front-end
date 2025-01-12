@@ -126,7 +126,9 @@ public:
         std::stringstream st;
         const int labelWidth = 15; // 设置标签宽度
         for (const auto& label : insertionOrder) {
-            st << std::right << std::setw(labelWidth) << label << " : " << statementTable[label]->toString() << "\n";
+            std::string statement = statementTable[label]->toString();
+//            std::cout << "label: " << label << " statement: " << statement << std::endl;
+            st << std::right << std::setw(labelWidth) << label << " : " << statement << "\n";
         }
         return st.str();
     }

@@ -315,6 +315,15 @@ public:
     std::string toString() const override{
         return declarator->toString() + " = " + initializer->toString();
     }
+
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlComponent* compo = declarator->generateLlIr(builder, symbolTable);
+        LlLocationVar* location = dynamic_cast<LlLocationVar*>(compo);
+        LlComponent* init = initializer->generateLlIr(builder, symbolTable);
+        LlAssignStmtRegular* assignStmt = new LlAssignStmtRegular(location, init);
+        builder.appendStatement(assignStmt);
+        return location;
+    }
 };
 
 // declaration
@@ -414,20 +423,18 @@ public:
                 symbolTable.putOnTable(*(location->getVarName()), arrayType);
             }
         }
-//        if (simpleDecl) {
-//            LlComponent* compo = simpleDecl->generateLlIr(builder, symbolTable);
-//            if (LlLocation* location = dynamic_cast<LlLocationVar*>(compo)) {
-//                cout << "Adding to symbol table: " << *(location->getVarName()) << endl;
-//
-//            }
-//            else if (LlLocationArray* llLocationArray = dynamic_cast<LlLocationArray*>(compo) ) {
-//                symbolTable.putOnArrayTable(llLocationArray, llLocationArray->getElementIndex());
-//            }
-//            else {
-//                std::throw_with_nested(std::runtime_error("Error: Invalid location type"));
-//            }
-//
-//        }
+        else if (IrTypeInt* intType = dynamic_cast<IrTypeInt*>(type)){
+            if (simpleDecl) {
+                LlComponent *compo = simpleDecl->generateLlIr(builder, symbolTable);
+                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                symbolTable.putOnTable(*(location->getVarName()), intType);
+            }
+            else if (initDecl) {
+                LlComponent *compo = initDecl->generateLlIr(builder, symbolTable);
+                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                symbolTable.putOnTable(*(location->getVarName()), intType);
+            }
+        }
         return nullptr;
     }
 };

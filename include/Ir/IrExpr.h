@@ -27,8 +27,7 @@ public:
     }
 
     virtual const std::string getName() const {
-        static const std::string emptyString = "";
-        return emptyString;
+        return "";
     }
 };
 
