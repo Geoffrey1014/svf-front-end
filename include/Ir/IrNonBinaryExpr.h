@@ -175,6 +175,19 @@ public:
         std::string op = isAddressOf ? "&" : "*";
         return op + argument->toString();
     }
+
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlComponent* arg = argument->generateLlIr(builder, symbolTable);
+        LlLocation* returnLocation = builder.generateTemp();
+        if (isAddressOf) {
+            LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new std::string("&"));
+            builder.appendStatement(unaryOp);
+        } else if (isDereference) {
+            LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new std::string("*"));
+            builder.appendStatement(unaryOp);
+        }
+        return returnLocation;
+    }
 };
 
 class IrParenthesizedExpr : public IrNonBinaryExpr {

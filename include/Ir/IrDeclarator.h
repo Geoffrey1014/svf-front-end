@@ -9,8 +9,7 @@ class IrDeclDeclarator : public virtual Ir {
 public:
     IrDeclDeclarator(const TSNode& node) : Ir(node) {}
     virtual const std::string getName() const {
-        static const std::string emptyString = "";
-        return emptyString;
+        return "";
     }
 };
 

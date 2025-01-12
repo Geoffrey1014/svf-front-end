@@ -124,6 +124,15 @@ public:
 
         return prettyString;
     }
+
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        string id = declarator->getName();
+        LlComponent* comp = declarator->generateLlIr(builder, symbolTable);
+        LlLocationVar* loc = dynamic_cast<LlLocationVar*>(comp);
+        symbolTable.putOnTable(id, paramType);
+        return loc;
+
+    }
 };
 
 
@@ -164,6 +173,13 @@ public:
 
         return prettyString;
     }
+
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        for (IrParamDecl* param: this->paramsList) {
+            param->generateLlIr(builder, symbolTable);
+        }
+        return nullptr;
+    }
 };
 
 // function_declarator
@@ -200,6 +216,12 @@ public:
         prettyString += paramsList->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
+
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        declarator->generateLlIr(builder, symbolTable);
+        paramsList->generateLlIr(builder, symbolTable);
+        return nullptr;
+    }
 };
 
 // function_definition
@@ -224,6 +246,8 @@ public:
         std::string name = functionDecl->getName();
         LlEmptyStmt* emptyStmt = new LlEmptyStmt();
         builder.appendStatement(name, emptyStmt);
+        symbolTable.putOnTable(name, returnType);
+        functionDecl->generateLlIr(builder, symbolTable);
         this->compoundStmt->generateLlIr(builder, symbolTable);
         return nullptr;
     }
@@ -435,6 +459,31 @@ public:
                 symbolTable.putOnTable(*(location->getVarName()), intType);
             }
         }
+        else if (IrTypeChar* charType = dynamic_cast<IrTypeChar*>(type)){
+            if (simpleDecl) {
+                LlComponent *compo = simpleDecl->generateLlIr(builder, symbolTable);
+                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                symbolTable.putOnTable(*(location->getVarName()), charType);
+            }
+            else if (initDecl) {
+                LlComponent *compo = initDecl->generateLlIr(builder, symbolTable);
+                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                symbolTable.putOnTable(*(location->getVarName()), charType);
+            }
+        }
+        else if (IrPointerType* pointerType = dynamic_cast<IrPointerType*>(type)){
+            if (simpleDecl) {
+                LlComponent *compo = simpleDecl->generateLlIr(builder, symbolTable);
+                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                symbolTable.putOnTable(*(location->getVarName()), pointerType);
+            }
+            else if (initDecl) {
+                LlComponent *compo = initDecl->generateLlIr(builder, symbolTable);
+                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                symbolTable.putOnTable(*(location->getVarName()), pointerType);
+            }
+        }
+
         return nullptr;
     }
 };

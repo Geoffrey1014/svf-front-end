@@ -45,34 +45,6 @@ class IrTypeIdent : public IrType {
         }
 };
 
-class IrPointerType : public IrType {
-private:
-    IrType* baseType;
-
-public:
-    IrPointerType(IrType* baseType, const TSNode& node) 
-        : IrType(node), baseType(baseType) {}
-
-    ~IrPointerType() { delete baseType; }
-
-    std::string toString() const override {
-        return baseType->toString() + "*";
-    }
-
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string result = indentSpace + "|--pointer: *\n";
-        result += baseType->prettyPrint(addIndent(indentSpace));
-        return result;
-    }
-
-    IrType* getBaseType() const {
-        return baseType;
-    }
-
-    IrPointerType* clone() const override {
-        return new IrPointerType(*this);
-    }
-};
 
 // Comment: maybe refactor the IrType (add one layer for primitive types or ...)
 class IrTypeStruct : public IrType {
