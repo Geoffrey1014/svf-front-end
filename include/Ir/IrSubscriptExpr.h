@@ -105,10 +105,6 @@ public:
             currentExpr = sub->getBaseExpr();
             currentLevel--;
         }
-        //LlLocation* baseLocation = dynamic_cast<LlLocation*>(currentExpr->generateLlIr(builder, symbolTable));
-        // LlLocation* finalTemp = builder.generateTemp();
-        // builder.appendStatement(new LlAssignStmtBinaryOp(finalTemp, baseLocation, "+", offsetTemp));
-        // return new LlLocationArray(new std::string(baseName), finalTemp);
         return new LlLocationArray(new std::string(baseName), offsetTemp);
     }
 };
