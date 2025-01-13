@@ -75,4 +75,38 @@ public:
 
 };
 
+class IrUnaryExpr : public IrNonBinaryExpr {
+private:
+    std::string* operation;
+    IrExpr* operand;
+public:
+    IrUnaryExpr(std::string* operation, IrExpr* operand, const TSNode & node) : IrNonBinaryExpr(node), operation(operation), operand(operand) {}
+    ~IrUnaryExpr() {
+        delete operation;
+        delete operand;
+    }
+    std::string* getOperation() {
+        return this->operation;
+    }
+    IrExpr* getOperand() {
+        return this->operand;
+    }
+    
+    std::string toString() {
+        return *operation + " " + operand->toString();
+    }
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--unaryExpr\n";
+
+        // pretty print the operation
+        prettyString += "  " + indentSpace + "|--operation: " + *operation + "\n";
+
+        // pretty print the operand
+        prettyString += "  " + indentSpace + "|--operand\n";
+        prettyString += this->operand->prettyPrint("    " + indentSpace);
+
+        return prettyString;
+    }
+};
+
 #endif

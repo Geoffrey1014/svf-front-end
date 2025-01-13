@@ -115,32 +115,26 @@ public:
 
 class IrForExpr : public IrExpr {
 private:
-    Ir* initialization;
-    Ir* condition;
-    Ir* increment;
+    IrIdent* ident;
+    IrExpr* condition;
     Ir* body;
 
 public:
-    IrForExpr(Ir* initialization, Ir* condition, Ir* increment, Ir* body, const TSNode & node)
-        : IrExpr(node), initialization(initialization), condition(condition), increment(increment), body(body) {}
+    IrForExpr(IrIdent* ident, IrExpr* condition, Ir* body, const TSNode & node)
+        : IrExpr(node), ident(ident), condition(condition), body(body) {}
 
     ~IrForExpr() {
-        delete initialization;
+        delete ident;
         delete condition;
-        delete increment;
         delete body;
     }
 
-    Ir* getInitialization() const {
-        return this->initialization;
+    IrIdent* getIdent() const {
+        return this->ident;
     }
 
-    Ir* getCondition() const {
+    IrExpr* getCondition() const {
         return this->condition;
-    }
-
-    Ir* getIncrement() const {
-        return this->increment;
     }
 
     Ir* getBody() const {
@@ -149,9 +143,8 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--for expression:\n";
-        prettyString += this->initialization->prettyPrint("  " + indentSpace);
+        prettyString += this->ident->prettyPrint("  " + indentSpace);
         prettyString += this->condition->prettyPrint("  " + indentSpace);
-        prettyString += this->increment->prettyPrint("  " + indentSpace);
         prettyString += this->body->prettyPrint("  " + indentSpace);
         return prettyString;
     }
@@ -226,6 +219,75 @@ public:
         for (auto arm : arms) {
             prettyString += arm->prettyPrint("  " + indentSpace);
         }
+        return prettyString;
+    }
+};
+
+class IrIfExpr : public IrExpr {
+private:
+    Ir* condition;
+    Ir* thenBlock;
+    Ir* elseBlock;
+public:
+    IrIfExpr(Ir* condition, Ir* thenBlock, Ir* elseBlock, const TSNode & node)
+        : IrExpr(node), condition(condition), thenBlock(thenBlock), elseBlock(elseBlock) {}
+
+    ~IrIfExpr() {
+        delete condition;
+        delete thenBlock;
+        delete elseBlock;
+    }
+
+    Ir* getCondition() const {
+        return this->condition;
+    }
+
+    Ir* getThenBlock() const {
+        return this->thenBlock;
+    }
+
+    Ir* getElseBlock() const {
+        return this->elseBlock;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--if expression:\n";
+        prettyString += this->condition->prettyPrint("  " + indentSpace);
+        prettyString += this->thenBlock->prettyPrint("  " + indentSpace);
+        if (this->elseBlock) {
+            prettyString += this->elseBlock->prettyPrint("  " + indentSpace);
+        }
+        return prettyString;
+    }
+};
+
+class IrRangeExpr : public IrExpr {
+private:
+    Ir* start;
+    Ir* end;
+public:
+    IrRangeExpr(Ir* start, Ir* end, const TSNode & node)
+        : IrExpr(node), start(start), end(end) {}
+
+    ~IrRangeExpr() {
+        delete start;
+        delete end;
+    }
+
+    Ir* getStart() const {
+        return this->start;
+    }
+
+    Ir* getEnd() const {
+        return this->end;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--range expression:\n";
+        prettyString += "  " + indentSpace + "|--start:\n";
+        prettyString += this->start->prettyPrint("    " + indentSpace);
+        prettyString += "  " + indentSpace + "|--end:\n";
+        prettyString += this->end->prettyPrint("    " + indentSpace);
         return prettyString;
     }
 };

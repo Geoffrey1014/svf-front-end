@@ -58,6 +58,9 @@ public:
     void exitWhileExpr(const TSNode &cst_node);
     void exitForExpr(const TSNode &cst_node);
     void exitAssignExpr(const TSNode &cst_node);
+    void exitIfExpr(const TSNode &cst_node);
+    void exitElseClause(const TSNode &cst_node);
+    void exitRangeExpr(const TSNode &cst_node);
     void exitExprStmt(const TSNode & cst_node);
     void exitTransUnit(const TSNode & cst_node);
 

@@ -61,12 +61,14 @@ public:
 
 class IrCompoundStmt : public IrStatement {
 private:
+    IrExpr* expr;
     std::deque<IrStatement*> stmtsList;
 public:
-    IrCompoundStmt(const TSNode& node)
-        : IrStatement(node),
+    IrCompoundStmt(IrExpr* expr, const TSNode& node)
+        : IrStatement(node), expr(expr),
           stmtsList() {}
     ~IrCompoundStmt() {
+        delete expr;
         for (IrStatement* stmt: this->stmtsList) {
             delete stmt;
         }
@@ -81,6 +83,9 @@ public:
 
         for (IrStatement* statement: this->stmtsList) {
             prettyString += statement->prettyPrint("  " + indentSpace);
+        }
+        if (this->expr) {
+            prettyString += this->expr->prettyPrint("  " + indentSpace);
         }
 
         return prettyString;
@@ -110,6 +115,31 @@ public:
     }
     std::string toString() {
         return "IrExprStmt";
+    }
+};
+
+class IrElseClause : public IrExpr {
+private:
+    IrExpr* elseExpr;
+    IrStatement* elseStmt;
+public:
+    IrElseClause(IrExpr* elseExpr, const TSNode& node)
+        : elseExpr(elseExpr), elseStmt(nullptr), IrExpr(node) {}
+    IrElseClause(IrStatement* elseStmt, const TSNode& node)
+        : elseExpr(nullptr), elseStmt(elseStmt), IrExpr(node) {}
+    ~IrElseClause() {
+        delete elseExpr;
+        delete elseStmt;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--else_clause\n";
+        if (elseExpr) {
+            prettyString += elseExpr->prettyPrint("  " + indentSpace);
+        } else if (elseStmt) {
+            prettyString += elseStmt->prettyPrint("  " + indentSpace);
+        }
+        return prettyString;
     }
 };
 
