@@ -65,5 +65,5 @@ public:
 
 // extern: declare the variable globalSymbolTable exists, 
 // but is defined in somewhere else (src/SymbolTable.cpp)
-extern SymbolTable globalSymbolTable;
+// extern SymbolTable globalSymbolTable;
 #endif

@@ -2,7 +2,7 @@
 #include <string>
 #include "Ir/IrType.h"
 
-SymbolTable globalSymbolTable("global");
+// SymbolTable globalSymbolTable("global");
 
 std::string SymbolTable::toString(){
     std::stringstream str;
