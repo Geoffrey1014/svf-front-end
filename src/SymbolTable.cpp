@@ -2,6 +2,8 @@
 #include <string>
 #include "Ir/IrType.h"
 
+SymbolTable globalSymbolTable("global");
+
 std::string SymbolTable::toString(){
     std::stringstream str;
     const int labelWidth = 15;

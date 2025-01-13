@@ -6,6 +6,7 @@
 #include "SymbolTable.h"
 #include "LlBuilder.h"
 
+// Container for multiple LlBuilders and associated SymbolTables
 class LlBuildersList {
 private:
     std::vector<LlBuilder*> builders;

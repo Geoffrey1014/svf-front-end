@@ -8,7 +8,7 @@
 #include <sstream> // Include this header for std::stringstream
 #include <iomanip> 
 
-
+// Generated Ll Ir for a single scope
 class LlBuilder {
 private:
     std::string name;
@@ -127,7 +127,7 @@ public:
         const int labelWidth = 15; // 设置标签宽度
         for (const auto& label : insertionOrder) {
             std::string statement = statementTable[label]->toString();
-//            std::cout << "label: " << label << " statement: " << statement << std::endl;
+           std::cout << "label: " << label << " statement: " << statement << std::endl;
             st << std::right << std::setw(labelWidth) << label << " : " << statement << "\n";
         }
         return st.str();

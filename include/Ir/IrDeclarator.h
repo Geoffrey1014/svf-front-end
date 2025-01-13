@@ -14,91 +14,12 @@ public:
     }
 };
 
-class IrArrayDeclarator : public IrDeclDeclarator {
-private:
-    IrDeclDeclarator* baseDeclarator;
-    IrExpr* sizeExpr;
-
-public:
-    IrArrayDeclarator(IrDeclDeclarator* baseDeclarator,IrExpr* sizeExpr, const TSNode& node)
-    : Ir(node), IrDeclDeclarator(node), baseDeclarator(baseDeclarator), sizeExpr(sizeExpr) {}
-
-    ~IrArrayDeclarator() {
-        delete baseDeclarator;
-        delete sizeExpr;
-    }
-
-    IrDeclDeclarator* getBaseDeclarator() const {
-        return baseDeclarator;
-    }
-
-    IrExpr* getSizeExpr() const {
-        return sizeExpr;
-    }
-
-    const std::string getName() const override {
-        if (baseDeclarator) {
-            return baseDeclarator->getName();
-        }
-        return "";
-    }
-
-    static void flattenArrayDeclarators(IrDeclDeclarator* decl, IrDeclDeclarator*& trueBase, std::vector<IrExpr*>& dims) {
-        IrDeclDeclarator* current = decl;
-        while (auto arr = dynamic_cast<IrArrayDeclarator*>(current)) {
-            dims.push_back(arr->getSizeExpr());
-            current = arr->getBaseDeclarator();
-        }
-        trueBase = current;
-    }
-
-    static IrDeclDeclarator* rebuildArrayDeclarators(IrDeclDeclarator* trueBase, const std::vector<IrExpr*>& dims, const TSNode& cst_node) {
-        IrDeclDeclarator* result = trueBase;
-        for (int i = (int)dims.size() - 1; i >= 0; i--) {
-            IrExpr* size = dims[i];
-            result = new IrArrayDeclarator(result, size, cst_node);
-        }
-        return result;
-    }
-
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string str = indentSpace + "|--array_declarator\n";
-        if (sizeExpr) {
-            str += sizeExpr->prettyPrint(addIndent(indentSpace));
-        }
-        if (baseDeclarator) {
-            str += baseDeclarator->prettyPrint(addIndent(indentSpace));
-        }
-        return str;
-    }
-
-    std::string toString() const override {
-        std::vector<IrExpr*> dims;
-
-        const IrDeclDeclarator* walk = this;
-        while (auto arr = dynamic_cast<const IrArrayDeclarator*>(walk)) {
-            dims.push_back(arr->getSizeExpr());
-            walk = arr->getBaseDeclarator();
-        }
-
-        std::string result = (walk ? walk->toString() : "");
-
-        for (IrExpr* dim : dims) {
-            if (dim) {
-                result += "[" + dim->toString() + "]";
-            } else {
-                result += "[?]";
-            }
-        }
-        return result;
-    }
-
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlComponent* index = sizeExpr->generateLlIr(builder, symbolTable);
-        LlLocationArray* arrayLoc = new LlLocationArray(new std::string(getName()), index);
-        return arrayLoc;
-    }
-};
+//     LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+//         LlComponent* index = sizeExpr->generateLlIr(builder, symbolTable);
+//         LlLocationArray* arrayLoc = new LlLocationArray(new std::string(getName()), index);
+//         return arrayLoc;
+//     }
+// };
 
 class IrAbstractPointerDeclarator : public IrDeclDeclarator {
 private:

@@ -15,7 +15,7 @@ std::string ASTBuilder::getNodeText(const TSNode &node) {
 
 void ASTBuilder::debugStackState() const {
     std::cout << "Stack state:\n";
-    std::stack<Ir*> tempStack = this->ast_stack; // Copy the stack for debugging
+    std::stack<Ir*> tempStack = this->ast_stack;
 
     while (!tempStack.empty()) {
         Ir* node = tempStack.top();
@@ -414,7 +414,6 @@ void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
         }
         arraylevel -= 1;
         if (arraylevel == 0) {
-            this->debugStackState();
             deque<IrLiteral*> dims;
             while (dynamic_cast<IrLiteral*>(this->ast_stack.top()) ) {
                 IrLiteral* literal = this->popFromStack<IrLiteral>(cst_node);
@@ -426,8 +425,6 @@ void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
             ast_stack.push(arrayType);
             ast_stack.push(id);
         }
-
-
     }
     catch (const std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
@@ -450,7 +447,6 @@ void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
 }
 
 void ASTBuilder::exitSubscriptExpression(const TSNode &cst_node) {
-    this->debugStackState();
     IrExpr* indexExpr = nullptr;
     IrExpr* baseExpr = nullptr;
 
@@ -530,7 +526,6 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
                     // For subsequent variables, clone the type so each IrDecl has its own pointer
                     typeForThis = originalType->clone();
                 }
-
                 // Build a single-variable IrDecl (initialized)
                 IrDecl* decl = new IrDecl(typeForThis, specifier, initDecl, cst_node);
                 // Add it to our container
@@ -554,7 +549,6 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
             }
         }
 
-        // 6) Finally, push ONE IrMultiDecl for this entire declaration
         this->ast_stack.push(multiDecl);
     } catch (const std::runtime_error& e) {
         std::cerr << "Error in declaration: " << e.what() << std::endl;
