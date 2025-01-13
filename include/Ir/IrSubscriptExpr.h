@@ -2,12 +2,6 @@
 #define IR_SUBSCRIPT_EXPR_H
 
 #include "IrExpr.h"
-    // subscript_expression: $ => prec(PREC.SUBSCRIPT, seq(
-    //   field('argument', $.expression),
-    //   '[',
-    //   field('index', $.expression),
-    //   ']',
-    // )),
 class IrSubscriptExpr : public IrNonBinaryExpr {
 private:
     IrExpr* baseExpr;   // The array or object being indexed
@@ -63,42 +57,55 @@ public:
     }
 
     LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        std::string* baseName = new std::string(baseExpr->getName());
-
-        IrType* type = symbolTable.getFromTable(*baseName);
+        std::string baseName = baseExpr->getName();
+        IrType* type = symbolTable.getFromTable(baseName);
         IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type);
 
-        int width = arrayType->getBaseType()->getWidth();
+        if (!arrayType) {
+            std::cerr << "Error: " << baseName << " is not an array." << std::endl;
+            return nullptr;
+        }
 
         deque<IrLiteral*> dims = arrayType->getDimension();
+        int elemWidth = arrayType->getBaseType()->getWidth();
         int arrSize = dims.size();
 
-        // accordding to level, get the level-th dimension,
-        // TODO: can noly handel 2 dims array now. need to be modified
+        IrExpr* currentExpr = this;
+        int currentLevel = arrSize; 
 
-        LlLocation *location = builder.generateTemp();
-        if(level == 1){
-            LlComponent* indexLocation = indexExpr->generateLlIr(builder, symbolTable);
-            LlStatement* stmt = new LlAssignStmtBinaryOp(location, indexLocation, "*", new LlLiteralInt(width));
-            builder.appendStatement(stmt);
+        int cumulativeMultiplier = elemWidth;
 
+        LlLocation* offsetTemp = nullptr;
+
+        while (auto* sub = dynamic_cast<IrSubscriptExpr*>(currentExpr)) {
+            if (currentLevel <= 0) {
+                std::cerr << "Error: Too many subscripts for array " << baseName << std::endl;
+                return nullptr;
+            }
+
+            // Get the size of the current dimension
+            IrLiteral* dimLiteral = dims[currentLevel - 1];
+            int dimSize = dynamic_cast<IrLiteralNumber*>(dimLiteral)->getValue();
+
+            LlComponent* indexLocation = sub->getIndexExpr()->generateLlIr(builder, symbolTable);
+
+            LlLocation* mulTemp = builder.generateTemp();
+            LlLiteralInt* multiplierLiteral = new LlLiteralInt(cumulativeMultiplier);
+            builder.appendStatement(new LlAssignStmtBinaryOp(mulTemp, indexLocation, "*", multiplierLiteral));
+
+            if (!offsetTemp) {
+                offsetTemp = mulTemp;
+            } else {
+                LlLocation* addTemp = builder.generateTemp();
+                builder.appendStatement(new LlAssignStmtBinaryOp(addTemp, offsetTemp, "+", mulTemp));
+                offsetTemp = addTemp;
+            }
+            cumulativeMultiplier *= dimSize;
+
+            currentExpr = sub->getBaseExpr();
+            currentLevel--;
         }
-        else{
-            IrLiteral* dim = dims[arrSize-level+1];
-            LlLiteralInt* llDim = new LlLiteralInt(dynamic_cast<IrLiteralNumber*>(dim)->getValue()*width);
-            LlComponent* indexLocation = indexExpr->generateLlIr(builder, symbolTable);
-            LlStatement* stmt = new LlAssignStmtBinaryOp(location, indexLocation, "*", llDim);
-            builder.appendStatement(stmt);
-            return location;
-        }
-
-        LlLocation *location2 = dynamic_cast<LlLocation *>(baseExpr->generateLlIr(builder, symbolTable));
-
-        LlLocation *location3 = builder.generateTemp();
-        LlStatement* stmt2 = new LlAssignStmtBinaryOp(location3, location2, "+", location);
-        builder.appendStatement(stmt2);
-
-        return new LlLocationArray(baseName, location3);
+        return new LlLocationArray(new std::string(baseName), offsetTemp);
     }
 };
 

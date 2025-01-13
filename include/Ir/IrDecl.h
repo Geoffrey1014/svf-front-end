@@ -440,6 +440,7 @@ public:
     }
 
     LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+
         if (IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type)) {
             if (simpleDecl) {
                 LlComponent *compo = simpleDecl->generateLlIr(builder, symbolTable);

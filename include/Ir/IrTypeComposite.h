@@ -83,19 +83,31 @@ public:
     }
 };
 
-class IrTypeDef : public Ir {
+class IrTypeDef : public IrType {
 private:
-    IrType* type;     // The original type being aliased
+    IrType* type;        // The original type being aliased
     // IrIdent* alias;   // The alias name
     IrTypeIdent* alias;   // The alias name
 
 public:
     IrTypeDef(IrType* type, IrTypeIdent* alias, const TSNode& node)
-        : Ir(node), type(type), alias(alias) {}
+        : IrType(node), type(type), alias(alias) {}
 
     ~IrTypeDef() {
         delete type;
         delete alias;
+    }
+
+    IrType* getbaseType() const {
+        return type;
+    }
+
+    IrTypeIdent* getAliasName() const {
+        return alias;
+    }
+
+    IrTypeDef* clone() const override {
+        return new IrTypeDef(*this);
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
