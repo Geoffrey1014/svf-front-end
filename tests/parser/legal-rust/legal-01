@@ -1,2 +1,2 @@
-let i: i32;
+let mut i: i32;
 i = 0;

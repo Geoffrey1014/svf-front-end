@@ -6,16 +6,20 @@
 
 class IrDecl : public Ir {
 private:
+    bool mut;
     IrIdent* name;
     IrType* type;
-    bool is_mutable;
-
 public:
-    IrDecl(IrIdent* name, IrType* type, bool is_mutable, const TSNode & node) : Ir(node), name(name), type(type) {}
+    IrDecl(bool mut, IrIdent* name, IrType* type, const TSNode & node) : mut(mut), Ir(node), name(name), type(type) {}
     ~IrDecl() {
         delete name;
         delete type;
     }
+
+    bool getMut() const {
+        return this->mut;
+    }
+
     const std::string* getName() const {
         return this->name->getValue();
     }
@@ -28,15 +32,16 @@ public:
         return this->type;
     }
 
-    bool getIsMutable() const {
-        return this->is_mutable;
-    }
-
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--declaration:\n";
 
         // Print the mutability
-        prettyString += ("  " + indentSpace + "|--mutable: " + (this->is_mutable ? "true" : "false") + "\n");
+        if (this->mut) {
+            prettyString += ("  " + indentSpace + "|--mutable: true\n");
+        } else {
+            prettyString += ("  " + indentSpace + "|--mutable: false\n");
+        }
+        // prettyString += ("  " + indentSpace + "|--mutable: " + (this->mut ? "true" : "false") + "\n");
 
         // print the parameter's name
         prettyString += ("  " + indentSpace + "|--name: " + *(this->name->getValue()) + "\n");
@@ -68,10 +73,9 @@ class IrParamDecl : public Ir {
 private:
     IrType* paramType;
     IrIdent* paramName;
-    bool is_mutable;
 
 public:
-    IrParamDecl(IrType* paramType, IrIdent* paramName, bool is_mutable, const TSNode& node) : Ir(node), paramType(paramType), paramName(paramName) {}
+    IrParamDecl(IrType* paramType, IrIdent* paramName, const TSNode& node) : Ir(node), paramType(paramType), paramName(paramName) {}
     ~IrParamDecl() {
         delete paramType;
         delete paramName;
@@ -88,13 +92,13 @@ public:
         return this->paramName;
     }
 
-    bool getIsMutable() const {
-        return this->is_mutable;
-    }
+    // bool getIsMutable() const {
+    //     return this->is_mutable;
+    // }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyString = indentSpace + "|--param:\n";
-        prettyString += "  " + indentSpace + "|--mutable: " + (this->is_mutable ? "true" : "false") + "\n";
+        // prettyString += "  " + indentSpace + "|--mutable: " + (this->is_mutable ? "true" : "false") + "\n";
 
         // print the parameter's name
         prettyString += ("  " + indentSpace + "|--name: " + *(this->paramName->getValue()) + "\n");

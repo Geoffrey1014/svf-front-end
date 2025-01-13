@@ -87,14 +87,16 @@ void ASTBuilder::exitParameter(const TSNode & cst_node) {
     this->ast_stack.pop();
 
     // Check for mutable binding
-    bool is_mutable = false;
-    TSNode mut_node = ts_node_child_by_field_name(cst_node, "mut", 3);
-    if (!ts_node_is_null(mut_node)) {
-        is_mutable = true;
+    IrMutableSpec* mut = nullptr;
+    if (this->ast_stack.size() > 0) {
+        mut = dynamic_cast<IrMutableSpec*>(this->ast_stack.top());
+        if (mut) {
+            this->ast_stack.pop();
+        }
     }
 
     if (paramType && paramName) {
-        node = new IrParamDecl(paramType, paramName, is_mutable, cst_node);
+        node = new IrParamDecl(paramType, paramName, cst_node);
         this->ast_stack.push(node);
     } else {
         std::cerr << "Error: Invalid parameter type or name" << std::endl;
@@ -122,13 +124,6 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
         }
     }
 
-    // Check for mutable binding
-    bool is_mutable = false;
-    TSNode mut_node = ts_node_child_by_field_name(cst_node, "mutable_specifier", strlen("mutable_specifier"));
-    if (!ts_node_is_null(mut_node)) {
-        is_mutable = true;
-    }
-
     // Get the name/pattern
     IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
     if (declName) {
@@ -138,8 +133,19 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
         return;
     }
 
+    // Check for mutable binding
+    IrMutableSpec* mut = nullptr;
+    bool mutable_spec = false;
+    if (this->ast_stack.size() > 0) {
+        mut = dynamic_cast<IrMutableSpec*>(this->ast_stack.top());
+        if (mut) {
+            mutable_spec = true;
+            this->ast_stack.pop();
+        } 
+    }
+
     // Create the declaration node
-    node = new IrDecl(declName, declType, is_mutable, cst_node);
+    node = new IrDecl(mutable_spec, declName, declType, cst_node);
     this->ast_stack.push(node);
 }
 
@@ -158,24 +164,24 @@ void ASTBuilder::exitParamList(const TSNode & cst_node){
 }
 
 void ASTBuilder::exitFunctionDeclarator(const TSNode & cst_node){
-    Ir* node = nullptr;
-    // Use stack to get the type and name
-    if (this->ast_stack.size() < 2) {
-        std::cerr << "Error: Not enough elements on the stack for function declaration" << std::endl;
-    }
+//     Ir* node = nullptr;
+//     // Use stack to get the type and name
+//     if (this->ast_stack.size() < 2) {
+//         std::cerr << "Error: Not enough elements on the stack for function declaration" << std::endl;
+//     }
 
-    IrParamList* paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
-    this->ast_stack.pop();
+//     IrParamList* paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
+//     this->ast_stack.pop();
 
-    IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
-    this->ast_stack.pop();
+//     IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+//     this->ast_stack.pop();
 
-    if (declName && paramList) {
-        node = new IrFunctionDecl(declName, paramList, cst_node);
-        this->ast_stack.push(node);
-    } else {
-        std::cerr << "Error: Invalid function declaration type or name" << std::endl;
-    }
+//     if (declName && paramList) {
+//         node = new IrFunctionDecl(declName, paramList, cst_node);
+//         this->ast_stack.push(node);
+//     } else {
+//         std::cerr << "Error: Invalid function declaration type or name" << std::endl;
+//     }
 }
 
 void ASTBuilder::exitFunctionDefinition(const TSNode & cst_node){
@@ -196,10 +202,9 @@ void ASTBuilder::exitFunctionDefinition(const TSNode & cst_node){
             this->ast_stack.pop();
         }
     }
-
     // If return type is not specified, default to unit type `()`
     if (!returnType) {
-        returnType = new IrTypeUnit(cst_node); // Assuming IrTypeUnit represents the unit type `()`
+        returnType = new IrTypeUnit(cst_node); 
     }
 
     IrParamList* paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
@@ -317,8 +322,6 @@ void ASTBuilder::exitCallExpr(const TSNode & cst_node){
     }
 }
 
-// Methods to handle Rust-specific constructs
-
 void ASTBuilder::exitMatchExpr(const TSNode & cst_node) {
     // Ensure there are enough elements on the stack
     if (this->ast_stack.size() < 2) {
@@ -401,7 +404,7 @@ void ASTBuilder::exitAssignExpr(const TSNode & cst_node){
         std::cerr << "Error: Not enough elements on the stack for assign expression" << std::endl;
     }
 
-    IrExpr* rhs = dynamic_cast<IrNonBinaryExpr*>(this->ast_stack.top());
+    IrExpr* rhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
     this->ast_stack.pop();
 
     IrExpr* lhs = dynamic_cast<IrExpr*>(this->ast_stack.top());
@@ -532,6 +535,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 120: // mutable_specifier
             exitMutableSpec(cst_node);
+            break;
+        case 264: // if_expr
+            exitIfExpr(cst_node);
             break;
         default:
             std::cerr << "Error: Unknown CST node type: " << std::to_string(symbol_type) << std::endl;
