@@ -51,7 +51,6 @@ int main(int argc, char *argv[]) {
   }
   IrTransUnit* unit = dynamic_cast<IrTransUnit*>(ast_root);
   
-  // unit->getLlBuilder();
   if (program.is_used("--intermedial")){
     std::cout << "\n=======IR:\n" << std::endl;
     LlBuildersList* llBuildersList = unit->getLlBuilder();

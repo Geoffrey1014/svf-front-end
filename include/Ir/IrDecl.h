@@ -425,8 +425,6 @@ public:
             }else if (initDecl) {
                 LlComponent *compo = initDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
-
-                builder.appendStatement(new LlAssignStmtRegular(location, compo));
                 symbolTable.putOnTable(*(location->getVarName()), arrayType);
             }
         }
@@ -439,8 +437,6 @@ public:
             else if (initDecl) {
                 LlComponent *compo = initDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
-
-                builder.appendStatement(new LlAssignStmtRegular(location, compo));
                 symbolTable.putOnTable(*(location->getVarName()), intType);
             }
         }

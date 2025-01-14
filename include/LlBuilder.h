@@ -124,10 +124,12 @@ public:
 
     std::string toString() {
         std::stringstream st;
-        const int labelWidth = 15; // 设置标签宽度
+        const int labelWidth = 15; 
+        
+        st << "IR for Builder: " << this->name << "\n";
+
         for (const auto& label : insertionOrder) {
             std::string statement = statementTable[label]->toString();
-            std::cout << "label: " << label << " statement: " << statement << std::endl;
             st << std::right << std::setw(labelWidth) << label << " : " << statement << "\n";
         }
         return st.str();
