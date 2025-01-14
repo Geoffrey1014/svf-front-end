@@ -44,6 +44,13 @@ public:
     std::string toString() const override{
         return type->toString() + " " + declarator->toString();
     }
+
+    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlComponent* declaratorComponent = declarator->generateLlIr(builder, symbolTable);
+        LlLocationVar* location = dynamic_cast<LlLocationVar*>(declaratorComponent);
+        symbolTable.putOnTypeTable(*location->getVarName(), type);
+        return location;
+    }
 };
 
 class IrFieldDeclList : public Ir {
@@ -421,23 +428,23 @@ public:
             if (simpleDecl) {
                 LlComponent *compo = simpleDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
-                symbolTable.putOnTable(*(location->getVarName()), arrayType);
+                symbolTable.putOnTypeTable(*(location->getVarName()), arrayType);
             }else if (initDecl) {
                 LlComponent *compo = initDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
-                symbolTable.putOnTable(*(location->getVarName()), arrayType);
+                symbolTable.putOnTypeTable(*(location->getVarName()), arrayType);
             }
         }
         else if (IrTypeInt* intType = dynamic_cast<IrTypeInt*>(type)){
             if (simpleDecl) {
                 LlComponent *compo = simpleDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
-                symbolTable.putOnTable(*(location->getVarName()), intType);
+                symbolTable.putOnTypeTable(*(location->getVarName()), intType);
             }
             else if (initDecl) {
                 LlComponent *compo = initDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
-                symbolTable.putOnTable(*(location->getVarName()), intType);
+                symbolTable.putOnTypeTable(*(location->getVarName()), intType);
             }
         }
         return nullptr;

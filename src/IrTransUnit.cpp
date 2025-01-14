@@ -8,6 +8,10 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
     LlBuilder* builderGlobal = new LlBuilder(("global_decl"));
     SymbolTable* symbolTableGlobal = new SymbolTable("global_decl");
     
+    for(IrTypeDef* typeDef: this->typeDefList){
+        typeDef->generateLlIr(*builderGlobal, *symbolTableGlobal);
+    }
+
     // JWPersonal Note: we may delete this IrDecl loop as for different types of declarations 
     // we may need to handle it in different ways later
     for (IrDecl* decl: this->declerationList) {

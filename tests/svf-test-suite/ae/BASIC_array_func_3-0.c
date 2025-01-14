@@ -1,5 +1,10 @@
-int a=1;
-int main() {    
-    a = 2;
-    return 0;
-}
+typedef struct {
+    int a;
+    int b[2];
+}A;
+
+// int main() {
+//     A a;
+//     a.a = 0;
+//     return 0;
+// }

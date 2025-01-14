@@ -69,8 +69,6 @@ public:
 
 };
 
-
-
 class LlLocation: public LlComponent{
 private:
     const std::string* varName;

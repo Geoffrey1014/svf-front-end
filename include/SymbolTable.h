@@ -20,7 +20,7 @@ public:
     ~SymbolTable() {
     }
 
-    void putOnTable(std::string key, IrType* value){
+    void putOnTypeTable(std::string key, IrType* value){
         this->typeTable[key] = value;
     }
 
