@@ -1,6 +1,5 @@
-
-int main() {
-    int a[2][3];    
-    a[1][2] = 3;
+int a=1;
+int main() {    
+    a = 2;
     return 0;
 }

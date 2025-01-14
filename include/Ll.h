@@ -132,6 +132,7 @@ public:
     }
 
     std::string toString() override{
+        
         return this->storeLocation->toString() + " = " + this->rightHandSide->toString();
     }
 

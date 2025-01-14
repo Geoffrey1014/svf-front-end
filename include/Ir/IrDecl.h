@@ -446,6 +446,10 @@ public:
                 LlComponent *compo = simpleDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
                 symbolTable.putOnTable(*(location->getVarName()), arrayType);
+            }else if (initDecl) {
+                LlComponent *compo = initDecl->generateLlIr(builder, symbolTable);
+                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                symbolTable.putOnTable(*(location->getVarName()), arrayType);
             }
         }
         else if (IrTypeInt* intType = dynamic_cast<IrTypeInt*>(type)){
