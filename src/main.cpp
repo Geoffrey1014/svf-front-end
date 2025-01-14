@@ -50,8 +50,13 @@ int main(int argc, char *argv[]) {
     std::cout << "\n======= AST toString():\n" << ast_root->toString() << std::endl;
   }
   IrTransUnit* unit = dynamic_cast<IrTransUnit*>(ast_root);
-  std::cout << "\n=======IR:\n" << std::endl;
-  unit->getLlBuilder();
+  
+  // unit->getLlBuilder();
+  if (program.is_used("--intermedial")){
+    std::cout << "\n=======IR:\n" << std::endl;
+    LlBuildersList* llBuildersList = unit->getLlBuilder();
+    std::cout << llBuildersList->toString() << std::endl;
+  }
 
   // Clean up
   delete ast_root;

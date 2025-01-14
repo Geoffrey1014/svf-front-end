@@ -38,11 +38,11 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
         
         llBuildersList->addBuilder(builder);
         llBuildersList->addSymbolTable(symbolTable);
-        // Debugging
-        if (program.is_used("--intermedial")){
-            cout << symbolTable->toString() << endl;
-            cout << builder->toString() << endl;
-        }
+        // // Debugging
+        // if (program.is_used("--intermedial")){
+        //     cout << symbolTable->toString() << endl;
+        //     cout << builder->toString() << endl;
+        // }
     }
 
 

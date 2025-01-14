@@ -31,6 +31,15 @@ public:
     std::vector<SymbolTable*> getSymbolTables() {
         return symbolTables;
     }
+
+    std::string toString() {
+        std::stringstream str;
+        for (int i = 0; i < builders.size(); i++) {
+            str << builders[i]->toString() << std::endl;
+            str << symbolTables[i]->toString() << std::endl;
+        }
+        return str.str();
+    }
 };
 
 #endif
