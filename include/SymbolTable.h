@@ -10,7 +10,7 @@ class SymbolTable {
 private:
     std::string methodName;
     std::unordered_map<std::string, LlComponent*> varTable;
-    std::unordered_map<std::string, IrType*> table;
+    std::unordered_map<std::string, IrType*> typeTable;
     SymbolTable* parentTable;
 
 public:
@@ -21,17 +21,17 @@ public:
     }
 
     void putOnTable(std::string key, IrType* value){
-        this->table[key] = value;
+        this->typeTable[key] = value;
     }
 
-    IrType* getFromTable(std::string key){
-        auto it = this->table.find(key);
-        if(it != this->table.end()){
+    IrType* getFromTypeTable(std::string key){
+        auto it = this->typeTable.find(key);
+        if(it != this->typeTable.end()){
             return it->second;
         }
         // Search in parent/global table if not found locally
         if (parentTable) {
-            return parentTable->getFromTable(key);
+            return parentTable->getFromTypeTable(key);
         }
         return nullptr;
     }
@@ -63,7 +63,4 @@ public:
 
 };
 
-// extern: declare the variable globalSymbolTable exists, 
-// but is defined in somewhere else (src/SymbolTable.cpp)
-// extern SymbolTable globalSymbolTable;
 #endif

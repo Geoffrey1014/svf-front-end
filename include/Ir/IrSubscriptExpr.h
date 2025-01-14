@@ -58,7 +58,7 @@ public:
 
     LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         std::string baseName = baseExpr->getName();
-        IrType* type = symbolTable.getFromTable(baseName);
+        IrType* type = symbolTable.getFromTypeTable(baseName);
         IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type);
 
         if (!arrayType) {

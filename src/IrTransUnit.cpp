@@ -8,7 +8,8 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
     LlBuilder* builderGlobal = new LlBuilder(("global_decl"));
     SymbolTable* symbolTableGlobal = new SymbolTable("global_decl");
     
-
+    // JWPersonal Note: we may delete this IrDecl loop as for different types of declarations 
+    // we may need to handle it in different ways later
     for (IrDecl* decl: this->declerationList) {
         // Not all declarations are global
         if(auto* func = dynamic_cast<IrFunctionDef*>(decl)){
@@ -38,13 +39,7 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
         
         llBuildersList->addBuilder(builder);
         llBuildersList->addSymbolTable(symbolTable);
-        // // Debugging
-        // if (program.is_used("--intermedial")){
-        //     cout << symbolTable->toString() << endl;
-        //     cout << builder->toString() << endl;
-        // }
     }
-
 
     return llBuildersList;
 }
