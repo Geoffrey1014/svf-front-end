@@ -5,8 +5,9 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
 
     LlBuildersList* llBuildersList = new LlBuildersList();
 
-    LlBuilder* builderGlobal = new LlBuilder(("global_decl"));
-    SymbolTable* symbolTableGlobal = new SymbolTable("global_decl");
+    LlBuilder* builderGlobal = new LlBuilder(("globalBuilder"));
+
+    SymbolTable* symbolTableGlobal = new SymbolTable("global");
     
     for(IrTypeDef* typeDef: this->typeDefList){
         typeDef->generateLlIr(*builderGlobal, *symbolTableGlobal);
@@ -25,7 +26,7 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
     llBuildersList->addBuilder(builderGlobal);
     llBuildersList->addSymbolTable(symbolTableGlobal);
 
-    // Process function definitions
+    // Process function definitions (function level)
     for (IrFunctionDef* func: this->functionList) {
 
         // Create a builder for the function

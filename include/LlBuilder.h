@@ -64,6 +64,7 @@ public:
         }
     }
 
+    // Tied to the the builder, representing the specific block of instructions
     std::string generateLabel(){
        return "L" + std::to_string(labelCounter++);
     }

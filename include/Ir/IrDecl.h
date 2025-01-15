@@ -12,7 +12,6 @@ class IrFieldDecl : public Ir {
 private:
     IrType* type;                        // Type of the field
     IrDeclDeclarator* declarator;        // Field name or declarator
-    //int bitfieldSize;                  // Optional bitfield size (-1 if none)
 
 public:
     IrFieldDecl(IrType* type, IrDeclDeclarator* declarator, const TSNode& node)
@@ -295,10 +294,11 @@ public:
     }
 };
 
+// a = 3;
 class IrInitDeclarator : public Ir {
 private:
-    IrDeclDeclarator* declarator;  // Variable name or declarator
-    IrExpr* initializer;       // Expression (e.g., value 2)
+    IrDeclDeclarator* declarator; 
+    IrExpr* initializer;     
 
 public:
     IrInitDeclarator(IrDeclDeclarator* declarator, IrExpr* initializer, const TSNode& node)
@@ -426,24 +426,21 @@ public:
 
         if (IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type)) {
             if (simpleDecl) {
-                LlLocation *compo = simpleDecl->generateLlIr(builder, symbolTable);
-                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                LlLocation *location = simpleDecl->generateLlIr(builder, symbolTable);
                 symbolTable.putOnVarTable(*(location->getVarName()), arrayType);
             }else if (initDecl) {
-                LlLocation *compo = initDecl->generateLlIr(builder, symbolTable);
-                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                LlLocation *location= initDecl->generateLlIr(builder, symbolTable);
+
                 symbolTable.putOnVarTable(*(location->getVarName()), arrayType);
             }
         }
         else if (IrTypeInt* intType = dynamic_cast<IrTypeInt*>(type)){
             if (simpleDecl) {
-                LlLocation *compo = simpleDecl->generateLlIr(builder, symbolTable);
-                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                LlLocation *location = simpleDecl->generateLlIr(builder, symbolTable);
                 symbolTable.putOnVarTable(*(location->getVarName()), intType);
             }
             else if (initDecl) {
-                LlLocation *compo = initDecl->generateLlIr(builder, symbolTable);
-                LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
+                LlLocation *location = initDecl->generateLlIr(builder, symbolTable);
                 symbolTable.putOnVarTable(*(location->getVarName()), intType);
             }
         }

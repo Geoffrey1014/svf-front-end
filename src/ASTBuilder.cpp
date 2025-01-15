@@ -303,6 +303,7 @@ void ASTBuilder::exitExprStmt(const TSNode & cst_node){
 }
 
 void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
+    this->debugStackState();
     IrTransUnit* transUnitNode = new IrTransUnit(cst_node);
     
     while (!this->ast_stack.empty()) {
@@ -332,7 +333,8 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
                  dynamic_cast<IrFunctionDef*>(node) ||
                  dynamic_cast<IrPreprocInclude*>(node) ||
                  dynamic_cast<IrTypeDef*>(node) ||
-                 dynamic_cast<IrPreprocDef*>(node)) 
+                 dynamic_cast<IrPreprocDef*>(node) ||
+                 dynamic_cast<IrExprStmt*>(node))
         {
             transUnitNode->addTopLevelNodeFront(node); 
         } else {

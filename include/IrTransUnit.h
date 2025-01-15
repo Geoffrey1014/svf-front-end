@@ -16,6 +16,7 @@ private:
     std::vector<IrPreprocInclude*> preprocIncludeList;
     std::vector<IrTypeDef*> typeDefList;
     std::vector<IrPreprocDef*> preprocDefList;
+    std::vector<IrExprStmt*> exprStmtList;
 
 public:
     IrTransUnit(const TSNode& node) : Ir(node) {}
@@ -38,7 +39,10 @@ public:
             this->typeDefList.push_back(typeDef);
         } else if (auto* preprocDef = dynamic_cast<IrPreprocDef*>(node)) {
             this->preprocDefList.push_back(preprocDef);
-        } else {
+        } else if(auto* exprStmt = dynamic_cast<IrExprStmt*>(node)){
+            this->exprStmtList.push_back(exprStmt);
+        }
+        else {
             std::cerr << "Warning: Skipping unrecognized node." << std::endl;
         }
     }
