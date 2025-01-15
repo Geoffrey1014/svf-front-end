@@ -46,9 +46,9 @@ public:
         return prettyString;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlComponent* left = leftOperand->generateLlIr(builder, symbolTable);
-        LlComponent* right = rightOperand->generateLlIr(builder, symbolTable);
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* left = leftOperand->generateLlIr(builder, symbolTable);
+        LlLocation* right = rightOperand->generateLlIr(builder, symbolTable);
         LlLocationVar* result = builder.generateTemp();
         builder.appendStatement(new LlAssignStmtBinaryOp(result, left, operation, right));
         return result;

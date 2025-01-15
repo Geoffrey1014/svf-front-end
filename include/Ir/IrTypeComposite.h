@@ -44,7 +44,7 @@ class IrTypeIdent : public IrType {
             return name;
         }
 
-        LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
             return new LlLocationVar(&name);
         }
 };
@@ -153,13 +153,13 @@ public:
         return "typedef " + type->toString() + " " + alias->toString();
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         IrTypeStruct* structType = dynamic_cast<IrTypeStruct*>(type);
         if (structType) {
-            LlComponent *compo = alias->generateLlIr(builder, symbolTable);
+            LlLocation *compo = alias->generateLlIr(builder, symbolTable);
             // structType this case type is the alias struct type            
             LlLocationVar* location = dynamic_cast<LlLocationVar*>(compo);           
-            symbolTable.putOnTypeTable(*location->getVarName(), structType);
+            symbolTable.putOnVarTable(*location->getVarName(), structType);
         }
         return nullptr;     // maybe later may return new LlLocationVar(compo)        
     }

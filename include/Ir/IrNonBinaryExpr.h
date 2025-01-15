@@ -43,7 +43,7 @@ public:
         return functionName->toString() + " (" + argList->toString() + ")";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         std::vector<LlComponent*> argsList;
         for(auto& arg : this->argList->getArgsList()) {
             argsList.push_back(arg->generateLlIr(builder, symbolTable));
@@ -88,9 +88,9 @@ public:
         return lhs->toString() + " " + op + " " + rhs->toString();
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlComponent* left = lhs->generateLlIr(builder, symbolTable);
-        LlComponent* right = rhs->generateLlIr(builder, symbolTable);
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* left = lhs->generateLlIr(builder, symbolTable);
+        LlLocation* right = rhs->generateLlIr(builder, symbolTable);
         LlLocation* location = dynamic_cast<LlLocation*>(left);
         std::string operation = op;
         if (op != "=") {
@@ -139,6 +139,13 @@ public:
     IrExpr* getBaseExpr() const { return baseExpr; }
     IrIdent* getFieldName() const { return fieldName; }
     bool getIsArrow() const { return isArrow; }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* base = baseExpr->generateLlIr(builder, symbolTable);
+        //IrFieldExpr codegen is not fully implemented
+        return base;    
+    }
+
 };
 
 class IrPointerExpr : public IrNonBinaryExpr {
@@ -203,7 +210,7 @@ public:
         return "(" + innerExpr->toString() + ")";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         return innerExpr->generateLlIr(builder, symbolTable);
     }
 };
@@ -235,8 +242,8 @@ public:
         return op + argument->toString();
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlComponent* arg = argument->generateLlIr(builder, symbolTable);
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* arg = argument->generateLlIr(builder, symbolTable);
         LlLocation* returnLocation = builder.generateTemp();
         LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new std::string(op));
         builder.appendStatement(unaryOp);

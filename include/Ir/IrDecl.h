@@ -45,10 +45,10 @@ public:
         return type->toString() + " " + declarator->toString();
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlComponent* declaratorComponent = declarator->generateLlIr(builder, symbolTable);
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* declaratorComponent = declarator->generateLlIr(builder, symbolTable);
         LlLocationVar* location = dynamic_cast<LlLocationVar*>(declaratorComponent);
-        symbolTable.putOnTypeTable(*location->getVarName(), type);
+        symbolTable.putOnVarTable(*location->getVarName(), type);
         return location;
     }
 };
@@ -227,7 +227,7 @@ public:
     IrFunctionDecl* getFunctionDecl() const { return functionDecl; }
     IrCompoundStmt* getCompoundStmt() const { return compoundStmt; }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         std::string name = functionDecl->getName();
         LlEmptyStmt* emptyStmt = new LlEmptyStmt();
         builder.appendStatement(name, emptyStmt);
@@ -323,10 +323,10 @@ public:
         return declarator->toString() + " = " + initializer->toString();
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlComponent* compo = declarator->generateLlIr(builder, symbolTable);
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* compo = declarator->generateLlIr(builder, symbolTable);
         LlLocationVar* location = dynamic_cast<LlLocationVar*>(compo);
-        LlComponent* init = initializer->generateLlIr(builder, symbolTable);
+        LlLocation* init = initializer->generateLlIr(builder, symbolTable);
         LlAssignStmtRegular* assignStmt = new LlAssignStmtRegular(location, init);
         builder.appendStatement(assignStmt);
         return location;
@@ -422,29 +422,29 @@ public:
         return str;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
 
         if (IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type)) {
             if (simpleDecl) {
-                LlComponent *compo = simpleDecl->generateLlIr(builder, symbolTable);
+                LlLocation *compo = simpleDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
-                symbolTable.putOnTypeTable(*(location->getVarName()), arrayType);
+                symbolTable.putOnVarTable(*(location->getVarName()), arrayType);
             }else if (initDecl) {
-                LlComponent *compo = initDecl->generateLlIr(builder, symbolTable);
+                LlLocation *compo = initDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
-                symbolTable.putOnTypeTable(*(location->getVarName()), arrayType);
+                symbolTable.putOnVarTable(*(location->getVarName()), arrayType);
             }
         }
         else if (IrTypeInt* intType = dynamic_cast<IrTypeInt*>(type)){
             if (simpleDecl) {
-                LlComponent *compo = simpleDecl->generateLlIr(builder, symbolTable);
+                LlLocation *compo = simpleDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
-                symbolTable.putOnTypeTable(*(location->getVarName()), intType);
+                symbolTable.putOnVarTable(*(location->getVarName()), intType);
             }
             else if (initDecl) {
-                LlComponent *compo = initDecl->generateLlIr(builder, symbolTable);
+                LlLocation *compo = initDecl->generateLlIr(builder, symbolTable);
                 LlLocation* location = dynamic_cast<LlLocationVar*>(compo);
-                symbolTable.putOnTypeTable(*(location->getVarName()), intType);
+                symbolTable.putOnVarTable(*(location->getVarName()), intType);
             }
         }
         return nullptr;
@@ -496,7 +496,7 @@ public:
         return out;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         for (auto* d : decls) {
             d->generateLlIr(builder, symbolTable);
         }

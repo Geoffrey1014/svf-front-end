@@ -8,7 +8,7 @@ std::string SymbolTable::toString(){
     
     str << std::right << std::setw(labelWidth) << "SymbolTable"  << " : " << this->methodName << "\n";
     str << std::right << std::setw(labelWidth) <<  "TypeTable"  << " : " << "\n";
-    for(auto pair : this->typeTable){
+    for(auto pair : this->varTable){
         str << std::right << std::setw(labelWidth) <<  pair.first << " : " << pair.second->toString() << "\n";
     }
 

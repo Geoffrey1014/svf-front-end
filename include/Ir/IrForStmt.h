@@ -59,7 +59,7 @@ public:
         return result;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         if (initializer) {
             initializer->generateLlIr(builder, symbolTable);
         }
@@ -80,7 +80,7 @@ public:
         LlEmptyStmt* emptyStmtFor = new LlEmptyStmt();
         builder.appendStatement(*condLabel, emptyStmtFor);
 
-        LlComponent* conditionVar = this->condition->generateLlIr(builder, symbolTable);
+        LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
         LlJumpConditional* conditionalJump = new LlJumpConditional(bodyLabel,conditionVar);
         builder.appendStatement(conditionalJump);
         LlJumpUnconditional* jumpToForEnd = new LlJumpUnconditional(endLabel);

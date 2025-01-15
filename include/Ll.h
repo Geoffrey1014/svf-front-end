@@ -369,13 +369,13 @@ public:
 
 class LlLiteralInt : public LlLiteral {
 private:
-    long intValue;
+    int intValue;
 
 public:
     LlLiteralInt(long intValue) : intValue(intValue) {}
     ~LlLiteralInt() override {}
 
-    long getValue() {
+    int getValue() {
         return this->intValue;
     }
 
