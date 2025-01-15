@@ -57,26 +57,7 @@ public:
         }
         return nullptr;
     }
-
-    // void putOnVarTable(std::string key, LlComponent* value){
-    //     this->varTable[key] = value;
-    // }
-
-    // LlComponent* getFromVarTable(std::string key){
-    //     auto it = this->varTable.find(key);
-    //     if(it != this->varTable.end()){
-    //         return it->second;
-    //     }
-    //     if (parentTable) {
-    //         return parentTable->getFromVarTable(key);
-    //     }
-    //     return nullptr;
-    // }
-
-    // std::unordered_map<std::string, LlComponent*> getVarTable(){
-    //     return this->varTable;
-    // }
-
+    
     std::string toString();
 
     std::string getMethodName() {

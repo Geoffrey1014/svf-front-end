@@ -5,6 +5,7 @@
 #include "IrDeclarator.h"
 #include "IrDecl.h"
 
+
 class IrTypeIdent : public IrType {
     private:
         const std::string name;
@@ -40,12 +41,13 @@ class IrTypeIdent : public IrType {
             return indentSpace + "|--typeId: " + name + "\n";
         }
 
-        std::string toString() const override{
+        std::string toString() const{
             return name;
         }
 
         LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-            return new LlLocationVar(&name);
+            LlLocation* location = new LlLocationTypeAlias(&name);
+            return location;
         }
 };
 
@@ -115,15 +117,14 @@ public:
     }
 };
 
-class IrTypeDef : public IrType {
+class IrTypeDef : public Ir {
 private:
     IrType* type;        // The original type being aliased
-    // IrIdent* alias;   // The alias name
     IrTypeIdent* alias;   // The alias name
 
 public:
     IrTypeDef(IrType* type, IrTypeIdent* alias, const TSNode& node)
-        : IrType(node), type(type), alias(alias) {}
+        : Ir(node), type(type), alias(alias) {}
 
     ~IrTypeDef() {
         delete type;
@@ -136,10 +137,6 @@ public:
 
     IrTypeIdent* getName() const {
         return alias;
-    }
-
-    IrTypeDef* clone() const override {
-        return new IrTypeDef(*this);
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
@@ -156,12 +153,11 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         IrTypeStruct* structType = dynamic_cast<IrTypeStruct*>(type);
         if (structType) {
-            LlLocation *compo = alias->generateLlIr(builder, symbolTable);
-            // structType this case type is the alias struct type            
-            LlLocationVar* location = dynamic_cast<LlLocationVar*>(compo);           
-            symbolTable.putOnVarTable(*location->getVarName(), structType);
+            LlLocation *compo = alias->generateLlIr(builder, symbolTable);          
+            LlLocationTypeAlias* location = dynamic_cast<LlLocationTypeAlias*>(compo);           
+            symbolTable.putOnTypeDefTable(*location->getAliasTypeName(), structType);
         }
-        return nullptr;     // maybe later may return new LlLocationVar(compo)        
+        return nullptr;     
     }
 };
 

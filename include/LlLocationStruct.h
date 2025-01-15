@@ -1,5 +1,28 @@
 #include "Ll.h"
 
+class LlLocationTypeAlias : public LlLocation {
+private:
+    const std::string* aliasName;
+
+public:
+    LlLocationTypeAlias(const std::string* aliasName)
+        : LlLocation(aliasName), aliasName(aliasName) {}
+
+    ~LlLocationTypeAlias() override {
+        delete aliasName;
+    }
+
+    // Override getVarName to return aliasName directly
+    const std::string* getAliasTypeName() const {
+        return aliasName;
+    }
+
+    // Override toString for clarity
+    std::string toString() override {
+        return "TypeAlias: " + *aliasName;
+    }
+};
+
 class LlLocationStruct : public LlLocation {
 private:
     LlLocation* baseLocation;   

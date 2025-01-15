@@ -8,6 +8,7 @@
 #include "IrDeclarator.h"
 #include <deque>
 
+
 class IrFieldDecl : public Ir {
 private:
     IrType* type;                        // Type of the field
@@ -423,27 +424,27 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-
-        if (IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type)) {
+        auto handleDeclaration = [&](auto* type) {
+            // simpleDecl most case is ident
             if (simpleDecl) {
                 LlLocation *location = simpleDecl->generateLlIr(builder, symbolTable);
-                symbolTable.putOnVarTable(*(location->getVarName()), arrayType);
-            }else if (initDecl) {
-                LlLocation *location= initDecl->generateLlIr(builder, symbolTable);
-
-                symbolTable.putOnVarTable(*(location->getVarName()), arrayType);
-            }
-        }
-        else if (IrTypeInt* intType = dynamic_cast<IrTypeInt*>(type)){
-            if (simpleDecl) {
-                LlLocation *location = simpleDecl->generateLlIr(builder, symbolTable);
-                symbolTable.putOnVarTable(*(location->getVarName()), intType);
-            }
+                symbolTable.putOnVarTable(*(location->getVarName()), type);
+            } 
             else if (initDecl) {
                 LlLocation *location = initDecl->generateLlIr(builder, symbolTable);
-                symbolTable.putOnVarTable(*(location->getVarName()), intType);
+                symbolTable.putOnVarTable(*(location->getVarName()), type);
             }
-        }
+        };
+
+        if (IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type)) {
+            handleDeclaration(arrayType);
+        } 
+        else if (IrTypeInt* intType = dynamic_cast<IrTypeInt*>(type)) {
+            handleDeclaration(intType);
+        } 
+        // else if (IrTypeIdent* identType = dynamic_cast<IrTypeIdent*>(type)) {
+        //     handleDeclaration(identType);
+        // } 
         return nullptr;
     }
 };
