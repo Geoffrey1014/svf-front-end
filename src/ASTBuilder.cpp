@@ -303,7 +303,6 @@ void ASTBuilder::exitExprStmt(const TSNode & cst_node){
 }
 
 void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
-    this->debugStackState();
     IrTransUnit* transUnitNode = new IrTransUnit(cst_node);
     
     while (!this->ast_stack.empty()) {

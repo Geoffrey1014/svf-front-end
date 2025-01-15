@@ -95,7 +95,7 @@ public:
         std::string operation = op;
         if (op != "=") {
             operation = op.substr(0, op.size() - 1);
-            LlAssignStmtBinaryOp* assignStmt = new LlAssignStmtBinaryOp(location,left, operation, right);
+            LlAssignStmtBinaryOp* assignStmt = new LlAssignStmtBinaryOp(location, left, operation, right);
             builder.appendStatement(assignStmt);
         }
         else {
