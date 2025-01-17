@@ -424,8 +424,8 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        auto handleDeclaration = [&](auto* type) {
-            // simpleDecl most case is ident
+        auto handleDeclaration = [&](IrType* type) {
+            // simpleDecl most case is identifier (id)
             if (simpleDecl) {
                 LlLocation *location = simpleDecl->generateLlIr(builder, symbolTable);
                 symbolTable.putOnVarTable(*(location->getVarName()), type);
@@ -435,16 +435,9 @@ public:
                 symbolTable.putOnVarTable(*(location->getVarName()), type);
             }
         };
-
-        if (IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type)) {
-            handleDeclaration(arrayType);
+        if(auto castType = dynamic_cast<IrType*>(type)){
+            handleDeclaration(type);
         } 
-        else if (IrTypeInt* intType = dynamic_cast<IrTypeInt*>(type)) {
-            handleDeclaration(intType);
-        } 
-        // else if (IrTypeIdent* identType = dynamic_cast<IrTypeIdent*>(type)) {
-        //     handleDeclaration(identType);
-        // } 
         return nullptr;
     }
 };

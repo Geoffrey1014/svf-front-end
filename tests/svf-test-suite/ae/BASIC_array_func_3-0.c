@@ -1,19 +1,9 @@
-// typedef struct {
-//     int a;
-//     int b[2];
-// }A;
-
-// int m;
-
-// int main() {
-//     A a;
-//     m = 2;
-//     a.a = 0;
-//     return 0;
-// }
+typedef struct {
+    int a;
+    int b[2];
+}A;
 
 int main() {
-    int m;
-    m = 2;
+    A a;
     return 0;
 }
