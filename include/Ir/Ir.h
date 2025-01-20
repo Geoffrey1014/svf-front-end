@@ -3,7 +3,9 @@
 #include <string>
 #include <tree_sitter/api.h> 
 #include <vector>
-
+#include "Ll.h"
+#include "LlBuilder.h"
+#include "SymbolTable.h"
 
 using namespace std;
 
@@ -23,8 +25,10 @@ class Ir {
     }
 
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
-    // virtual LlLocation generateLlIr(LlBuilder& builder, LlSymbolTable& symbolTable) = 0;
-
+    virtual LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable){
+            std::cerr << "Ir Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
+            return new LlLocationVar(new std::string("Error")); 
+        };
     virtual std::string prettyPrint(std::string indentSpace) const =0;
 
     virtual std::string toString() {
