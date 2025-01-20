@@ -1,6 +1,5 @@
-let mut a: i32;
-
 fn main() {
+    let mut a: i32;
     a = add(2, 3);
 }
 

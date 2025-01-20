@@ -44,7 +44,6 @@ public:
     void exitParameter(const TSNode & cst_node);
     void exitDeclaration(const TSNode & cst_node);
     void exitParamList(const TSNode & cst_node);
-    void exitFunctionDeclarator(const TSNode & cst_node);
     void exitFunctionDefinition(const TSNode & cst_node);
     void exitBinaryExpr(const TSNode & cst_node);
     void exitUnaryExpr(const TSNode & cst_node);
@@ -61,6 +60,8 @@ public:
     void exitIfExpr(const TSNode &cst_node);
     void exitElseClause(const TSNode &cst_node);
     void exitRangeExpr(const TSNode &cst_node);
+    void exitParenthesizedExpr(const TSNode &cst_node);
+    void exitIndexExpr(const TSNode &cst_node);
     void exitExprStmt(const TSNode & cst_node);
     void exitTransUnit(const TSNode & cst_node);
 

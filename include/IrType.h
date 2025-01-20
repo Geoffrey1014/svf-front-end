@@ -189,9 +189,10 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--array_type\n";
+        std::string prettyString = indentSpace + "|--arrayType:\n";
         prettyString += elementType->prettyPrint("  " + indentSpace);
-        prettyString += arrayLength->prettyPrint("  " + indentSpace);
+        prettyString += "  " + indentSpace + "|--length\n";
+        prettyString += arrayLength->prettyPrint("    " + indentSpace);
         return prettyString;
     }
 };

@@ -24,7 +24,7 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--argList:\n";
+        std::string prettyString = indentSpace + "|--argList\n";
 
         // pretty print statement
         for (IrExpr* arg: this->argsList) {

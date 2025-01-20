@@ -104,11 +104,16 @@ void ASTBuilder::exitParameter(const TSNode & cst_node) {
 }
 
 void ASTBuilder::exitDeclaration(const TSNode & cst_node){
-    Ir* node = nullptr;
+    IrDecl* node = nullptr;
     // Use stack to get the type and name/pattern
     if (this->ast_stack.size() < 1) {
         std::cerr << "Error: Not enough elements on the stack for declaration" << std::endl;
         return;
+    }
+
+    IrExpr* expr = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    if (expr) {
+        this->ast_stack.pop();
     }
 
     // Get the type if specified
@@ -141,11 +146,11 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
         if (mut) {
             mutable_spec = true;
             this->ast_stack.pop();
-        } 
+        }
     }
 
     // Create the declaration node
-    node = new IrDecl(mutable_spec, declName, declType, cst_node);
+    node = new IrDecl(mutable_spec, declName, declType, expr, cst_node);
     this->ast_stack.push(node);
 }
 
@@ -162,27 +167,6 @@ void ASTBuilder::exitParamList(const TSNode & cst_node){
     }
 
     this->ast_stack.push(paramList);
-}
-
-void ASTBuilder::exitFunctionDeclarator(const TSNode & cst_node){
-//     Ir* node = nullptr;
-//     // Use stack to get the type and name
-//     if (this->ast_stack.size() < 2) {
-//         std::cerr << "Error: Not enough elements on the stack for function declaration" << std::endl;
-//     }
-
-//     IrParamList* paramList = dynamic_cast<IrParamList*>(this->ast_stack.top());
-//     this->ast_stack.pop();
-
-//     IrIdent* declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
-//     this->ast_stack.pop();
-
-//     if (declName && paramList) {
-//         node = new IrFunctionDecl(declName, paramList, cst_node);
-//         this->ast_stack.push(node);
-//     } else {
-//         std::cerr << "Error: Invalid function declaration type or name" << std::endl;
-//     }
 }
 
 void ASTBuilder::exitFunctionDefinition(const TSNode & cst_node){
@@ -294,23 +278,37 @@ void ASTBuilder:: exitReturnStatement(const TSNode & cst_node){
 }
 
 void ASTBuilder:: exitCompoundStatement(const TSNode & cst_node){
-    IrCompoundStmt* node = nullptr;
+    IrCompoundStmt* node = new IrCompoundStmt(cst_node);
 
-    // optional expression
-    if (this->ast_stack.size() > 0) {
+    uint32_t stmt_count = ts_node_named_child_count(cst_node);
+
+    // Check for optional expression
+    if (!this->ast_stack.empty()) {
         IrExpr* expr = dynamic_cast<IrExpr*>(this->ast_stack.top());
-        node = new IrCompoundStmt(expr, cst_node);
         if (expr) {
             this->ast_stack.pop();
+            node->setExpression(expr);
+            stmt_count--;
         }
     }
-    
-    IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
-    while (stmt) {
-        this->ast_stack.pop();
-        node->addStmtToFront(stmt);
-        stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
+
+    for (uint32_t i = 0; i < stmt_count; i++) {
+        if (this->ast_stack.empty()) {
+            std::cerr << "Error: AST stack empty while building compound statement" << std::endl;
+            break;
+        }
+
+        // Pop statement from the stack and add to the compound statement
+        IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
+        
+        if (stmt) {
+            this->ast_stack.pop();
+            node->addStmtToFront(stmt);  // Preserve order
+        } else {
+            break;
+        }
     }
+
     this->ast_stack.push(node);
 }
 
@@ -451,28 +449,36 @@ void ASTBuilder::exitAssignExpr(const TSNode & cst_node){
 }
 
 void ASTBuilder::exitIfExpr(const TSNode & cst_node){
-    Ir* node = nullptr;
+    IrIfExpr* node = nullptr;
     if (this->ast_stack.size() < 2) {
         std::cerr << "Error: Not enough elements on the stack for if expression" << std::endl;
     }
 
     // Check for else clause (optional)
-    IrExpr* elseBlock = nullptr;
+    IrElseClause* elseClause = nullptr;
     if (ts_node_named_child_count(cst_node) == 3) {
-        elseBlock = dynamic_cast<IrElseClause*>(this->ast_stack.top());
+        elseClause = dynamic_cast<IrElseClause*>(this->ast_stack.top());
         this->ast_stack.pop();
     }
 
-    Ir* thenBlock = dynamic_cast<Ir*>(this->ast_stack.top());
+    IrCompoundStmt* thenBlock = dynamic_cast<IrCompoundStmt*>(this->ast_stack.top());
+    if (!thenBlock) {
+        std::cerr << "Error: Top of stack is not IrCompoundStmt" << std::endl;
+        return;
+    }
     this->ast_stack.pop();
 
-    Ir* condition = dynamic_cast<Ir*>(this->ast_stack.top());
+    IrExpr* condition = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    if (!condition) {
+        std::cerr << "Error: Top of stack is not IrExpr" << std::endl;
+        return;
+    }
     this->ast_stack.pop();
 
-    if (condition && thenBlock && elseBlock) {
-        node = new IrIfExpr(condition, thenBlock, elseBlock, cst_node);
+    if (condition && thenBlock) {
+        node = new IrIfExpr(condition, thenBlock, elseClause, cst_node);
         this->ast_stack.push(node);
-    } else if (condition && elseBlock) {
+    } else if (condition) {
         std::cerr << "Error: Invalid thenBlock" << std::endl;
     } else if (thenBlock) {
         std::cerr << "Error: Invalid condition" << std::endl;
@@ -482,19 +488,19 @@ void ASTBuilder::exitIfExpr(const TSNode & cst_node){
 }
 
 void ASTBuilder::exitElseClause(const TSNode & cst_node) {
-    Ir* node = nullptr;
+    IrElseClause* node = nullptr;
 
     if (this->ast_stack.size() < 1) {
         std::cerr << "Error: Not enough elements on the stack for else clause" << std::endl;
         return;
     }
 
-    // Get the else block or if expression
-    IrExpr* elseExpr = dynamic_cast<IrExpr*>(this->ast_stack.top());
-    IrStatement* elseStmt = nullptr;
+    // Get the block or if expression
+    IrIfExpr* elseExpr = dynamic_cast<IrIfExpr*>(this->ast_stack.top());
+    IrCompoundStmt* elseStmt = nullptr;
 
     if (!elseExpr) {
-        elseStmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
+        elseStmt = dynamic_cast<IrCompoundStmt*>(this->ast_stack.top());
     }
 
     this->ast_stack.pop();
@@ -529,6 +535,45 @@ void ASTBuilder::exitRangeExpr(const TSNode & cst_node) {
         this->ast_stack.push(node);
     } else {
         std::cerr << "Error: Invalid range expression" << std::endl;
+    }
+}
+
+void ASTBuilder::exitParenthesizedExpr(const TSNode & cst_node) {
+    Ir* node = nullptr;
+    // Use stack to get the expression
+    if (this->ast_stack.size() < 1) {
+        std::cerr << "Error: Not enough elements on the stack for parenthesized expression" << std::endl;
+    }
+
+    IrExpr* expr = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (expr) {
+        node = new IrParenthesizedExpr(expr, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid parenthesized expression" << std::endl;
+    }
+}
+
+void ASTBuilder::exitIndexExpr(const TSNode & cst_node) {
+    Ir* node = nullptr;
+    // Use stack to get the expression
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for index expression" << std::endl;
+    }
+
+    IrExpr* index = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    IrExpr* array = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    if (array && index) {
+        node = new IrIndexExpr(array, index, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid index expression" << std::endl;
     }
 }
 
@@ -605,23 +650,17 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 218: // array_type
             exitArrayType(cst_node);
             break;
-        case 211: // parameter_declaration
-            exitParameter(cst_node);
+        case 125: // integer_literal
+            exitLiteralNumber(cst_node);
             break;
         case 201: // let_declaration
             exitDeclaration(cst_node);
             break;
+        case 211: // parameter_declaration
+            exitParameter(cst_node);
+            break;
         case 208: // parameters
             exitParamList(cst_node);
-            break;
-        case 230: // function_declarator
-            exitFunctionDeclarator(cst_node);
-            break;
-        case 247: // binary expression
-            exitBinaryExpr(cst_node);
-            break;
-        case 125: // integer_literal
-            exitLiteralNumber(cst_node);
             break;
         case 275: // return_statement
             exitReturnStatement(cst_node);
@@ -641,6 +680,12 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 248: // assign_expr
             exitAssignExpr(cst_node);
             break;
+        case 247: // binary expression
+            exitBinaryExpr(cst_node);
+            break;
+        case 244: // unary_expr
+            exitUnaryExpr(cst_node);
+            break;
         case 158: //expression_statement
             exitExprStmt(cst_node);
             break;
@@ -656,14 +701,17 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 268: // else_clause
             exitElseClause(cst_node);
             break;
-        case 244: // unary_expr
-            exitUnaryExpr(cst_node);
-            break;
         case 276: // for_expr
             exitForExpr(cst_node);
             break;
         case 243: // range_expr
             exitRangeExpr(cst_node);
+            break;
+        case 283: // index_expr
+            exitIndexExpr(cst_node);
+            break;
+        case 256: // parenthesized_expr
+            exitParenthesizedExpr(cst_node);
             break;
         default:
             std::cerr << "Error: Unknown CST node type: " << std::to_string(symbol_type) << std::endl;

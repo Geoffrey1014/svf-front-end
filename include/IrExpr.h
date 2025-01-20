@@ -77,7 +77,7 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--loop expression:\n";
+        std::string prettyString = indentSpace + "|--loopExpr\n";
         prettyString += this->body->prettyPrint("  " + indentSpace);
         return prettyString;
     }
@@ -106,7 +106,7 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--while expression:\n";
+        std::string prettyString = indentSpace + "|--whileExpr:\n";
         prettyString += this->condition->prettyPrint("  " + indentSpace);
         prettyString += this->body->prettyPrint("  " + indentSpace);
         return prettyString;
@@ -142,7 +142,7 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--for expression:\n";
+        std::string prettyString = indentSpace + "|--forExpr:\n";
         prettyString += this->ident->prettyPrint("  " + indentSpace);
         prettyString += this->condition->prettyPrint("  " + indentSpace);
         prettyString += this->body->prettyPrint("  " + indentSpace);
@@ -179,7 +179,7 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--match arm:\n";
+        std::string prettyString = indentSpace + "|--matchArm:\n";
         prettyString += this->pattern->prettyPrint("  " + indentSpace);
         if (this->guard) {
             prettyString += this->guard->prettyPrint("  " + indentSpace);
@@ -214,7 +214,7 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--match expression:\n";
+        std::string prettyString = indentSpace + "|--matchExpr:\n";
         prettyString += this->matchExpr->prettyPrint("  " + indentSpace);
         for (auto arm : arms) {
             prettyString += arm->prettyPrint("  " + indentSpace);
@@ -251,9 +251,11 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--if expression:\n";
-        prettyString += this->condition->prettyPrint("  " + indentSpace);
-        prettyString += this->thenBlock->prettyPrint("  " + indentSpace);
+        std::string prettyString = indentSpace + "|--ifExpr:\n";
+        prettyString += "  " + indentSpace + "|--condition:\n";
+        prettyString += this->condition->prettyPrint("    " + indentSpace);
+        prettyString += "  " + indentSpace + "|--thenBlock:\n";
+        prettyString += this->thenBlock->prettyPrint("    " + indentSpace);
         if (this->elseBlock) {
             prettyString += this->elseBlock->prettyPrint("  " + indentSpace);
         }
@@ -283,11 +285,65 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--range expression:\n";
+        std::string prettyString = indentSpace + "|--rangeExpr:\n";
         prettyString += "  " + indentSpace + "|--start:\n";
         prettyString += this->start->prettyPrint("    " + indentSpace);
         prettyString += "  " + indentSpace + "|--end:\n";
         prettyString += this->end->prettyPrint("    " + indentSpace);
+        return prettyString;
+    }
+};
+
+class IrParenthesizedExpr : public IrExpr {
+private:
+    Ir* expr;
+
+public:
+    IrParenthesizedExpr(Ir* expr, const TSNode & node)
+        : IrExpr(node), expr(expr) {}
+
+    ~IrParenthesizedExpr() {
+        delete expr;
+    }
+
+    Ir* getExpr() const {
+        return this->expr;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--parenthesizedExpr:\n";
+        prettyString += this->expr->prettyPrint("  " + indentSpace);
+        return prettyString;
+    }
+};
+
+class IrIndexExpr : public IrExpr {
+private:
+    Ir* array;
+    Ir* index;
+public:
+    IrIndexExpr(Ir* array, Ir* index, const TSNode & node)
+        : IrExpr(node), array(array), index(index) {}
+
+    ~IrIndexExpr() {
+        delete array;
+        delete index;
+    }
+
+    Ir* getArray() const {
+        return this->array;
+    }
+
+    Ir* getIndex() const {
+        return this->index;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--indexExpr:\n";
+        prettyString += "  " + indentSpace + "|--array:\n";
+        prettyString += this->array->prettyPrint("    " + indentSpace);
+        prettyString += "  " + indentSpace + "|--index:\n";
+        prettyString += this->index->prettyPrint("    " + indentSpace);
         return prettyString;
     }
 };

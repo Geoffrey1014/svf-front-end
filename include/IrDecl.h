@@ -4,16 +4,18 @@
 #include "IrType.h"
 #include "IrExpr.h"
 
-class IrDecl : public Ir {
+class IrDecl : public IrStatement {
 private:
     bool mut;
     IrIdent* name;
     IrType* type;
+    IrExpr* expr;
 public:
-    IrDecl(bool mut, IrIdent* name, IrType* type, const TSNode & node) : mut(mut), Ir(node), name(name), type(type) {}
+    IrDecl(bool mut, IrIdent* name, IrType* type, IrExpr* expr, const TSNode & node) : mut(mut), IrStatement(node), name(name), type(type), expr(expr) {}
     ~IrDecl() {
         delete name;
         delete type;
+        delete expr;
     }
 
     bool getMut() const {
@@ -33,7 +35,7 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--declaration:\n";
+        std::string prettyString = indentSpace + "|--letDecl:\n";
 
         // Print the mutability
         if (this->mut) {
@@ -53,6 +55,12 @@ public:
             prettyString += ("  " + indentSpace + "|--type: inferred\n");
         }
 
+        // print the expression
+        if (this->expr) {
+            prettyString += this->expr->prettyPrint("  " + indentSpace);
+        } else {
+            prettyString += ("  " + indentSpace + "|--expr: none\n");
+        }
         return prettyString;
     }
 };
@@ -97,7 +105,7 @@ public:
     // }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--param:\n";
+        std::string prettyString = indentSpace + "|--param\n";
         // prettyString += "  " + indentSpace + "|--mutable: " + (this->is_mutable ? "true" : "false") + "\n";
 
         // print the parameter's name
@@ -131,7 +139,7 @@ public:
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--paramList:\n";
+        std::string prettyString = indentSpace + "|--paramList\n";
 
         // pretty print statement
         for (IrParamDecl* paramDecl: this->paramsList) {
@@ -142,28 +150,6 @@ public:
     }
 
 };
-
-class IrFunctionDecl : public Ir {
-private:
-    IrParamList* paramsList;
-    IrIdent* name;
-public:
-    IrFunctionDecl(IrIdent* name, IrParamList* paramsList,
-                  const TSNode& node) : name(name), paramsList(paramsList), Ir(node){}
-    ~IrFunctionDecl(){
-        delete name;
-        delete paramsList;
-    }
-
-
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--function_declarator\n";
-        prettyString += name->prettyPrint("  " + indentSpace);
-        prettyString += paramsList->prettyPrint("  " + indentSpace);
-        return prettyString;
-    }
-};
-
 
 class IrFunctionDef : public Ir {
 private:
@@ -180,10 +166,11 @@ public:
         delete compoundStmt;
     }
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--function_definition\n";
+        std::string prettyString = indentSpace + "|--functionItem\n";
         prettyString += ident->prettyPrint("  " + indentSpace);
         prettyString += paramList->prettyPrint("  " + indentSpace);
-        prettyString += returnType->prettyPrint("  " + indentSpace);
+        prettyString += "  " + indentSpace + "|--returnType\n";
+        prettyString += returnType->prettyPrint("    " + indentSpace);
         prettyString += compoundStmt->prettyPrint("  " + indentSpace);
         return prettyString;
     }

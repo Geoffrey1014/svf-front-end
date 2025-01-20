@@ -61,27 +61,38 @@ public:
 
 class IrCompoundStmt : public IrStatement {
 private:
-    IrExpr* expr;
     std::deque<IrStatement*> stmtsList;
+    IrExpr* expr;
 public:
-    IrCompoundStmt(IrExpr* expr, const TSNode& node)
-        : IrStatement(node), expr(expr),
-          stmtsList() {}
-    ~IrCompoundStmt() {
-        delete expr;
-        for (IrStatement* stmt: this->stmtsList) {
+    IrCompoundStmt(const TSNode& node)
+        : IrStatement(node), stmtsList(), expr(nullptr) {}
+    virtual ~IrCompoundStmt() {
+        for (IrStatement* stmt : this->stmtsList) {
             delete stmt;
         }
+        delete expr;
     }
 
     void addStmtToFront(IrStatement* stmt) {
         this->stmtsList.push_front(stmt);
     }
 
-    std::string prettyPrint(std::string indentSpace)const override  {
-        std::string prettyString = indentSpace + "|--compoundStmt:\n";
+    void setExpression(IrExpr* expr) {
+        this->expr = expr;
+    }
 
+    std::string toString() const {
+        std::string s = "";
         for (IrStatement* statement: this->stmtsList) {
+            s += statement->toString() + "\n";
+        }
+        return s;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--block\n";
+
+        for (IrStatement* statement : this->stmtsList) {
             prettyString += statement->prettyPrint("  " + indentSpace);
         }
         if (this->expr) {
@@ -118,22 +129,22 @@ public:
     }
 };
 
-class IrElseClause : public IrExpr {
+class IrElseClause : public Ir {
 private:
     IrExpr* elseExpr;
     IrStatement* elseStmt;
 public:
     IrElseClause(IrExpr* elseExpr, const TSNode& node)
-        : elseExpr(elseExpr), elseStmt(nullptr), IrExpr(node) {}
+        : elseExpr(elseExpr), elseStmt(nullptr), Ir(node) {}
     IrElseClause(IrStatement* elseStmt, const TSNode& node)
-        : elseExpr(nullptr), elseStmt(elseStmt), IrExpr(node) {}
+        : elseExpr(nullptr), elseStmt(elseStmt), Ir(node) {}
     ~IrElseClause() {
         delete elseExpr;
         delete elseStmt;
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--else_clause\n";
+        std::string prettyString = indentSpace + "|--elseClause\n";
         if (elseExpr) {
             prettyString += elseExpr->prettyPrint("  " + indentSpace);
         } else if (elseStmt) {
