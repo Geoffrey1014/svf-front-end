@@ -1,7 +1,7 @@
 #ifndef IR_TRANS_UNIT_H
 #define IR_TRANS_UNIT_H
-#include "Ir.h"
-#include "IrDecl.h"
+#include "Ir/Ir.h"
+#include "Ir/IrDecl.h"
 
 class IrTransUnit : public Ir {
 private:
