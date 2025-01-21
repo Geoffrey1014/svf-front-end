@@ -13,7 +13,7 @@ public:
         return "IrStatement";
     }
     
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
         return new LlLocationVar(new std::string("")); // Return empty location
     }
@@ -151,7 +151,7 @@ public:
         return s;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         return expr->generateLlIr(builder, symbolTable);
     }
 };

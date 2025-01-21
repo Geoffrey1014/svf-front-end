@@ -125,7 +125,7 @@ public:
         return prettyString;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         string id = declarator->getName();
         LlComponent* comp = declarator->generateLlIr(builder, symbolTable);
         LlLocationVar* loc = dynamic_cast<LlLocationVar*>(comp);
@@ -174,7 +174,7 @@ public:
         return prettyString;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         for (IrParamDecl* param: this->paramsList) {
             param->generateLlIr(builder, symbolTable);
         }
@@ -217,7 +217,7 @@ public:
         return prettyString;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         declarator->generateLlIr(builder, symbolTable);
         paramsList->generateLlIr(builder, symbolTable);
         return nullptr;
@@ -242,7 +242,7 @@ public:
     IrFunctionDecl* getFunctionDecl() const { return functionDecl; }
     IrCompoundStmt* getCompoundStmt() const { return compoundStmt; }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         std::string name = functionDecl->getName();
         LlEmptyStmt* emptyStmt = new LlEmptyStmt();
         builder.appendStatement(name, emptyStmt);
@@ -340,7 +340,7 @@ public:
         return declarator->toString() + " = " + initializer->toString();
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         LlComponent* compo = declarator->generateLlIr(builder, symbolTable);
         LlLocationVar* location = dynamic_cast<LlLocationVar*>(compo);
         LlComponent* init = initializer->generateLlIr(builder, symbolTable);
@@ -439,7 +439,7 @@ public:
         return str;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
 
         if (IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type)) {
             if (simpleDecl) {
@@ -538,7 +538,7 @@ public:
         return out;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         for (auto* d : decls) {
             d->generateLlIr(builder, symbolTable);
         }

@@ -8,7 +8,7 @@ public:
 
     virtual ~IrLiteral() = default;
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         std::cerr << "IrLiteral Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
         return new LlLocationVar(new std::string("Error")); 
     }
@@ -36,9 +36,12 @@ public:
         return "IrLiteralBool";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlLiteralBool *llLiteralBool = new LlLiteralBool(this->value);
-        return llLiteralBool;
+        LlLocationVar *llLocationVar = builder.generateTemp();
+        LlAssignStmt* llAssignStmt = new LlAssignStmtRegular(llLocationVar, llLiteralBool);
+        builder.appendStatement(llAssignStmt);
+        return llLocationVar;
     }
 };
 
@@ -64,9 +67,12 @@ public:
         return "IrLiteralChar";
     }
 
-    LlComponent* generateLlIr(LlBuilder* builder, SymbolTable* symbolTable) {
-        LlLiteralChar *llLiteralChar = new LlLiteralChar(this->value);
-        return llLiteralChar;
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        LlLiteralChar *llLiteral = new LlLiteralChar(this->value);
+        LlLocationVar * llLocationVar = builder.generateTemp();
+        LlAssignStmt* llAssignStmt = new LlAssignStmtRegular(llLocationVar, llLiteral);
+        builder.appendStatement(llAssignStmt);
+        return llLocationVar;
     }
 };
 
@@ -96,9 +102,12 @@ public:
         return std::to_string(value); // "IrLiteralNumber";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlLiteralInt * llLiteralInt = new LlLiteralInt(this->value);
-        return llLiteralInt;
+        LlLocationVar * llLocationVar = builder.generateTemp();
+        LlAssignStmt* llAssignStmt = new LlAssignStmtRegular(llLocationVar, llLiteralInt);
+        builder.appendStatement(llAssignStmt);
+        return llLocationVar;
     }
 };
 
@@ -152,8 +161,12 @@ public:
         return "IrLiteralString";
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        return new LlLiteralString(new string(this->stringContent->getValue()));
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        LlLiteralString* llLiteral = new LlLiteralString(new string(this->stringContent->getValue()));
+        LlLocationVar * llLocationVar = builder.generateTemp();
+        LlAssignStmt* llAssignStmt = new LlAssignStmtRegular(llLocationVar, llLiteral);
+        builder.appendStatement(llAssignStmt);
+        return llLocationVar;
     }
 };
 

@@ -13,12 +13,6 @@ public:
     }
 };
 
-//     LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-//         LlComponent* index = sizeExpr->generateLlIr(builder, symbolTable);
-//         LlLocationArray* arrayLoc = new LlLocationArray(new std::string(getName()), index);
-//         return arrayLoc;
-//     }
-// };
 
 class IrAbstractPointerDeclarator : public IrDeclDeclarator {
 private:
@@ -96,7 +90,7 @@ public:
         return name;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         return new LlLocationVar(new std::string(name));
     }
 

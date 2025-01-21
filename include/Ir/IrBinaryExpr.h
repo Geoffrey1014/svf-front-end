@@ -46,7 +46,7 @@ public:
         return prettyString;
     }
 
-    LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         LlComponent* left = leftOperand->generateLlIr(builder, symbolTable);
         LlComponent* right = rightOperand->generateLlIr(builder, symbolTable);
         LlLocationVar* result = builder.generateTemp();
