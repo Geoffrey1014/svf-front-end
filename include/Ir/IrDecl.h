@@ -174,5 +174,19 @@ public:
         prettyString += compoundStmt->prettyPrint("  " + indentSpace);
         return prettyString;
     }
+
+    const std::string getFunctionName() const {
+        if (ident) return ident->getName();
+        return "";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        std::string name = ident->getName();
+        LlEmptyStmt* emptyStmt = new LlEmptyStmt();
+        builder.appendStatement(name, emptyStmt);
+        symbolTable.putOnTable(name, returnType);
+        this->compoundStmt->generateLlIr(builder, symbolTable);
+        return nullptr;
+    }
 };
 #endif

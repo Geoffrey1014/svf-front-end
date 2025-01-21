@@ -2,6 +2,7 @@
 #define IR_TRANS_UNIT_H
 #include "Ir/Ir.h"
 #include "Ir/IrDecl.h"
+#include "LlBuilderList.h"
 
 class IrTransUnit : public Ir {
 private:
@@ -21,6 +22,8 @@ public:
             delete s;
         }
     }   
+
+    LlBuildersList* getLlBuilder();
 
     void addToDeclarationList(IrDecl* newDeclaration) {
         this->declarationList.push_back(newDeclaration);

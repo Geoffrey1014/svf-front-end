@@ -36,6 +36,10 @@ public:
         return name;
     }
 
+    const std::string getName() const {
+        return *name;
+    }
+
     bool operator==(const Ir & that) const {
         if (&that == this) {
             return true;

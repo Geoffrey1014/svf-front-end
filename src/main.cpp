@@ -45,14 +45,23 @@ int main(int argc, char *argv[]) {
   ASTBuilder ast_builder(source_code, language);
   Ir* ast_root = ast_builder.build(root_node);
   std::cout << "\n======== AST:\n" << ast_root->prettyPrint("") << std::endl;
-  delete ast_root;
+
 
 
   std::cout << "\n======== Src:" << std::endl;
   std::cout << *source_code << std::endl;
 
+  IrTransUnit* unit = dynamic_cast<IrTransUnit*>(ast_root);
+  
+  if (program.is_used("--intermedial")){
+    std::cout << "\n=======IR:\n" << std::endl;
+    LlBuildersList* llBuildersList = unit->getLlBuilder();
+    std::cout << llBuildersList->toString() << std::endl;
+  }
+
 
   // Clean up
+  delete ast_root;
   ts_tree_delete(tree);
   ts_parser_delete(parser);
 

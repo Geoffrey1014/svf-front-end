@@ -101,6 +101,14 @@ public:
 
         return prettyString;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        for (IrStatement* stmt: this->stmtsList) {
+            stmt->generateLlIr(builder, symbolTable);
+        }
+        return nullptr;
+    }
+
 };
 
 class IrExprStmt : public IrStatement {

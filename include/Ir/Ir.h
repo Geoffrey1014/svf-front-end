@@ -25,7 +25,7 @@ class Ir {
     }
 
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
-    virtual LlComponent* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable){
+    virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable){
             std::cerr << "Ir Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
             return new LlLocationVar(new std::string("Error")); 
         };
