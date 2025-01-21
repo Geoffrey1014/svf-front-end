@@ -94,6 +94,7 @@ public:
 class IrParamDecl : public Ir {
 private:
     IrType* paramType;                 // The type of the parameter
+    // can be unnamed parameters or void
     IrDeclDeclarator* declarator;      // Can represent a name or abstract declarator
 
 public:
@@ -206,6 +207,10 @@ public:
         prettyString += declarator->prettyPrint(addIndent(indentSpace));
         prettyString += paramsList->prettyPrint(addIndent(indentSpace));
         return prettyString;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        return new LlLocationVar(new std::string(getName()));
     }
 };
 

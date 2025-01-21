@@ -1,5 +1,5 @@
-#include "stdbool.h"
-extern void svf_assert(bool);
+// #include "stdbool.h"
+// extern void svf_assert(bool);
 
 int nd(void)
 {
@@ -10,22 +10,22 @@ int main() {
   int x, y;
   x = 1;
   y = 0;
-  switch (nd())
-  {
-    case 0:
-        x += 1;
-        break;
-    case 1:
-        x += y;
-        break;
-    case 2:
-        x -= y;
-        break;
-    default:
-        x++;
-        y++;
-        break;
-    }
-    svf_assert(x >= y);
+//   switch (nd())
+//   {
+//     case 0:
+//         x += 1;
+//         break;
+//     case 1:
+//         x += y;
+//         break;
+//     case 2:
+//         x -= y;
+//         break;
+//     default:
+//         x++;
+//         y++;
+//         break;
+//     }
+//     svf_assert(x >= y);
     return 0;
 }

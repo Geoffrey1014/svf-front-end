@@ -38,10 +38,11 @@ LlBuildersList* IrTransUnit::getLlBuilder() {
 
         // Create a symbol table for the function, with the global symbol table as its parent
         SymbolTable* symbolTable = new SymbolTable(func->getFunctionName(), symbolTableGlobal);
-
         for (IrParamDecl* p: func->getFunctionDecl()->getParamsList()->getParamsList()) {
-            std::string name = p->getDeclarator()->getName();
-            builder->addParam(new LlLocationVar(&name));
+            if (p->getDeclarator() != nullptr) {
+                std::string name = p->getDeclarator()->getName();
+                builder->addParam(new LlLocationVar(&name));
+            }
         }
         // Generate LL IR for the function
         func->generateLlIr(*builder, *symbolTable);
