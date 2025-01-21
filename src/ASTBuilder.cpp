@@ -592,7 +592,6 @@ void ASTBuilder::exitAbstractPointerDeclarator(const TSNode &cst_node) {
 void ASTBuilder::exitFieldDeclaration(const TSNode &cst_node) {
     try {
         // Handle optional bitfield clause for future if we need it
-        // int bitfieldSize = -1;
         // field declarator
         IrDeclDeclarator* declarator = nullptr;
         if (!this->ast_stack.empty() && dynamic_cast<IrDeclDeclarator*>(this->ast_stack.top())) {

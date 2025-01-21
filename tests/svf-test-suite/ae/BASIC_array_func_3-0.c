@@ -5,5 +5,7 @@ typedef struct {
 
 int main() {
     A a;
+    // a.a = 1;
+    // a.b[0] = 2;
     return 0;
 }
