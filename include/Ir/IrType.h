@@ -220,4 +220,49 @@ class IrTypeUnit : public IrType {
             return indentSpace + "|--type: unit\n";
         }
 };
+
+class IrTypeReference : public IrType {
+private:
+    IrType* refType;
+    Ir* mut;
+public:
+    IrTypeReference(IrType* refType, Ir* mut, const TSNode& node)
+        : refType(refType), mut(mut), IrType(node) {}
+    ~IrTypeReference() {
+        delete refType;
+        delete mut;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--referenceType:\n";
+        prettyString += refType->prettyPrint("  " + indentSpace);
+        if (mut) {
+            prettyString += "  " + indentSpace + "|--mutable: true\n";
+        }
+        return prettyString;
+    }
+};
+
+class IrTypePointer : public IrType {
+private:
+    IrType* ptrType;
+    Ir* mut;
+public:
+    IrTypePointer(IrType* ptrType, Ir* mut, const TSNode& node)
+        : ptrType(ptrType), mut(mut), IrType(node) {}
+    ~IrTypePointer() {
+        delete ptrType;
+        delete mut;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--pointerType:\n";
+        prettyString += ptrType->prettyPrint("  " + indentSpace);
+        if (mut) {
+            prettyString += "  " + indentSpace + "|--mutable: true\n";
+        }
+        return prettyString;
+    }
+};
+
 #endif

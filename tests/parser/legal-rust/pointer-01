@@ -1,0 +1,13 @@
+fn swap(p: &mut *mut char, q: &mut *mut char) {
+    let t = *p;
+    *p = *q;
+    *q = t;
+}
+
+fn main() {
+    let mut a1: char = 'a';
+    let mut b1: char = 'b';
+    let mut a: *mut char = &mut a1;
+    let mut b: *mut char = &mut b1;
+    swap(&mut a, &mut b);
+}

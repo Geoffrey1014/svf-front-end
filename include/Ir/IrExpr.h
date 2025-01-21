@@ -352,4 +352,31 @@ public:
     }
 };
 
+class IrReferenceExpr : public IrExpr {
+private:
+    Ir* mut;
+    Ir* expr;
+public:
+    IrReferenceExpr(Ir* mut, Ir* expr, const TSNode & node)
+        : IrExpr(node), mut(mut), expr(expr) {}
+
+    ~IrReferenceExpr() {
+        delete mut;
+        delete expr;
+    }
+
+    Ir* getExpr() const {
+        return this->expr;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--referenceExpr:\n";
+        prettyString += this->expr->prettyPrint("  " + indentSpace);
+        if (this->mut) {
+            prettyString += "  " + indentSpace + "|--mutable: true\n";
+        }
+        return prettyString;
+    }
+};
+
 #endif

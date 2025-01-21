@@ -38,29 +38,17 @@ public:
 class IrLiteralChar : public IrLiteral {
 private:
     char value;
-
 public:
-    IrLiteralChar(char value, const TSNode& node) : IrLiteral(node), value(value) {}
-    ~IrLiteralChar() = default;
-    // IrType* getExpressionType() {
-    //     // it's definitely not of type void but it
-    //     // is also not of type int or type bool
-    //     return new IrTypeVoid(this->getLineNumber(), this->getColNumber());
-    // }
+    IrLiteralChar(char value, const TSNode& node)
+        : IrLiteral(node), value(value) {}
 
-    // std::string semanticCheck(ScopeStack* scopeStack) {
-    //     return "";
-    // }
-
-    std::string prettyPrint(std::string indentSpace) {
-        std::string prettyPrint = indentSpace + "|--charLiteral\n";
-        prettyPrint += "  " + indentSpace + "|--value: " + this->value + "\n";
-        return prettyPrint;
+    std::string prettyPrint(std::string indentSpace) const override {
+        return indentSpace + "|--char_literal: '" + value + "'\n";
     }
 
-    // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
-    //     return nullptr;
-    // }
+    char getValue() const {
+        return value;
+    }
 };
 
 
