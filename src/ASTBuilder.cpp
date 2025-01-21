@@ -318,6 +318,12 @@ void ASTBuilder::exitLiteralNumber(const TSNode & cst_node){
     this->ast_stack.push(node);
 }
 
+void ASTBuilder::exitCharLiteral(const TSNode & cst_node){
+    std::string* node_text = getNodeText(cst_node);
+    IrLiteralChar* node = new IrLiteralChar((*node_text)[1], cst_node);
+    this->ast_stack.push(node);
+}
+
 void ASTBuilder::exitArgList(const TSNode & cst_node){
     IrArgList* argList = new IrArgList(cst_node);
     uint32_t arg_count = ts_node_named_child_count(cst_node);
@@ -577,6 +583,99 @@ void ASTBuilder::exitIndexExpr(const TSNode & cst_node) {
     }
 }
 
+void ASTBuilder::exitPointerType(const TSNode & cst_node) {
+    Ir* node = nullptr;
+    // Use stack to get the type
+    if (this->ast_stack.size() < 1) {
+        std::cerr << "Error: Not enough elements on the stack for pointer type" << std::endl;
+    }
+
+    IrType* ptrType = nullptr;
+    TSNode type_node = ts_node_child_by_field_name(cst_node, "type", 4);
+    if (!ts_node_is_null(type_node)) {
+        ptrType = dynamic_cast<IrType*>(this->ast_stack.top());
+        if (ptrType) {
+            this->ast_stack.pop();
+        } else {
+            std::cerr << "Error: Invalid pointer type" << std::endl;
+            return;
+        }
+    }
+
+    // Check for mutable binding
+    IrMutableSpec* mut = nullptr;
+    mut = dynamic_cast<IrMutableSpec*>(this->ast_stack.top());
+    if (mut) {
+        this->ast_stack.pop();
+    }
+
+    if (ptrType) {
+        node = new IrTypePointer(ptrType, mut, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid pointer type" << std::endl;
+    }
+}
+
+void ASTBuilder::exitReferenceType(const TSNode & cst_node) {
+    Ir* node = nullptr;
+    // Use stack to get the type
+    if (this->ast_stack.size() < 1) {
+        std::cerr << "Error: Not enough elements on the stack for reference type" << std::endl;
+    }
+
+    IrType* refType = nullptr;
+    TSNode type_node = ts_node_child_by_field_name(cst_node, "type", 4);
+    if (!ts_node_is_null(type_node)) {
+        refType = dynamic_cast<IrType*>(this->ast_stack.top());
+        if (refType) {
+            this->ast_stack.pop();
+        } else {
+            std::cerr << "Error: Invalid ref type" << std::endl;
+            return;
+        }
+    }
+
+    // Check for mutable binding
+    IrMutableSpec* mut = nullptr;
+    mut = dynamic_cast<IrMutableSpec*>(this->ast_stack.top());
+    if (mut) {
+        this->ast_stack.pop();
+    }
+
+    if (refType) {
+        node = new IrTypeReference(refType, mut, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid reference type" << std::endl;
+    }
+}
+
+void ASTBuilder::exitReferenceExpr(const TSNode & cst_node) {
+    Ir* node = nullptr;
+    // Use stack to get the expression
+    if (this->ast_stack.size() < 1) {
+        std::cerr << "Error: Not enough elements on the stack for reference expression" << std::endl;
+    }
+
+    IrExpr* refExpr = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    this->ast_stack.pop();
+
+    // Check for mutable binding
+    IrMutableSpec* mut = nullptr;
+    mut = dynamic_cast<IrMutableSpec*>(this->ast_stack.top());
+    if (mut) {
+        this->ast_stack.pop();
+    }
+
+    if (refExpr) {
+        node = new IrReferenceExpr(mut, refExpr, cst_node);
+        this->ast_stack.push(node);
+    } else {
+        std::cerr << "Error: Invalid reference expression" << std::endl;
+    }
+}
+
 void ASTBuilder::exitExprStmt(const TSNode & cst_node){
     IrExprStmt* node = nullptr;
     // Use stack to get the type and name
@@ -653,6 +752,9 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 125: // integer_literal
             exitLiteralNumber(cst_node);
             break;
+        case 128: // char_literal
+            exitCharLiteral(cst_node);
+            break;
         case 201: // let_declaration
             exitDeclaration(cst_node);
             break;
@@ -712,6 +814,15 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 256: // parenthesized_expr
             exitParenthesizedExpr(cst_node);
+            break;
+        case 230: // pointer_type
+            exitPointerType(cst_node);
+            break;
+        case 229: // reference_type
+            exitReferenceType(cst_node);
+            break;
+        case 246: // reference_expr
+            exitReferenceExpr(cst_node);
             break;
         default:
             std::cerr << "Error: Unknown CST node type: " << std::to_string(symbol_type) << std::endl;

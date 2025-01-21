@@ -49,7 +49,8 @@ public:
     void exitUnaryExpr(const TSNode & cst_node);
     void exitReturnStatement(const TSNode & cst_node);
     void exitCompoundStatement(const TSNode & cst_node);
-    void exitLiteralNumber(const TSNode & cst_node);    
+    void exitLiteralNumber(const TSNode & cst_node);
+    void exitCharLiteral(const TSNode & cst_node);
     void exitArgList(const TSNode & cst_node);
     void exitCallExpr(const TSNode & cst_node);
     void exitMatchExpr(const TSNode &cst_node);
@@ -62,6 +63,9 @@ public:
     void exitRangeExpr(const TSNode &cst_node);
     void exitParenthesizedExpr(const TSNode &cst_node);
     void exitIndexExpr(const TSNode &cst_node);
+    void exitReferenceExpr(const TSNode &cst_node);
+    void exitReferenceType(const TSNode &cst_node);
+    void exitPointerType(const TSNode &cst_node);
     void exitExprStmt(const TSNode & cst_node);
     void exitTransUnit(const TSNode & cst_node);
 
