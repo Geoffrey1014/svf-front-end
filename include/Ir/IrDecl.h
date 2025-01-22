@@ -88,7 +88,7 @@ public:
         delete paramType;
         delete paramName;
     }
-    std::string toString() {
+    std::string toString() override{
         return paramType->toString() + " " + paramName->toString();
     }
 

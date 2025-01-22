@@ -39,6 +39,17 @@ public:
 
         return prettyString;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        std::vector<LlComponent*> argLocations;
+        for (IrExpr* arg: this->argList->getArgsList()) {
+            argLocations.push_back(arg->generateLlIr(builder, symbolTable));
+        }
+        LlLocationVar* result = builder.generateTemp();
+        LlMethodCallStmt* callStmt = new LlMethodCallStmt(this->functionName->getName(), argLocations, result);
+        builder.appendStatement(callStmt);
+        return result;
+    }
 };
 
 class IrAssignExpr : public IrNonBinaryExpr {
@@ -92,7 +103,7 @@ public:
         return this->operand;
     }
     
-    std::string toString() {
+    std::string toString() override{
         return *operation + " " + operand->toString();
     }
     std::string prettyPrint(std::string indentSpace) const override {

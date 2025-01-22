@@ -29,7 +29,7 @@ public:
         return this->operation;
     }
 
-    std::string toString() {
+    std::string toString() override{
         return leftOperand->toString() + " " + *operation + " " + rightOperand->toString();
     }
 

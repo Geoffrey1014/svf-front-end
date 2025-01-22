@@ -54,7 +54,7 @@ public:
         std::string prettyString = indentSpace + "|--returnVoid\n";
         return prettyString;
     }
-    std::string toString() {
+    std::string toString() override{
         return "IrStmtReturnVoid";
     }
 };
@@ -106,6 +106,9 @@ public:
         for (IrStatement* stmt: this->stmtsList) {
             stmt->generateLlIr(builder, symbolTable);
         }
+        if (this->expr) {
+            expr->generateLlIr(builder, symbolTable);
+        }
         return nullptr;
     }
 
@@ -132,8 +135,12 @@ public:
 
         return prettyString;
     }
-    std::string toString() {
+    std::string toString() override{
         return "IrExprStmt";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        return this->expr->generateLlIr(builder, symbolTable);
     }
 };
 

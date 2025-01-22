@@ -19,9 +19,6 @@ public:
     //     return new IrTypeBool(this->getLineNumber(), this->getColNumber());
     // }
 
-    // std::string semanticCheck(ScopeStack* scopeStack) {
-    //     return "";
-    // }
 
     std::string prettyPrint(std::string indentSpace) {
         std::string prettyPrint = indentSpace + "|--boolLiteral\n";
@@ -29,9 +26,6 @@ public:
         return prettyPrint;
     }
 
-    // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
-    //     return nullptr;
-    // }
 };
 
 
@@ -67,9 +61,6 @@ public:
     //     return new IrTypeInt(this->getLineNumber(), this->getColNumber());
     // }
 
-    // std::string semanticCheck(ScopeStack* scopeStack) {
-    //     return "";
-    // }
 
     std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyPrint = indentSpace + "|--NumberLiteral\n";
@@ -77,9 +68,14 @@ public:
         return prettyPrint;
     }
 
-    // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
-    //    return nullptr;
-    // }
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        LlLiteralInt * llLiteralInt = new LlLiteralInt(this->value);
+        LlLocationVar * llLocationVar = builder.generateTemp();
+        LlAssignStmt* llAssignStmt = new LlAssignStmtRegular(llLocationVar, llLiteralInt);
+        builder.appendStatement(llAssignStmt);
+        return llLocationVar;
+    }
+
 };
 
 
@@ -100,9 +96,6 @@ public:
     //     return new IrTypeString(this->getLineNumber(), this->getColNumber());
     // }
 
-    // std::string semanticCheck(ScopeStack* scopeStack) {
-    //     return "";
-    // }
 
     std::string prettyPrint(std::string indentSpace) {
         std::string prettyPrint = indentSpace + "|--StringLiteral\n";
@@ -110,8 +103,5 @@ public:
         return prettyPrint;
     }
 
-    // LlLocation* generateLlIr(LlBuilder* builder, LlSymbolTable* symbolTable) {
-    //     return nullptr;
-    // }
 };
 #endif
