@@ -38,9 +38,10 @@ public:
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlLiteralBool *llLiteralBool = new LlLiteralBool(this->value);
-        LlLocation* location = builder.generateTemp();
-        builder.appendStatement(new LlAssignStmtRegular(location, llLiteralBool));
-        return location;
+        LlLocationVar *llLocationVar = builder.generateTemp();
+        LlAssignStmt* llAssignStmt = new LlAssignStmtRegular(llLocationVar, llLiteralBool);
+        builder.appendStatement(llAssignStmt);
+        return llLocationVar;
     }
 };
 
@@ -66,11 +67,12 @@ public:
         return "IrLiteralChar";
     }
 
-    LlLocation* generateLlIr(LlBuilder* builder, SymbolTable* symbolTable) {
-        LlLiteralChar *llLiteralChar = new LlLiteralChar(this->value);
-        LlLocation* location = builder->generateTemp();
-        builder->appendStatement(new LlAssignStmtRegular(location, llLiteralChar));
-        return location;
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        LlLiteralChar *llLiteral = new LlLiteralChar(this->value);
+        LlLocationVar * llLocationVar = builder.generateTemp();
+        LlAssignStmt* llAssignStmt = new LlAssignStmtRegular(llLocationVar, llLiteral);
+        builder.appendStatement(llAssignStmt);
+        return llLocationVar;
     }
 };
 
@@ -102,9 +104,10 @@ public:
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlLiteralInt * llLiteralInt = new LlLiteralInt(this->value);
-        LlLocation* location = builder.generateTemp();
-        builder.appendStatement(new LlAssignStmtRegular(location, llLiteralInt));
-        return location;
+        LlLocationVar * llLocationVar = builder.generateTemp();
+        LlAssignStmt* llAssignStmt = new LlAssignStmtRegular(llLocationVar, llLiteralInt);
+        builder.appendStatement(llAssignStmt);
+        return llLocationVar;
     }
 };
 
@@ -159,10 +162,11 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        LlLiteralString *llLiteralString = new LlLiteralString(new string(this->stringContent->getValue()));
-        LlLocation* location = builder.generateTemp();
-        builder.appendStatement(new LlAssignStmtRegular(location, llLiteralString));
-        return location;
+        LlLiteralString* llLiteral = new LlLiteralString(new string(this->stringContent->getValue()));
+        LlLocationVar * llLocationVar = builder.generateTemp();
+        LlAssignStmt* llAssignStmt = new LlAssignStmtRegular(llLocationVar, llLiteral);
+        builder.appendStatement(llAssignStmt);
+        return llLocationVar;
     }
 };
 

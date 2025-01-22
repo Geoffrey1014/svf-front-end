@@ -963,7 +963,10 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 313: // initializer_list
             exitInitList(cst_node);
-            break;        
+            break;
+        // case 276: // break_statement
+            
+        //     break;    
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;
             break;
