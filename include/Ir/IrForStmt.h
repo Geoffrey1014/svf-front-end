@@ -80,7 +80,7 @@ public:
         LlEmptyStmt* emptyStmtFor = new LlEmptyStmt();
         builder.appendStatement(*condLabel, emptyStmtFor);
 
-        LlComponent* conditionVar = this->condition->generateLlIr(builder, symbolTable);
+        LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
         LlJumpConditional* conditionalJump = new LlJumpConditional(bodyLabel,conditionVar);
         builder.appendStatement(conditionalJump);
         LlJumpUnconditional* jumpToForEnd = new LlJumpUnconditional(endLabel);

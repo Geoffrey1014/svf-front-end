@@ -5,12 +5,18 @@
 #include <string>
 #include <vector>
 #include "Ll.h"
+
+// TypeTable:
+//     m : int               // Variable (not a type)
+//     A : struct {...}      // Type alias
+
 class IrType;
 class SymbolTable {
 private:
     std::string methodName;
-    std::unordered_map<std::string, LlComponent*> varTable;
-    std::unordered_map<std::string, IrType*> table;
+    // std::unordered_map<std::string, LlComponent*> varTable;
+    std::unordered_map<std::string, IrType*> typeDefTable;
+    std::unordered_map<std::string, IrType*> varTable;
     SymbolTable* parentTable;
 
 public:
@@ -20,41 +26,38 @@ public:
     ~SymbolTable() {
     }
 
-    void putOnTable(std::string key, IrType* value){
-        this->table[key] = value;
-    }
-
-    IrType* getFromTable(std::string key){
-        auto it = this->table.find(key);
-        if(it != this->table.end()){
-            return it->second;
-        }
-        // Search in parent/global table if not found locally
-        if (parentTable) {
-            return parentTable->getFromTable(key);
-        }
-        return nullptr;
-    }
-
-    void putOnVarTable(std::string key, LlComponent* value){
+    void putOnVarTable(std::string key, IrType* value){
         this->varTable[key] = value;
     }
 
-    LlComponent* getFromVarTable(std::string key){
+    IrType* getFromVarTable(std::string key){
         auto it = this->varTable.find(key);
         if(it != this->varTable.end()){
             return it->second;
         }
+        // Search in parent/global table if not found locally
         if (parentTable) {
             return parentTable->getFromVarTable(key);
         }
         return nullptr;
     }
 
-    std::unordered_map<std::string, LlComponent*> getVarTable(){
-        return this->varTable;
+    // TypeDef handling
+    void putOnTypeDefTable(const std::string& alias, IrType* actualType) {
+        this->typeDefTable[alias] = actualType;
     }
 
+    IrType* getFromTypeDefTable(const std::string& alias) {
+        auto it = this->typeDefTable.find(alias);
+        if (it != this->typeDefTable.end()) {
+            return it->second;
+        }
+        if (parentTable) {
+            return parentTable->getFromTypeDefTable(alias);
+        }
+        return nullptr;
+    }
+    
     std::string toString();
 
     std::string getMethodName() {
@@ -63,7 +66,4 @@ public:
 
 };
 
-// extern: declare the variable globalSymbolTable exists, 
-// but is defined in somewhere else (src/SymbolTable.cpp)
-// extern SymbolTable globalSymbolTable;
 #endif

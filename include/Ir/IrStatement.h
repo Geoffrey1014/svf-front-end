@@ -56,7 +56,7 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        LlComponent* resultVar = this->result->generateLlIr(builder, symbolTable);
+        LlLocation* resultVar = this->result->generateLlIr(builder, symbolTable);
         LlReturn* returnStmt = new LlReturn(resultVar);
         builder.appendStatement(returnStmt);
         return nullptr;
@@ -233,7 +233,7 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        LlComponent* conditionVar = this->condition->generateLlIr(builder, symbolTable);
+        LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
 
         std::string label = builder.generateLabel();
         std::string* ifThenLabel = new std::string();

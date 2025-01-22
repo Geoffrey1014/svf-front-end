@@ -5,6 +5,7 @@
 #include "IrDeclarator.h"
 #include "IrDecl.h"
 
+
 class IrTypeIdent : public IrType {
     private:
         const std::string name;
@@ -40,11 +41,44 @@ class IrTypeIdent : public IrType {
             return indentSpace + "|--typeId: " + name + "\n";
         }
 
-        std::string toString() const override{
+        std::string toString() const{
             return name;
+        }
+
+        LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+            LlLocation* location = new LlLocationTypeAlias(&name);
+            return location;
         }
 };
 
+class IrPointerType : public IrType {
+private:
+    IrType* baseType;
+
+public:
+    IrPointerType(IrType* baseType, const TSNode& node) 
+        : IrType(node), baseType(baseType) {}
+
+    ~IrPointerType() { delete baseType; }
+
+    std::string toString() const override {
+        return baseType->toString() + "*";
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string result = indentSpace + "|--pointer: *\n";
+        result += baseType->prettyPrint(addIndent(indentSpace));
+        return result;
+    }
+
+    IrType* getBaseType() const {
+        return baseType;
+    }
+
+    IrPointerType* clone() const override {
+        return new IrPointerType(*this);
+    }
+};
 
 // Comment: maybe refactor the IrType (add one layer for primitive types or ...)
 class IrTypeStruct : public IrType {
@@ -83,15 +117,14 @@ public:
     }
 };
 
-class IrTypeDef : public IrType {
+class IrTypeDef : public Ir {
 private:
     IrType* type;        // The original type being aliased
-    // IrIdent* alias;   // The alias name
     IrTypeIdent* alias;   // The alias name
 
 public:
     IrTypeDef(IrType* type, IrTypeIdent* alias, const TSNode& node)
-        : IrType(node), type(type), alias(alias) {}
+        : Ir(node), type(type), alias(alias) {}
 
     ~IrTypeDef() {
         delete type;
@@ -102,12 +135,8 @@ public:
         return type;
     }
 
-    IrTypeIdent* getAliasName() const {
+    IrTypeIdent* getName() const {
         return alias;
-    }
-
-    IrTypeDef* clone() const override {
-        return new IrTypeDef(*this);
     }
 
     std::string prettyPrint(std::string indentSpace) const override {
@@ -120,7 +149,16 @@ public:
     std::string toString() const override{
         return "typedef " + type->toString() + " " + alias->toString();
     }
-};
 
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        IrTypeStruct* structType = dynamic_cast<IrTypeStruct*>(type);
+        if (structType) {
+            LlLocation *compo = alias->generateLlIr(builder, symbolTable);          
+            LlLocationTypeAlias* location = dynamic_cast<LlLocationTypeAlias*>(compo);           
+            symbolTable.putOnTypeDefTable(*location->getAliasTypeName(), structType);
+        }
+        return nullptr;     
+    }
+};
 
 #endif

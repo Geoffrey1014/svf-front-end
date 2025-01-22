@@ -89,13 +89,13 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlComponent* left = lhs->generateLlIr(builder, symbolTable);
-        LlComponent* right = rhs->generateLlIr(builder, symbolTable);
+        LlLocation* left = lhs->generateLlIr(builder, symbolTable);
+        LlLocation* right = rhs->generateLlIr(builder, symbolTable);
         LlLocation* location = dynamic_cast<LlLocation*>(left);
         std::string operation = op;
         if (op != "=") {
             operation = op.substr(0, op.size() - 1);
-            LlAssignStmtBinaryOp* assignStmt = new LlAssignStmtBinaryOp(location,left, operation, right);
+            LlAssignStmtBinaryOp* assignStmt = new LlAssignStmtBinaryOp(location, left, operation, right);
             builder.appendStatement(assignStmt);
         }
         else {
@@ -139,6 +139,13 @@ public:
     IrExpr* getBaseExpr() const { return baseExpr; }
     IrIdent* getFieldName() const { return fieldName; }
     bool getIsArrow() const { return isArrow; }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* base = baseExpr->generateLlIr(builder, symbolTable);
+        //IrFieldExpr codegen is not fully implemented
+        return base;    
+    }
+
 };
 
 class IrPointerExpr : public IrNonBinaryExpr {
@@ -174,19 +181,6 @@ public:
     std::string toString() const override{
         std::string op = isAddressOf ? "&" : "*";
         return op + argument->toString();
-    }
-
-    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlComponent* arg = argument->generateLlIr(builder, symbolTable);
-        LlLocation* returnLocation = builder.generateTemp();
-        if (isAddressOf) {
-            LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new std::string("&"));
-            builder.appendStatement(unaryOp);
-        } else if (isDereference) {
-            LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new std::string("*"));
-            builder.appendStatement(unaryOp);
-        }
-        return returnLocation;
     }
 };
 
@@ -249,7 +243,7 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlComponent* arg = argument->generateLlIr(builder, symbolTable);
+        LlLocation* arg = argument->generateLlIr(builder, symbolTable);
         LlLocation* returnLocation = builder.generateTemp();
         LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new std::string(op));
         builder.appendStatement(unaryOp);

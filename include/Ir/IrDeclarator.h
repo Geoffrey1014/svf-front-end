@@ -9,10 +9,17 @@ class IrDeclDeclarator : public virtual Ir {
 public:
     IrDeclDeclarator(const TSNode& node) : Ir(node) {}
     virtual const std::string getName() const {
-        return "";
+        static const std::string emptyString = "";
+        return emptyString;
     }
 };
 
+//     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+//         LlLocation* index = sizeExpr->generateLlIr(builder, symbolTable);
+//         LlLocationArray* arrayLoc = new LlLocationArray(new std::string(getName()), index);
+//         return arrayLoc;
+//     }
+// };
 
 class IrAbstractPointerDeclarator : public IrDeclDeclarator {
 private:

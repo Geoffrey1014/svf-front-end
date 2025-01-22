@@ -69,8 +69,6 @@ public:
 
 };
 
-
-
 class LlLocation: public LlComponent{
 private:
     const std::string* varName;
@@ -131,8 +129,7 @@ public:
         return this->rightHandSide;
     }
 
-    std::string toString() override{
-        
+    std::string toString() override{       
         return this->storeLocation->toString() + " = " + this->rightHandSide->toString();
     }
 
@@ -371,13 +368,13 @@ public:
 
 class LlLiteralInt : public LlLiteral {
 private:
-    long intValue;
+    int intValue;
 
 public:
     LlLiteralInt(long intValue) : intValue(intValue) {}
     ~LlLiteralInt() override {}
 
-    long getValue() {
+    int getValue() {
         return this->intValue;
     }
 

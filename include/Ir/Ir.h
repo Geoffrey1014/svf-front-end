@@ -4,6 +4,7 @@
 #include <tree_sitter/api.h> 
 #include <vector>
 #include "Ll.h"
+#include "LlLocationStruct.h"
 #include "LlBuilder.h"
 #include "SymbolTable.h"
 

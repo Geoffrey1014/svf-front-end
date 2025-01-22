@@ -58,7 +58,7 @@ public:
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         std::string baseName = baseExpr->getName();
-        IrType* type = symbolTable.getFromTable(baseName);
+        IrType* type = symbolTable.getFromVarTable(baseName);
         IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type);
 
         if (!arrayType) {
@@ -87,7 +87,7 @@ public:
             IrLiteral* dimLiteral = dims[currentLevel - 1];
             int dimSize = dynamic_cast<IrLiteralNumber*>(dimLiteral)->getValue();
 
-            LlComponent* indexLocation = sub->getIndexExpr()->generateLlIr(builder, symbolTable);
+            LlLocation* indexLocation = sub->getIndexExpr()->generateLlIr(builder, symbolTable);
 
             LlLocation* mulTemp = builder.generateTemp();
             LlLiteralInt* multiplierLiteral = new LlLiteralInt(cumulativeMultiplier);

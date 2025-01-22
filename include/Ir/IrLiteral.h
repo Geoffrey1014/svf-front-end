@@ -79,12 +79,12 @@ public:
 
 class IrLiteralNumber : public IrLiteral {
 private:
-    long value;
+    int value;
 
 public:
     IrLiteralNumber(long value, const TSNode& node) : IrLiteral(node), Ir(node), value(value) {}
     ~IrLiteralNumber() override = default;
-    long getValue() {
+    int getValue() {
         return this->value;
     }
 

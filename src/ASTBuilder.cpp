@@ -332,7 +332,8 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
                  dynamic_cast<IrFunctionDef*>(node) ||
                  dynamic_cast<IrPreprocInclude*>(node) ||
                  dynamic_cast<IrTypeDef*>(node) ||
-                 dynamic_cast<IrPreprocDef*>(node)) 
+                 dynamic_cast<IrPreprocDef*>(node) ||
+                 dynamic_cast<IrExprStmt*>(node))
         {
             transUnitNode->addTopLevelNodeFront(node); 
         } else {
@@ -591,7 +592,6 @@ void ASTBuilder::exitAbstractPointerDeclarator(const TSNode &cst_node) {
 void ASTBuilder::exitFieldDeclaration(const TSNode &cst_node) {
     try {
         // Handle optional bitfield clause for future if we need it
-        // int bitfieldSize = -1;
         // field declarator
         IrDeclDeclarator* declarator = nullptr;
         if (!this->ast_stack.empty() && dynamic_cast<IrDeclDeclarator*>(this->ast_stack.top())) {
@@ -963,7 +963,10 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 313: // initializer_list
             exitInitList(cst_node);
-            break;        
+            break;
+        // case 276: // break_statement
+            
+        //     break;    
         default:
             std::cerr << "Error: Unknown CST node type" << std::endl;
             break;
