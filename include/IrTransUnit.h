@@ -65,6 +65,11 @@ public:
         }
         return result;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement
+        return nullptr;
+    }
 };
 
 #endif

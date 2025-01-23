@@ -34,10 +34,7 @@ class Ir {
     }
 
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
-    virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable){
-        std::cerr << "Ir Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("Error")); 
-    };
+    virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) = 0;
     
     virtual std::string prettyPrint(std::string indentSpace) const =0;
     virtual std::string toString() const = 0;
@@ -59,7 +56,10 @@ public:
 
     bool operator==(const IrExpr& other) const {
         // Implementation of operator==
-        return true;
+        if (&other == this) {
+            return true;
+        }
+        return false;
     }
 
     int hashCode() const {
@@ -188,6 +188,10 @@ public:
     std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: bool\n";
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        return nullptr;
+    }
 };
 
 class IrTypeVoid : public IrType {
@@ -221,6 +225,10 @@ public:
 
     std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: void\n";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        return nullptr;
     }
 };
 
@@ -256,6 +264,10 @@ public:
     std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: int\n";
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        return nullptr;
+    }
 };
 
 class IrTypeString : public IrType {
@@ -289,6 +301,10 @@ public:
     std::string prettyPrint(std::string indentSpace) const override{
         return indentSpace + "|--type: string\n";
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        return nullptr;
+    }
 };
 
 class IrTypeChar : public IrType {
@@ -320,6 +336,10 @@ public:
 
     std::string toString() const override{
         return "char";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        return nullptr;
     }
 };
 
@@ -376,6 +396,10 @@ public:
     std::string prettyPrint(std::string indentSpace) const override ;
 
     std::string toString() const override;
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        return nullptr;
+    }
 
 };
 
@@ -600,6 +624,11 @@ public:
     std::string toString() const override{
         return "#include " + path->getValue();
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement
+        return nullptr;
+    }
 };
 
 
@@ -643,6 +672,11 @@ public:
             return baseDeclarator->toString() + "*";
         }
         return "*";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement
+        return nullptr;
     }
 };
 
@@ -710,6 +744,11 @@ public:
     std::string toString() const override {
         return "PreprocArg(" + text + ")";
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement
+        return nullptr;
+    }
 };
 
 class IrPreprocDef : public Ir {
@@ -735,6 +774,11 @@ public:
 
     std::string toString() const override {
         return "#define " + name->toString() + (value ? " " + value->text : "");
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement
+        return nullptr;
     }
 };
 
@@ -1277,6 +1321,11 @@ public:
     std::string toString() const override{
         return "IrStorageClassSpecifier: " + this->specifier;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement
+        return nullptr;
+    }
 };
 
 
@@ -1360,6 +1409,11 @@ public:
         }
         return str;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement
+        return nullptr;
+    }
 };
 
 class IrParamDecl : public Ir {
@@ -1403,6 +1457,11 @@ public:
 
         return prettyString;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement
+        return nullptr;
+    }
 };
 
 
@@ -1443,9 +1502,13 @@ public:
 
         return prettyString;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement
+        return nullptr;
+    }
 };
 
-// function_declarator
 class IrFunctionDecl : public IrDeclDeclarator {
 private:
     IrDeclDeclarator* declarator;  // The base declarator (e.g., function name, could include pointers)
@@ -1485,7 +1548,6 @@ public:
     }
 };
 
-// function_definition
 class IrFunctionDef : public Ir {
 private:
     IrType* returnType;
@@ -1571,7 +1633,6 @@ public:
     }
 };
 
-// a = 3;
 class IrInitDeclarator : public Ir {
 private:
     IrDeclDeclarator* declarator; 
@@ -1610,7 +1671,6 @@ public:
     }
 };
 
-// declaration
 class IrDecl : public IrStatement {
 private:
     IrType* type;                        
@@ -2056,6 +2116,10 @@ public:
     IrPointerType* clone() const override {
         return new IrPointerType(*this);
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        return nullptr;
+    }
 };
 
 // Comment: maybe refactor the IrType (add one layer for primitive types or ...)
@@ -2092,6 +2156,11 @@ public:
             str += name->toString();
         }
         return str + " {" + fieldDeclList->toString() + "}";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement this
+        return nullptr;
     }
 };
 
