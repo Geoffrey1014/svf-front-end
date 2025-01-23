@@ -3,7 +3,6 @@
 
 #include "IrStatement.h"
 #include "IrDecl.h"
-#include "IrNonBinaryExpr.h"
 
 class IrForStmt : public IrStatement {
 private:

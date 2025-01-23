@@ -4,7 +4,6 @@
 #include "Ir/IrDecl.h"
 #include "LlBuilderList.h"
 #include "Ir/IrTypeComposite.h"
-#include "Ir/IrPreproc.h"
 #include <deque>
 
 class IrTransUnit : public Ir {
