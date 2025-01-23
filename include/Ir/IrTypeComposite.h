@@ -1,7 +1,6 @@
 #ifndef IR_TYPE_COMPOSITE_H
 #define IR_TYPE_COMPOSITE_H
 
-#include "IrType.h"
 #include "IrDeclarator.h"
 #include "IrDecl.h"
 

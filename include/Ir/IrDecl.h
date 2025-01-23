@@ -2,7 +2,6 @@
 #define IR_DECL_H
 
 #include "IrStatement.h"
-#include "IrType.h"
 #include "IrStorageClassSpecifier.h"
 #include "IrDeclarator.h"
 #include <deque>

@@ -2,7 +2,6 @@
 // Created by weigang on 11/1/2025.
 //
 
-#include "Ir/IrType.h"
 #include "Ir/IrLiteral.h"
 
 int IrTypeArray::hashCode() const {
