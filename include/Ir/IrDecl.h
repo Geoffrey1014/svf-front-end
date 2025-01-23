@@ -3,7 +3,6 @@
 
 #include "IrStatement.h"
 #include "IrStorageClassSpecifier.h"
-#include "IrDeclarator.h"
 #include <deque>
 
 

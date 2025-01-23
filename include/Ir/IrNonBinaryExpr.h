@@ -1,7 +1,6 @@
 #ifndef IR_NON_BINARY_EXPR_H
 #define IR_NON_BINARY_EXPR_H
 #include "Ir.h"
-#include "IrDeclarator.h"
 
 class IrNonBinaryExpr : public IrExpr {
 public:

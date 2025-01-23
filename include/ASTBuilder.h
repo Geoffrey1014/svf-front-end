@@ -9,7 +9,6 @@
 #include "IrTransUnit.h"
 #include "Ir/IrStorageClassSpecifier.h"
 #include "Ir/IrSubscriptExpr.h"
-#include "Ir/IrDeclarator.h"
 #include "Ir/IrTypeComposite.h"
 #include "Ir/IrPreproc.h"
 #include "Ir/IrForStmt.h"
