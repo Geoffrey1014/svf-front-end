@@ -1,7 +1,6 @@
 #ifndef IR_FOR_STMT_H
 #define IR_FOR_STMT_H
 
-#include "IrStatement.h"
 #include "IrDecl.h"
 
 class IrForStmt : public IrStatement {

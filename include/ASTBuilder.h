@@ -4,7 +4,6 @@
 #define AST_BUILDER_H
 #include <stack>
 #include "Ir/IrDecl.h"
-#include "Ir/IrStatement.h"
 #include "IrTransUnit.h"
 #include "Ir/IrStorageClassSpecifier.h"
 #include "Ir/IrSubscriptExpr.h"

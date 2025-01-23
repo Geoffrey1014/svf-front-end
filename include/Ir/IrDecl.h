@@ -1,7 +1,5 @@
 #ifndef IR_DECL_H
 #define IR_DECL_H
-
-#include "IrStatement.h"
 #include "IrStorageClassSpecifier.h"
 #include <deque>
 
