@@ -1,6 +1,6 @@
 #include "SymbolTable.h"
 #include <string>
-#include "Ir/Ir.h"
+#include "Ir.h"
 
 std::string SymbolTable::toString(){
     std::stringstream str;

@@ -6,7 +6,7 @@
 #include <stack>
 #include <stdexcept>
 #include "ASTBuilder.h"
-#include "Ir/Ir.h"
+#include "Ir.h"
 
 ///////// Try Catch Print Template ////////
 template <typename T>

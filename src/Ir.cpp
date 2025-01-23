@@ -2,7 +2,7 @@
 // Created by weigang on 11/1/2025.
 //
 
-#include "Ir/Ir.h"
+#include "Ir.h"
 
 int IrTypeArray::hashCode() const {
     int hash = 0;

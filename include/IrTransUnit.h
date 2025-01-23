@@ -1,6 +1,6 @@
 #ifndef IR_TRANS_UNIT_H
 #define IR_TRANS_UNIT_H
-#include "Ir/Ir.h"
+#include "Ir.h"
 #include "LlBuilderList.h"
 #include <deque>
 
