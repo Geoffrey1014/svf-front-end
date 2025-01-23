@@ -1,8 +1,12 @@
-fn main() {
-    let mut a: i32;
-    a = add(2, 3);
-}
+static mut A: i32 = 0;
 
 fn add(a: i32, b: i32) -> i32 {
-    a + b * a;
+    a + b * a
+}
+
+fn main() {
+    unsafe {
+        A = add(2, 3);
+    }
+    println!("{}", unsafe { A });
 }
