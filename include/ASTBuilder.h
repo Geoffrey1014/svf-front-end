@@ -5,7 +5,6 @@
 #include <stack>
 #include "Ir/IrDecl.h"
 #include "Ir/IrLiteral.h"
-#include "Ir/IrBinaryExpr.h"
 #include "Ir/IrArg.h"
 #include "Ir/IrStatement.h"
 #include "Ir/IrNonBinaryExpr.h"
