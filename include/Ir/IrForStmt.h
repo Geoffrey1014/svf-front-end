@@ -2,7 +2,6 @@
 #define IR_FOR_STMT_H
 
 #include "IrStatement.h"
-#include "IrExpr.h"
 #include "IrDecl.h"
 #include "IrNonBinaryExpr.h"
 

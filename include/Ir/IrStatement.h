@@ -1,7 +1,6 @@
 #ifndef IR_STATEMENT_H
 #define IR_STATEMENT_H
 #include "Ir.h"
-#include "IrExpr.h"
 #include "IrNonBinaryExpr.h"
 #include <deque>
 

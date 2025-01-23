@@ -2,7 +2,6 @@
 #define IR_ARG_H
 
 #include "Ir.h"
-#include "IrExpr.h"
 
 class IrArgList : public Ir {
 private:

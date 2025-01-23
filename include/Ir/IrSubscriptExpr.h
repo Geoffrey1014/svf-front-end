@@ -1,7 +1,7 @@
 #ifndef IR_SUBSCRIPT_EXPR_H
 #define IR_SUBSCRIPT_EXPR_H
 
-#include "IrExpr.h"
+#include "Ir.h"
 class IrSubscriptExpr : public IrNonBinaryExpr {
 private:
     IrExpr* baseExpr;   // The array or object being indexed

@@ -41,7 +41,7 @@ class IrTypeIdent : public IrType {
             return indentSpace + "|--typeId: " + name + "\n";
         }
 
-        std::string toString() const{
+        std::string toString() const override{
             return name;
         }
 

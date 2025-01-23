@@ -4,7 +4,6 @@
 #define AST_BUILDER_H
 #include <stack>
 #include "Ir/IrDecl.h"
-#include "Ir/IrExpr.h"
 #include "Ir/IrLiteral.h"
 #include "Ir/IrBinaryExpr.h"
 #include "Ir/IrArg.h"

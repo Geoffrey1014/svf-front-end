@@ -1,6 +1,6 @@
 #ifndef IR_NON_BINARY_EXPR_H
 #define IR_NON_BINARY_EXPR_H
-#include "IrExpr.h"
+#include "Ir.h"
 #include "IrDeclarator.h"
 #include "IrArg.h"
 

@@ -1,6 +1,6 @@
 #ifndef IR_BINARY_EXPR_H
 #define IR_BINARY_EXPR_H
-#include "IrExpr.h"
+#include "Ir.h"
 
 class IrBinaryExpr : public IrExpr {
 private:
