@@ -3,12 +3,7 @@
 #ifndef AST_BUILDER_H
 #define AST_BUILDER_H
 #include <stack>
-#include "Ir/IrDecl.h"
 #include "IrTransUnit.h"
-#include "Ir/IrStorageClassSpecifier.h"
-#include "Ir/IrSubscriptExpr.h"
-#include "Ir/IrTypeComposite.h"
-#include "Ir/IrForStmt.h"
 
 #include "main.h"
 

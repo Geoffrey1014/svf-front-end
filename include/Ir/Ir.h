@@ -3,6 +3,7 @@
 #include <string>
 #include <tree_sitter/api.h> 
 #include <vector>
+#include <deque>
 #include "Ll.h"
 #include "LlLocationStruct.h"
 #include "LlBuilder.h"
@@ -986,7 +987,6 @@ public:
     }
 };
 
-#include <deque>
 
 class IrStatement : public Ir {
 public:
@@ -1257,5 +1257,888 @@ public:
         return nullptr;
     }
 };
+
+
+class IrStorageClassSpecifier : public Ir {
+private:
+    std::string specifier;
+
+public:
+    IrStorageClassSpecifier(const std::string& specifier, const TSNode& node)
+        : Ir(node), specifier(specifier) {}
+
+    const std::string& getValue() const {
+        return this->specifier;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        return indentSpace + "|--storageClassSpecifier: " + this->specifier + "\n";
+    }
+
+    std::string toString() const override{
+        return "IrStorageClassSpecifier: " + this->specifier;
+    }
+};
+
+
+class IrFieldDecl : public Ir {
+private:
+    IrType* type;                        // Type of the field
+    IrDeclDeclarator* declarator;        // Field name or declarator
+
+public:
+    IrFieldDecl(IrType* type, IrDeclDeclarator* declarator, const TSNode& node)
+        : Ir(node), type(type), declarator(declarator){} // bitfieldSize(bitfieldSize)
+
+    ~IrFieldDecl() {
+        delete type;
+        delete declarator;
+    }
+
+    IrType* getType() const { return type; }
+    IrDeclDeclarator* getDeclarator() const { return declarator; }
+
+    // int getBitfieldSize() const { return bitfieldSize; }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string str = indentSpace + "|--field_declaration:\n";
+        str += type->prettyPrint(addIndent(indentSpace));
+
+        if (declarator) {
+            str += declarator->prettyPrint(addIndent(indentSpace));
+        }
+        // if (bitfieldSize != -1) {
+        //     str += indentSpace + "  |--bitfield_size: " + std::to_string(bitfieldSize) + "\n";
+        // }
+        return str;
+    }
+
+    std::string toString() const override{
+        return type->toString() + " " + declarator->toString();
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* declaratorComponent = declarator->generateLlIr(builder, symbolTable);
+        LlLocationVar* location = dynamic_cast<LlLocationVar*>(declaratorComponent);
+        symbolTable.putOnVarTable(*location->getVarName(), type);
+        return location;
+    }
+};
+
+class IrFieldDeclList : public Ir {
+private:
+    std::deque<IrFieldDecl*> fieldDeclarations; // List of field declarations
+
+public:
+    IrFieldDeclList(const TSNode& node) : Ir(node) {}
+
+    ~IrFieldDeclList() {
+        for (auto* fieldDecl : fieldDeclarations) {
+            delete fieldDecl;
+        }
+    }
+
+    void addField(IrFieldDecl* fieldDecl) {
+        fieldDeclarations.push_front(fieldDecl);
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        if (fieldDeclarations.empty()) {
+            return "";
+        }
+        
+        std::string str = indentSpace + "|--field_declaration_list:\n";
+        for (auto* fieldDecl : fieldDeclarations) {
+            str += fieldDecl->prettyPrint(addIndent(indentSpace));
+        }
+        return str;
+    }
+
+    std::string toString() const override{
+        std::string str = "";
+        for (auto* fieldDecl : fieldDeclarations) {
+            str += fieldDecl->toString() + ", ";
+        }
+        return str;
+    }
+};
+
+class IrParamDecl : public Ir {
+private:
+    IrType* paramType;                 // The type of the parameter
+    // can be unnamed parameters or void
+    IrDeclDeclarator* declarator;      // Can represent a name or abstract declarator
+
+public:
+    IrParamDecl(IrType* paramType, IrDeclDeclarator* declarator, const TSNode& node)
+        : Ir(node), paramType(paramType), declarator(declarator) {}
+
+    ~IrParamDecl() {
+        delete paramType;
+        delete declarator;
+    }
+
+    IrType* getParamType() const {
+        return this->paramType;
+    }
+
+    IrDeclDeclarator* getDeclarator() const {
+        return this->declarator;
+    }
+
+    std::string toString() const override{
+        if (declarator) {
+            return paramType->toString() + " " + declarator->toString();
+        }
+        return paramType->toString();
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--param:\n";
+
+        prettyString += paramType->prettyPrint(addIndent(indentSpace));
+
+        if (declarator) {
+            prettyString += declarator->prettyPrint(addIndent(indentSpace));
+        }
+
+        return prettyString;
+    }
+};
+
+
+class IrParamList : public Ir {
+private:
+    std::deque<IrParamDecl*> paramsList;
+
+public:
+    IrParamList(const TSNode& node) : Ir(node) {}
+    ~IrParamList() {
+        for (IrParamDecl* param: this->paramsList) {
+            delete param;
+        }
+    }
+
+    std::deque<IrParamDecl*> getParamsList() {
+        return this->paramsList;
+    }
+
+    void addToParamsList(IrParamDecl* newParam) {
+        this->paramsList.push_front(newParam);
+    }
+
+    std::string toString() const override{
+        std::string paramsString = "";
+        for (IrParamDecl* paramDecl: this->paramsList) {
+            paramsString += paramDecl->toString() + ", ";
+        }
+        return paramsString;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--paramList:\n";
+
+        for (IrParamDecl* paramDecl: this->paramsList) {
+            prettyString += paramDecl->prettyPrint(addIndent(indentSpace));
+        }
+
+        return prettyString;
+    }
+};
+
+// function_declarator
+class IrFunctionDecl : public IrDeclDeclarator {
+private:
+    IrDeclDeclarator* declarator;  // The base declarator (e.g., function name, could include pointers)
+    IrParamList* paramsList;   // List of function parameters
+
+public:
+    IrFunctionDecl(IrDeclDeclarator* declarator, IrParamList* paramsList, const TSNode& node)
+        : Ir(node), IrDeclDeclarator(node), declarator(declarator), paramsList(paramsList) {}
+
+    ~IrFunctionDecl() override {
+        delete declarator;
+        delete paramsList;
+    }
+
+    IrDeclDeclarator* getDeclarator() const { return declarator; }
+
+    IrParamList* getParamsList() const { return paramsList; }
+
+    const std::string getName() const override {
+        if (declarator) return declarator->getName();
+        return "";
+    }
+
+    std::string toString() const override{
+        return getName() + " (" + paramsList->toString() + ")";
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--function_declarator\n";
+        prettyString += declarator->prettyPrint(addIndent(indentSpace));
+        prettyString += paramsList->prettyPrint(addIndent(indentSpace));
+        return prettyString;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        return new LlLocationVar(new std::string(getName()));
+    }
+};
+
+// function_definition
+class IrFunctionDef : public Ir {
+private:
+    IrType* returnType;
+    IrFunctionDecl* functionDecl;
+    IrCompoundStmt* compoundStmt;
+public:
+    IrFunctionDef(IrType* returnType ,IrFunctionDecl* functionDecl, IrCompoundStmt* compoundStmt, const TSNode& node) : returnType(returnType), functionDecl(functionDecl), compoundStmt(compoundStmt), Ir(node) {}
+    ~IrFunctionDef() {
+        delete returnType;
+        delete functionDecl;
+        delete compoundStmt;
+    }
+
+    IrType* getReturnType() const { return returnType; }
+    IrFunctionDecl* getFunctionDecl() const { return functionDecl; }
+    IrCompoundStmt* getCompoundStmt() const { return compoundStmt; }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        std::string name = functionDecl->getName();
+        LlEmptyStmt* emptyStmt = new LlEmptyStmt();
+        builder.appendStatement(name, emptyStmt);
+        this->compoundStmt->generateLlIr(builder, symbolTable);
+        return nullptr;
+    }
+
+    std::string toString() const override{
+        std::string result = returnType->toString() + " ";
+        result += functionDecl->toString();
+        result += " {\n";
+        if (compoundStmt) {
+            result += compoundStmt->toString();  // Include the body
+        }
+        result += "\n}";
+        return result;
+    }
+    std::string getFunctionName() { return functionDecl->toString();}
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--function_definition\n";
+        prettyString += returnType->prettyPrint(addIndent(indentSpace));
+        prettyString += functionDecl->prettyPrint(addIndent(indentSpace));
+        prettyString += compoundStmt->prettyPrint(addIndent(indentSpace));
+        return prettyString;
+    }
+};
+
+class IrInitializerList : public IrExpr {
+private:
+    std::deque<IrExpr*> elements;
+
+public:
+    IrInitializerList(const TSNode& node) : IrExpr(node), Ir(node) {}
+
+    ~IrInitializerList() {
+        for (IrExpr* expr : elements) {
+            delete expr;
+        }
+    }
+
+    void addElement(IrExpr* expr) {
+        elements.push_front(expr);
+    }
+
+    std::deque<IrExpr*> getElements() const {
+        return elements;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyPrint = indentSpace + "|--initializer_list\n";
+        for (IrExpr* expr : elements) {
+            prettyPrint += expr->prettyPrint(addIndent(indentSpace));
+        }
+        return prettyPrint;
+    }
+
+    std::string toString() const override {
+        std::string str = "{ ";
+        for (auto expr : elements) {
+            str += expr->toString() + ", ";
+        }
+        str += "}";
+        return str;
+    }
+};
+
+// a = 3;
+class IrInitDeclarator : public Ir {
+private:
+    IrDeclDeclarator* declarator; 
+    IrExpr* initializer;     
+
+public:
+    IrInitDeclarator(IrDeclDeclarator* declarator, IrExpr* initializer, const TSNode& node)
+        : Ir(node), declarator(declarator), initializer(initializer) {}
+
+    ~IrInitDeclarator() override {
+        delete declarator;
+        delete initializer;
+    }
+
+    IrDeclDeclarator* getDeclarator() const { return declarator; }
+    IrExpr* getInitializer() const { return initializer; }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--init_declarator:\n";
+        prettyString += declarator->prettyPrint(addIndent(indentSpace));
+        prettyString += initializer->prettyPrint(addIndent(indentSpace));
+        return prettyString;
+    }
+
+    std::string toString() const override{
+        return declarator->toString() + " = " + initializer->toString();
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* compo = declarator->generateLlIr(builder, symbolTable);
+        LlLocationVar* location = dynamic_cast<LlLocationVar*>(compo);
+        LlLocation* init = initializer->generateLlIr(builder, symbolTable);
+        LlAssignStmtRegular* assignStmt = new LlAssignStmtRegular(location, init);
+        builder.appendStatement(assignStmt);
+        return location;
+    }
+};
+
+// declaration
+class IrDecl : public IrStatement {
+private:
+    IrType* type;                        
+    IrStorageClassSpecifier* specifier;
+
+    // Store exactly ONE of these (whichever applies):
+    IrInitDeclarator* initDecl;      
+    IrDeclDeclarator* simpleDecl;      
+
+public:
+    // Constructor for an initialized declarator (e.g. int a=10)
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrInitDeclarator* initDecl,
+           const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier), initDecl(initDecl), simpleDecl(nullptr) {}
+
+    // Constructor for a simple declarator (e.g. int a)
+    IrDecl(IrType* type, IrStorageClassSpecifier* specifier, IrDeclDeclarator* simpleDecl,
+           const TSNode& node)
+        : IrStatement(node), type(type), specifier(specifier),
+          initDecl(nullptr), simpleDecl(simpleDecl) {}
+
+    ~IrDecl() override {
+        delete type;
+        delete specifier;
+        delete initDecl;
+        delete simpleDecl;
+    }
+
+    IrType* getType() const {
+        return type;
+    }
+
+    IrStorageClassSpecifier* getSpecifier() const {
+        return specifier;
+    }
+
+    IrInitDeclarator* getInitDecl() const {
+        return initDecl;
+    }
+
+    IrDeclDeclarator* getSimpleDecl() const {
+        return simpleDecl;
+    }
+
+    std::string getName() const {
+        if (initDecl) {
+            return initDecl->getDeclarator()->getName();
+        } else if (simpleDecl) {
+            return simpleDecl->getName();
+        }
+        return "";
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--declaration:\n";
+
+        if (specifier) {
+            prettyString += specifier->prettyPrint(addIndent(indentSpace));
+        }
+        if (type) {
+            prettyString += type->prettyPrint(addIndent(indentSpace));
+        }
+
+        if (initDecl) {
+            prettyString += initDecl->prettyPrint(addIndent(indentSpace));
+        } else if (simpleDecl) {
+            prettyString += simpleDecl->prettyPrint(addIndent(indentSpace));
+        }
+
+        return prettyString;
+    }
+
+    std::string toString() const override {
+        std::string str;
+        if (specifier) {
+            str += specifier->getValue() + " ";
+        }
+        if (type) {
+            str += type->toString();
+        }
+        if (initDecl) {
+            str += " " + initDecl->toString();
+        } else if (simpleDecl) {
+            str += " " + simpleDecl->toString();
+        }
+        return str;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        auto handleDeclaration = [&](IrType* type) {
+            // simpleDecl most case is identifier (id)
+            if (simpleDecl) {
+                LlLocation *location = simpleDecl->generateLlIr(builder, symbolTable);
+                symbolTable.putOnVarTable(*(location->getVarName()), type);
+            } 
+            else if (initDecl) {
+                LlLocation *location = initDecl->generateLlIr(builder, symbolTable);
+                symbolTable.putOnVarTable(*(location->getVarName()), type);
+            }
+        };
+        if(auto castType = dynamic_cast<IrType*>(type)){
+            handleDeclaration(type);
+        } 
+        return nullptr;
+    }
+};
+
+
+class IrMultiDecl : public IrStatement {
+private:
+    std::deque<IrDecl*> decls;
+
+public:
+    IrMultiDecl(const TSNode& node)
+        : IrStatement(node) {}
+
+    ~IrMultiDecl() override {
+        for (auto* d : decls) {
+            delete d;
+        }
+    }
+
+    // Add an IrDecl to this container
+    void addDeclaration(IrDecl* decl) {
+        decls.push_back(decl);
+    }
+
+    // Ownership-transfer method
+    std::deque<IrDecl*> releaseDeclarations() {
+        // Move the entire 'decls' out to a temporary. 
+        // 'decls' will become empty.
+        std::deque<IrDecl*> temp = std::move(decls); 
+        // now 'decls' is empty, so ~IrMultiDecl won't delete these pointers
+        return temp;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string result = indentSpace + "|--multiDecl:\n";
+        for (auto* d : decls) {
+            result += d->prettyPrint(addIndent(indentSpace));
+        }
+        return result;
+    }
+
+    std::string toString() const override {
+        std::string out;
+        for (auto* d : decls) {
+            out += d->toString() + ";\n";
+        }
+        return out;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        for (auto* d : decls) {
+            d->generateLlIr(builder, symbolTable);
+        }
+        return nullptr;
+    }
+};
+
+
+class IrForStmt : public IrStatement {
+private:
+    IrAssignExpr* initializer;
+    IrExpr* condition;
+    IrExpr* update;
+    IrStatement* body;
+
+public:
+    IrForStmt(IrAssignExpr* initializer, IrExpr* condition, IrExpr* update, IrStatement* body, const TSNode& node)
+        : IrStatement(node), initializer(initializer), condition(condition), update(update), body(body) {}
+    ~IrForStmt() {
+        delete initializer;
+        delete condition;
+        delete update;
+        delete body;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--forStmt\n";
+
+        if (initializer) {
+            prettyString += addIndent(indentSpace) + "|--initializer\n";
+            prettyString += initializer->prettyPrint(addIndent(indentSpace, 2));
+        }
+        if (condition) {
+            prettyString += addIndent(indentSpace) + "|--condition\n";
+            prettyString += condition->prettyPrint(addIndent(indentSpace, 2));
+        }
+        if (update) {
+            prettyString += addIndent(indentSpace) + "|--update\n";
+            prettyString += update->prettyPrint(addIndent(indentSpace, 2));
+        }
+        prettyString += addIndent(indentSpace) + "|--body\n";
+        prettyString += body->prettyPrint(addIndent(indentSpace, 2));
+
+        return prettyString;
+    }
+
+    std::string toString() const override {
+        std::string result = "for (";
+
+        result += initializer->toString() + "; ";
+        result += condition->toString()+ "; ";
+        result += update->toString()+ ") ";
+
+        if (body) {
+            result += "\t\n" + body->toString();
+        } else {
+            result += "{}";
+        }
+        return result;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        if (initializer) {
+            initializer->generateLlIr(builder, symbolTable);
+        }
+
+        std::string forLable = builder.generateLabel();
+        std::string* condLabel = new std::string();
+        condLabel->append("for.cond.");
+        condLabel->append(forLable);
+
+        std::string* bodyLabel = new std::string();
+        bodyLabel->append("for.body.");
+        bodyLabel->append(forLable);
+        
+        std::string* endLabel = new std::string();
+        endLabel->append("for.end.");
+        endLabel->append(forLable);
+
+        LlEmptyStmt* emptyStmtFor = new LlEmptyStmt();
+        builder.appendStatement(*condLabel, emptyStmtFor);
+
+        LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
+        LlJumpConditional* conditionalJump = new LlJumpConditional(bodyLabel,conditionVar);
+        builder.appendStatement(conditionalJump);
+        LlJumpUnconditional* jumpToForEnd = new LlJumpUnconditional(endLabel);
+        builder.appendStatement(jumpToForEnd);
+
+        LlEmptyStmt* emptyStmtForBody = new LlEmptyStmt();
+        builder.appendStatement(*bodyLabel, emptyStmtForBody);
+        if (body) {
+            body->generateLlIr(builder, symbolTable);
+        }
+
+        std::string* incLabel = new std::string();
+        incLabel->append("for.inc.");
+        incLabel->append(forLable);
+        LlEmptyStmt* emptyStmtForInc = new LlEmptyStmt();
+        builder.appendStatement(*incLabel, emptyStmtForInc);
+        update->generateLlIr(builder, symbolTable);
+
+        LlJumpUnconditional* jumpToFor = new LlJumpUnconditional(condLabel);
+        builder.appendStatement(jumpToFor);
+
+        LlEmptyStmt* emptyStmtForEnd = new LlEmptyStmt();
+        builder.appendStatement(*endLabel, emptyStmtForEnd);
+
+        return nullptr;
+    }
+};
+
+
+class IrSubscriptExpr : public IrNonBinaryExpr {
+private:
+    IrExpr* baseExpr;   // The array or object being indexed
+    IrExpr* indexExpr;  // The index expression
+    int level = 0;
+
+public:
+    IrSubscriptExpr(IrExpr* baseExpr, IrExpr* indexExpr, const TSNode& node)
+        : Ir(node), IrNonBinaryExpr(node), baseExpr(baseExpr), indexExpr(indexExpr){}
+
+    ~IrSubscriptExpr() {
+        delete baseExpr;
+        delete indexExpr;
+    }
+
+    void setLevel(int l){
+        level = l;
+    }
+
+    const std::string getName() const override {
+        return baseExpr->getName();
+    }
+
+    IrExpr* getBaseExpr() const {
+        return baseExpr;
+    }
+
+    IrExpr* getIndexExpr() const {
+        return indexExpr;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--subscript_expression\n";
+
+        if (baseExpr) {
+            prettyString += baseExpr->prettyPrint(addIndent(indentSpace));
+        } else {
+            prettyString += addIndent(indentSpace) + "|--Error: Missing base expression\n";
+        }
+
+        prettyString += addIndent(indentSpace) + "|--index\n";
+        // Print index expression
+        if (indexExpr) {
+             prettyString += indexExpr->prettyPrint(addIndent(indentSpace, 2));
+        } else {
+            prettyString += addIndent(indentSpace, 2) + "|--Error: Missing index expression\n";
+        }
+        return prettyString;
+    }
+
+    std::string toString() const override{
+        return baseExpr->toString() + "[" + indexExpr->toString() + "]";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        std::string baseName = baseExpr->getName();
+        IrType* type = symbolTable.getFromVarTable(baseName);
+        IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type);
+
+        if (!arrayType) {
+            std::cerr << "Error: " << baseName << " is not an array." << std::endl;
+            return nullptr;
+        }
+
+        deque<IrLiteral*> dims = arrayType->getDimension();
+        int elemWidth = arrayType->getBaseType()->getWidth();
+        int arrSize = dims.size();
+
+        IrExpr* currentExpr = this;
+        int currentLevel = arrSize; 
+
+        int cumulativeMultiplier = elemWidth;
+
+        LlLocation* offsetTemp = nullptr;
+
+        while (auto* sub = dynamic_cast<IrSubscriptExpr*>(currentExpr)) {
+            if (currentLevel <= 0) {
+                std::cerr << "Error: Too many subscripts for array " << baseName << std::endl;
+                return nullptr;
+            }
+
+            // Get the size of the current dimension
+            IrLiteral* dimLiteral = dims[currentLevel - 1];
+            int dimSize = dynamic_cast<IrLiteralNumber*>(dimLiteral)->getValue();
+
+            LlLocation* indexLocation = sub->getIndexExpr()->generateLlIr(builder, symbolTable);
+
+            LlLocation* mulTemp = builder.generateTemp();
+            LlLiteralInt* multiplierLiteral = new LlLiteralInt(cumulativeMultiplier);
+            builder.appendStatement(new LlAssignStmtBinaryOp(mulTemp, indexLocation, "*", multiplierLiteral));
+
+            if (!offsetTemp) {
+                offsetTemp = mulTemp;
+            } else {
+                LlLocation* addTemp = builder.generateTemp();
+                builder.appendStatement(new LlAssignStmtBinaryOp(addTemp, offsetTemp, "+", mulTemp));
+                offsetTemp = addTemp;
+            }
+            cumulativeMultiplier *= dimSize;
+
+            currentExpr = sub->getBaseExpr();
+            currentLevel--;
+        }
+        return new LlLocationArray(new std::string(baseName), offsetTemp);
+    }
+};
+
+
+class IrTypeIdent : public IrType {
+    private:
+        const std::string name;
+    public:
+        IrTypeIdent(const std::string& name, const TSNode& node) 
+            : IrType(node), name(name) {}
+        ~IrTypeIdent() = default;
+
+        IrTypeIdent* clone() const override {
+            return new IrTypeIdent(*this);
+        }
+
+        const std::string& getName() const {
+            return name;
+        }
+
+        bool operator==(const Ir& that) const override{
+            if (&that == this) {
+                return true;
+            }
+            if (auto thatIdent = dynamic_cast<const IrTypeIdent*>(&that)) {
+                return this->name == thatIdent->name;
+            }
+            return false;
+        }
+
+        int hashCode() const {
+            std::hash<std::string> hasher;
+            return hasher(this->name);
+        }
+
+        std::string prettyPrint(std::string indentSpace) const override{
+            return indentSpace + "|--typeId: " + name + "\n";
+        }
+
+        std::string toString() const override{
+            return name;
+        }
+
+        LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+            LlLocation* location = new LlLocationTypeAlias(&name);
+            return location;
+        }
+};
+
+class IrPointerType : public IrType {
+private:
+    IrType* baseType;
+
+public:
+    IrPointerType(IrType* baseType, const TSNode& node) 
+        : IrType(node), baseType(baseType) {}
+
+    ~IrPointerType() { delete baseType; }
+
+    std::string toString() const override {
+        return baseType->toString() + "*";
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string result = indentSpace + "|--pointer: *\n";
+        result += baseType->prettyPrint(addIndent(indentSpace));
+        return result;
+    }
+
+    IrType* getBaseType() const {
+        return baseType;
+    }
+
+    IrPointerType* clone() const override {
+        return new IrPointerType(*this);
+    }
+};
+
+// Comment: maybe refactor the IrType (add one layer for primitive types or ...)
+class IrTypeStruct : public IrType {
+private:
+    IrIdent* name;                       
+    IrFieldDeclList* fieldDeclList;      // List of field declarations
+
+public:
+    IrTypeStruct(IrIdent* name, IrFieldDeclList* fieldDeclList, const TSNode& node)
+        : IrType(node), name(name), fieldDeclList(fieldDeclList) {}
+
+    ~IrTypeStruct() {
+        delete name;
+        delete fieldDeclList;
+    }
+
+    IrTypeStruct* clone() const override {
+        return new IrTypeStruct(*this);
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--type: struct\n";
+        if (name) {
+            prettyString += name->prettyPrint(addIndent(indentSpace));
+        }
+        prettyString += fieldDeclList->prettyPrint(addIndent(indentSpace));
+        return prettyString;
+    }
+
+    std::string toString() const override{
+        std::string str = "struct ";
+        if (name) {
+            str += name->toString();
+        }
+        return str + " {" + fieldDeclList->toString() + "}";
+    }
+};
+
+class IrTypeDef : public Ir {
+private:
+    IrType* type;        // The original type being aliased
+    IrTypeIdent* alias;   // The alias name
+
+public:
+    IrTypeDef(IrType* type, IrTypeIdent* alias, const TSNode& node)
+        : Ir(node), type(type), alias(alias) {}
+
+    ~IrTypeDef() {
+        delete type;
+        delete alias;
+    }
+
+    IrType* getbaseType() const {
+        return type;
+    }
+
+    IrTypeIdent* getName() const {
+        return alias;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--typedef:\n";
+        prettyString += type->prettyPrint(addIndent(indentSpace));
+        prettyString += alias->prettyPrint(addIndent(indentSpace));
+        return prettyString;
+    }
+
+    std::string toString() const override{
+        return "typedef " + type->toString() + " " + alias->toString();
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        IrTypeStruct* structType = dynamic_cast<IrTypeStruct*>(type);
+        if (structType) {
+            LlLocation *compo = alias->generateLlIr(builder, symbolTable);          
+            LlLocationTypeAlias* location = dynamic_cast<LlLocationTypeAlias*>(compo);           
+            symbolTable.putOnTypeDefTable(*location->getAliasTypeName(), structType);
+        }
+        return nullptr;     
+    }
+};
+
 
 #endif
