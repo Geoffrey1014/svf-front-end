@@ -145,6 +145,18 @@ public:
     int getWidth() const { return width; }
 };
 
+class IrLiteral : public IrExpr {
+public:
+    IrLiteral(const TSNode& node) : IrExpr(node), Ir(node) {}
+
+    virtual ~IrLiteral() = default;
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        std::cerr << "IrLiteral Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
+        return new LlLocationVar(new std::string("Error")); 
+    }
+};
+
 class IrTypeBool : public IrType {
 
 public:
@@ -311,7 +323,6 @@ public:
     }
 };
 
-class IrLiteral;
 class IrTypeArray : public IrType {
 private:
     IrType* baseType;
@@ -366,19 +377,6 @@ public:
 
     std::string toString() const override;
 
-};
-
-
-class IrLiteral : public IrExpr {
-public:
-    IrLiteral(const TSNode& node) : IrExpr(node), Ir(node) {}
-
-    virtual ~IrLiteral() = default;
-
-    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        std::cerr << "IrLiteral Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("Error")); 
-    }
 };
 
 
@@ -537,5 +535,50 @@ public:
     }
 };
 
+
+class IrArgList : public Ir {
+private:
+    std::deque<IrExpr*> argsList;
+public:
+    IrArgList(const TSNode& node) : Ir(node) {}
+    ~IrArgList() {
+        for (IrExpr* arg: this->argsList) {
+            delete arg;
+        }
+    }   
+
+    std::deque<IrExpr*> getArgsList() {
+        return this->argsList;
+    }
+
+    void addToArgsList(IrExpr* newArg) {
+        this->argsList.push_front(newArg);
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--argList:\n";
+
+        for (IrExpr* arg: this->argsList) {
+            prettyString += arg->prettyPrint(addIndent(indentSpace)); 
+        }
+
+        return prettyString;
+    }
+
+    std::string toString() const override{
+        std::string argsString = "";
+        for (IrExpr* arg: this->argsList) {
+            argsString += arg->toString() + ", ";
+        }
+        return argsString;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        for (IrExpr* arg: this->argsList) {
+            arg->generateLlIr(builder, symbolTable);
+        }
+        return nullptr;
+    }
+};
 
 #endif
