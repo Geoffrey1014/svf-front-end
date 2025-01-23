@@ -1,11 +1,7 @@
 #ifndef IR_TRANS_UNIT_H
 #define IR_TRANS_UNIT_H
-#include "Ir/Ir.h"
-#include "Ir/IrDecl.h"
+#include "Ir.h"
 #include "LlBuilderList.h"
-#include "Ir/IrPreprocInclude.h"
-#include "Ir/IrTypeComposite.h"
-#include "Ir/IrPreproc.h"
 #include <deque>
 
 class IrTransUnit : public Ir {
@@ -68,6 +64,11 @@ public:
             result += "\n" + node->toString();
         }
         return result;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        // TODO: Implement
+        return nullptr;
     }
 };
 

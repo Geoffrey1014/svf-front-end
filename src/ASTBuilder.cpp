@@ -5,8 +5,6 @@
 #include "ASTBuilder.h"
 #include "main.h"
 
-#include "ASTBuilder.tpp"
-
 std::string ASTBuilder::getNodeText(const TSNode &node) {
     unsigned start = ts_node_start_byte(node);
     unsigned end = ts_node_end_byte(node);
