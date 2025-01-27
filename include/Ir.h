@@ -68,7 +68,7 @@ public:
 
 class IrBinaryExpr : public IrExpr {
 private:
-    string operation;
+    const string operation;
     IrExpr* leftOperand;
     IrExpr* rightOperand;
 
@@ -80,15 +80,15 @@ public:
         delete leftOperand;
         delete rightOperand;
     }
-    IrExpr* getLeftOperand() {
+    const IrExpr* getLeftOperand() const{
         return this->leftOperand;
     }
 
-    IrExpr* getRightOperand() {
+    const IrExpr* getRightOperand() const{
         return this->rightOperand;
     }
 
-    string& getOperation() {
+    const string& getOperation() const{
         return this->operation;
     }
 
@@ -155,13 +155,7 @@ public:
     }
 
     bool operator==(const Ir& that) const override{
-        if (&that == this) {
-            return true;
-        }
-        if (dynamic_cast<const IrTypeBool*>(&that) == nullptr) {
-            return false;
-        }
-        return true;
+        return dynamic_cast<const IrTypeBool*>(&that) != nullptr;
     }
 
     string toString() const override{
@@ -188,14 +182,7 @@ public:
     }
 
     bool operator==(const Ir& that) const override{
-        if (&that == this) {
-            return true;
-        }
-        if (dynamic_cast<const IrTypeVoid*>(&that) == nullptr) {
-            return false;
-        }
-
-        return true;
+        return dynamic_cast<const IrTypeVoid*>(&that) != nullptr;
     }
 
     string toString() const override{
@@ -222,14 +209,10 @@ public:
     }
 
     bool operator==(const Ir& that) const override{
-        if (&that == this) {
-            return true;
+        if (auto thatTypeInt = dynamic_cast<const IrTypeInt*>(&that)) {
+            return this->width == thatTypeInt->width;
         }
-        if (dynamic_cast<const IrTypeInt*>(&that) == nullptr) {
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     string toString() const override{
@@ -255,13 +238,7 @@ public:
     }
 
     bool operator==(const Ir& that) const override{
-        if (&that == this) {
-            return true;
-        }
-        if (dynamic_cast<const IrTypeChar*>(&that) == nullptr) {
-            return false;
-        }
-        return true;
+        return dynamic_cast<const IrTypeChar*>(&that) != nullptr;
     }
 
     string prettyPrint(string indentSpace) const override{
@@ -288,13 +265,7 @@ public:
     }
 
     bool operator==(const Ir& that) const override{
-        if (&that == this) {
-            return true;
-        }
-        if (dynamic_cast<const IrTypeString*>(&that) == nullptr) {
-            return false;
-        }
-        return true;
+        return dynamic_cast<const IrTypeString*>(&that) != nullptr;
     }
 
     string toString() const override{
@@ -348,7 +319,7 @@ public:
             if (this->dimension.size() != thatTypeArray->dimension.size()) {
                 return false;
             }
-            for (int i = 0; i < this->dimension.size(); i++) {
+            for (size_t i = 0; i < this->dimension.size(); i++) {
                 if (this->dimension[i] != thatTypeArray->dimension[i]) {
                     return false;
                 }
@@ -380,6 +351,13 @@ public:
         return new IrTypeBool(getNode());
     }
 
+    bool operator==(const Ir& that) const override{
+        if (auto thatLiteralBool = dynamic_cast<const IrLiteralBool*>(&that)) {
+            return this->value == thatLiteralBool->value;
+        }
+        return false;
+    }
+
     string prettyPrint(string indentSpace) {
         string prettyPrint = indentSpace + "|--boolLiteral\n";
         prettyPrint += addIndent(indentSpace)+ "|--value: " + (this->value ? "true" : "false") + "\n";
@@ -409,6 +387,13 @@ public:
     ~IrLiteralChar() override = default;
     IrType* getExpressionType() {
         return new IrTypeVoid(getNode());
+    }
+
+    bool operator==(const Ir& that) const override{
+        if (auto thatLiteralChar = dynamic_cast<const IrLiteralChar*>(&that)) {
+            return this->value == thatLiteralChar->value;
+        }
+        return false;
     }
 
     string prettyPrint(string indentSpace) {
@@ -446,6 +431,13 @@ public:
         return new IrTypeInt(getNode());
     }
 
+    bool operator==(const Ir& that) const override{
+        if (auto thatLiteralNumber = dynamic_cast<const IrLiteralNumber*>(&that)) {
+            return this->value == thatLiteralNumber->value;
+        }
+        return false;
+    }
+
     string prettyPrint(string indentSpace) const override {
         string prettyPrint = indentSpace + "|--NumberLiteral\n";
         prettyPrint += addIndent(indentSpace) + "|--value: " + to_string(this->value) + "\n";
@@ -479,6 +471,13 @@ public:
         return value;
     }
 
+    bool operator==(const Ir& that) const override{
+        if (auto thatLiteralStringContent = dynamic_cast<const IrLiteralStringContent*>(&that)) {
+            return this->value == thatLiteralStringContent->value;
+        }
+        return false;
+    }
+
     string prettyPrint(string indentSpace) const override {
         return indentSpace + "|--stringContent: " + value + "\n";
     }
@@ -503,6 +502,13 @@ public:
 
     const string& getValue() const {
         return stringContent->getValue();
+    }
+
+    bool operator==(const Ir& that) const override{
+        if (auto thatLiteralString = dynamic_cast<const IrLiteralString*>(&that)) {
+            return *this->stringContent == *thatLiteralString->stringContent;
+        }
+        return false;
     }
 
     string prettyPrint(string indentSpace) const override {
