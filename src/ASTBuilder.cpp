@@ -113,13 +113,14 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode &cst_node) {
         IrDeclDeclarator* declarator = nullptr;
 
         if (!this->ast_stack.empty()) {
-            if (IrIdent* ident = dynamic_cast<IrIdent*>(this->ast_stack.top())) {
+            Ir* node = this->ast_stack.top();
+            if (IrIdent* ident = dynamic_cast<IrIdent*>(node)) {
                 // IrIdent is a valid IrDeclarator
                 this->ast_stack.pop();
                 declarator = ident;
             } else {
                 throw std::runtime_error("Error: Expected function name as IrIdent but found " 
-                                         + std::string(typeid(*this->ast_stack.top()).name()));
+                                         + std::string(typeid(*node).name()));
             }
         } else {
             throw std::runtime_error("Error: AST stack is empty while processing function_declarator.");
