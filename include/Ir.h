@@ -33,14 +33,14 @@ class Ir {
         return this == &other;
     }
 
-    // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
+    // virtual string semanticCheck(ScopeStack& scopeStack) = 0;
     virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) = 0;
     
-    virtual std::string prettyPrint(std::string indentSpace) const =0;
-    virtual std::string toString() const = 0;
+    virtual string prettyPrint(string indentSpace) const =0;
+    virtual string toString() const = 0;
     
-    std::string addIndent(const std::string& baseIndent, int level = 1) const {
-        return baseIndent + std::string(level * 2, ' '); // 2 spaces per level
+    string addIndent(const string& baseIndent, int level = 1) const {
+        return baseIndent + string(level * 2, ' '); // 2 spaces per level
     }
 
 };
@@ -50,7 +50,7 @@ public:
     IrExpr(const TSNode & node) : Ir(node) {}
     ~IrExpr() = default;
     
-    std::string toString() const override {
+    string toString() const override {
         return "baseIrExpr";
     }
 
@@ -68,11 +68,11 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        std::cerr << "IrExpr Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("Error")); 
+        cerr << "IrExpr Error: generateLlIr not implemented for " << typeid(*this).name() << endl;
+        return new LlLocationVar(new string("Error")); 
     }
 
-    virtual const std::string getName() const {
+    virtual const string getName() const {
         return "";
     }
 };
@@ -80,12 +80,12 @@ public:
 
 class IrBinaryExpr : public IrExpr {
 private:
-    std::string operation;
+    string operation;
     IrExpr* leftOperand;
     IrExpr* rightOperand;
 
 public:
-    IrBinaryExpr(std::string& operation, IrExpr* leftOperand, IrExpr* rightOperand, const TSNode & node) 
+    IrBinaryExpr(string& operation, IrExpr* leftOperand, IrExpr* rightOperand, const TSNode & node) 
         : Ir(node), IrExpr(node), operation(operation), 
           leftOperand(leftOperand), rightOperand(rightOperand) {}
     ~IrBinaryExpr() {
@@ -100,16 +100,16 @@ public:
         return this->rightOperand;
     }
 
-    std::string& getOperation() {
+    string& getOperation() {
         return this->operation;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return leftOperand->toString() + " " + operation + " " + rightOperand->toString();
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--binaryExpr\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--binaryExpr\n";
 
         prettyString += addIndent(indentSpace) + + "|--lhs\n";
         prettyString += this->leftOperand->prettyPrint(addIndent(indentSpace, 2));
@@ -152,8 +152,8 @@ public:
     virtual ~IrLiteral() = default;
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        std::cerr << "IrLiteral Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("Error")); 
+        cerr << "IrLiteral Error: generateLlIr not implemented for " << typeid(*this).name() << endl;
+        return new LlLocationVar(new string("Error")); 
     }
 };
 
@@ -181,11 +181,11 @@ public:
         return 11; // some arbitrary prime
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "bool";
     }
 
-    std::string prettyPrint(std::string indentSpace) const override{
+    string prettyPrint(string indentSpace) const override{
         return indentSpace + "|--type: bool\n";
     }
 
@@ -219,11 +219,11 @@ public:
         return 13; // some arbitrary prime
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "void";
     }
 
-    std::string prettyPrint(std::string indentSpace) const override{
+    string prettyPrint(string indentSpace) const override{
         return indentSpace + "|--type: void\n";
     }
 
@@ -257,11 +257,11 @@ public:
         return 17; // some arbitrary prime
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "int";
     }
 
-    std::string prettyPrint(std::string indentSpace) const override{
+    string prettyPrint(string indentSpace) const override{
         return indentSpace + "|--type: int\n";
     }
 
@@ -294,11 +294,11 @@ public:
         return 7; // some arbitrary prime
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "string";
     }
 
-    std::string prettyPrint(std::string indentSpace) const override{
+    string prettyPrint(string indentSpace) const override{
         return indentSpace + "|--type: string\n";
     }
 
@@ -330,11 +330,11 @@ public:
         return 19; // some arbitrary prime
     }
 
-    std::string prettyPrint(std::string indentSpace) const override{
+    string prettyPrint(string indentSpace) const override{
         return indentSpace + "|--type: char\n";
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "char";
     }
 
@@ -393,9 +393,9 @@ public:
 
     int hashCode() const;
 
-    std::string prettyPrint(std::string indentSpace) const override ;
+    string prettyPrint(string indentSpace) const override ;
 
-    std::string toString() const override;
+    string toString() const override;
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         return nullptr;
@@ -415,13 +415,13 @@ public:
         return new IrTypeBool(getNode());
     }
 
-    std::string prettyPrint(std::string indentSpace) {
-        std::string prettyPrint = indentSpace + "|--boolLiteral\n";
+    string prettyPrint(string indentSpace) {
+        string prettyPrint = indentSpace + "|--boolLiteral\n";
         prettyPrint += addIndent(indentSpace)+ "|--value: " + (this->value ? "true" : "false") + "\n";
         return prettyPrint;
     }
 
-    std::string toString() {
+    string toString() {
         return "IrLiteralBool";
     }
 
@@ -446,13 +446,13 @@ public:
         return new IrTypeVoid(getNode());
     }
 
-    std::string prettyPrint(std::string indentSpace) {
-        std::string prettyPrint = indentSpace + "|--charLiteral\n";
+    string prettyPrint(string indentSpace) {
+        string prettyPrint = indentSpace + "|--charLiteral\n";
         prettyPrint += addIndent(indentSpace) + "|--value: " + this->value + "\n";
         return prettyPrint;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "IrLiteralChar";
     }
 
@@ -481,14 +481,14 @@ public:
         return new IrTypeInt(getNode());
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyPrint = indentSpace + "|--NumberLiteral\n";
-        prettyPrint += addIndent(indentSpace) + "|--value: " + std::to_string(this->value) + "\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyPrint = indentSpace + "|--NumberLiteral\n";
+        prettyPrint += addIndent(indentSpace) + "|--value: " + to_string(this->value) + "\n";
         return prettyPrint;
     }
 
-    std::string toString() const override{
-        return std::to_string(value); // "IrLiteralNumber";
+    string toString() const override{
+        return to_string(value); // "IrLiteralNumber";
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
@@ -502,23 +502,23 @@ public:
 
 class IrLiteralStringContent : public IrLiteral {
 private:
-    std::string value;
+    string value;
 
 public:
-    IrLiteralStringContent(const std::string& value, const TSNode& node)
+    IrLiteralStringContent(const string& value, const TSNode& node)
         : IrLiteral(node), Ir(node), value(value) {}
 
         ~IrLiteralStringContent() override = default;
 
-    const std::string& getValue() const {
+    const string& getValue() const {
         return value;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
+    string prettyPrint(string indentSpace) const override {
         return indentSpace + "|--stringContent: " + value + "\n";
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "IrLiteralStringContent";
     }
 };
@@ -536,17 +536,17 @@ public:
         delete stringContent;
     }
 
-    const std::string& getValue() const {
+    const string& getValue() const {
         return stringContent->getValue();
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyPrint = indentSpace + "|--StringLiteral\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyPrint = indentSpace + "|--StringLiteral\n";
         prettyPrint += stringContent->prettyPrint(addIndent(indentSpace));
         return prettyPrint;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "IrLiteralString";
     }
 
@@ -562,7 +562,7 @@ public:
 
 class IrArgList : public Ir {
 private:
-    std::deque<IrExpr*> argsList;
+    deque<IrExpr*> argsList;
 public:
     IrArgList(const TSNode& node) : Ir(node) {}
     ~IrArgList() {
@@ -571,7 +571,7 @@ public:
         }
     }   
 
-    std::deque<IrExpr*> getArgsList() {
+    deque<IrExpr*> getArgsList() {
         return this->argsList;
     }
 
@@ -579,8 +579,8 @@ public:
         this->argsList.push_front(newArg);
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--argList:\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--argList:\n";
 
         for (IrExpr* arg: this->argsList) {
             prettyString += arg->prettyPrint(addIndent(indentSpace)); 
@@ -589,8 +589,8 @@ public:
         return prettyString;
     }
 
-    std::string toString() const override{
-        std::string argsString = "";
+    string toString() const override{
+        string argsString = "";
         for (IrExpr* arg: this->argsList) {
             argsString += arg->toString() + ", ";
         }
@@ -615,13 +615,13 @@ public:
         delete path;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--preprocInclude\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--preprocInclude\n";
         prettyString += path->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "#include " + path->getValue();
     }
 
@@ -635,8 +635,8 @@ public:
 class IrDeclDeclarator : public virtual Ir {
 public:
     IrDeclDeclarator(const TSNode& node) : Ir(node) {}
-    virtual const std::string getName() const {
-        static const std::string emptyString = "";
+    virtual const string getName() const {
+        static const string emptyString = "";
         return emptyString;
     }
 };
@@ -652,22 +652,22 @@ public:
         delete baseDeclarator;
     }
 
-    const std::string getName() const override {
+    const string getName() const override {
         if (baseDeclarator) {
             return baseDeclarator->getName();
         }
         return "";
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string str = indentSpace + "|--abstract_pointer_declarator: *\n";
+    string prettyPrint(string indentSpace) const override {
+        string str = indentSpace + "|--abstract_pointer_declarator: *\n";
         if(baseDeclarator){
             str += baseDeclarator->prettyPrint(addIndent(indentSpace));
         }
         return str;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         if (baseDeclarator) {
             return baseDeclarator->toString() + "*";
         }
@@ -682,14 +682,14 @@ public:
 
 class IrIdent : public IrDeclDeclarator, public IrExpr {
 private:
-    const std::string name;
+    const string name;
     bool isTypeAlias;
 
 public:
-    IrIdent(const std::string& name, const TSNode & node, bool isTypeAlias = false) : Ir(node), IrDeclDeclarator(node), IrExpr(node), name(name) {}
+    IrIdent(const string& name, const TSNode & node, bool isTypeAlias = false) : Ir(node), IrDeclDeclarator(node), IrExpr(node), name(name) {}
     ~IrIdent() = default;
 
-    const std::string & getValue() const {
+    const string & getValue() const {
         return name;
     }
 
@@ -704,44 +704,44 @@ public:
     }
 
     int hashCode() const {
-        std::hash<std::string> hasher;
+        hash<string> hasher;
         return hasher(this->name);
     }
     bool isType() const { return isTypeAlias; }
     void markAsTypeAlias() { isTypeAlias = true; }
 
-    std::string prettyPrint(std::string indentSpace) const override{
+    string prettyPrint(string indentSpace) const override{
         return indentSpace + "|--id: " + name + "\n";
     }
 
-    const std::string getName() const override {
+    const string getName() const override {
         return name;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return name;
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        return new LlLocationVar(new std::string(name));
+        return new LlLocationVar(new string(name));
     }
 
 };
 
 class IrPreprocArg : public Ir {
 public:
-    std::string text;
+    string text;
 
-    IrPreprocArg(const std::string& t, const TSNode& node)
+    IrPreprocArg(const string& t, const TSNode& node)
         : Ir(node), text(t) {}
     
     ~IrPreprocArg() = default;
 
-    std::string prettyPrint(std::string indentSpace) const override {
+    string prettyPrint(string indentSpace) const override {
         return indentSpace + "|-- preproc_arg: " + text + "\n";
     }
 
-    std::string toString() const override {
+    string toString() const override {
         return "PreprocArg(" + text + ")";
     }
 
@@ -765,14 +765,14 @@ public:
         delete value; 
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string result = indentSpace + "|-- preproc_def: " + name->getValue();
+    string prettyPrint(string indentSpace) const override {
+        string result = indentSpace + "|-- preproc_def: " + name->getValue();
         if (value) result += " " + value->text;
         result += "\n";
         return result;
     }
 
-    std::string toString() const override {
+    string toString() const override {
         return "#define " + name->toString() + (value ? " " + value->text : "");
     }
 
@@ -808,8 +808,8 @@ public:
         return this->argList;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--callExpr\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--callExpr\n";
 
         prettyString += addIndent(indentSpace) + "|--functionName\n";
         prettyString += this->functionName->prettyPrint(addIndent(indentSpace, 2));
@@ -818,12 +818,12 @@ public:
         return prettyString;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return functionName->toString() + " (" + argList->toString() + ")";
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        std::vector<LlComponent*> argsList;
+        vector<LlComponent*> argsList;
         for(auto& arg : this->argList->getArgsList()) {
             argsList.push_back(arg->generateLlIr(builder, symbolTable));
         }
@@ -839,9 +839,9 @@ class IrAssignExpr : public IrNonBinaryExpr {
 private:
     IrExpr* lhs;
     IrExpr* rhs;
-    std::string op;
+    string op;
 public:
-    IrAssignExpr(IrExpr* lhs, IrExpr* rhs, const std::string& op, const TSNode& node)
+    IrAssignExpr(IrExpr* lhs, IrExpr* rhs, const string& op, const TSNode& node)
         : Ir(node), IrNonBinaryExpr(node), lhs(lhs), rhs(rhs), op(op) {}
 
     ~IrAssignExpr() {
@@ -851,10 +851,10 @@ public:
 
     IrExpr* getLhs() const { return lhs; }
     IrExpr* getRhs() const { return rhs; }
-    std::string getOp() const { return op; }
+    const string& getOp() const { return op; }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--assignExpr\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--assignExpr\n";
         prettyString += addIndent(indentSpace) + "|--lhs\n";
         prettyString += lhs->prettyPrint(addIndent(indentSpace, 2));
         prettyString += addIndent(indentSpace) + "|--op: " + op + "\n";
@@ -863,7 +863,7 @@ public:
         return prettyString;
     }
 
-    std::string toString() const override {
+    string toString() const override {
         return lhs->toString() + " " + op + " " + rhs->toString();
     }
 
@@ -871,7 +871,7 @@ public:
         LlLocation* left = lhs->generateLlIr(builder, symbolTable);
         LlLocation* right = rhs->generateLlIr(builder, symbolTable);
         LlLocation* location = dynamic_cast<LlLocation*>(left);
-        std::string operation = op;
+        string operation = op;
         if (op != "=") {
             operation = op.substr(0, op.size() - 1);
             LlAssignStmtBinaryOp* assignStmt = new LlAssignStmtBinaryOp(location, left, operation, right);
@@ -901,17 +901,17 @@ public:
         delete fieldName;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string op = isArrow ? "->" : ".";
-        std::string prettyString = indentSpace + "|--field_expression\n";
+    string prettyPrint(string indentSpace) const override {
+        string op = isArrow ? "->" : ".";
+        string prettyString = indentSpace + "|--field_expression\n";
         prettyString += baseExpr->prettyPrint(addIndent(indentSpace));
         prettyString += addIndent(indentSpace) + "|--op: " + op + "\n";
         prettyString += fieldName->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
-    std::string toString() const override{
-        std::string op = isArrow ? "->" : ".";
+    string toString() const override{
+        string op = isArrow ? "->" : ".";
         return baseExpr->toString() + op + fieldName->toString();
     }   
 
@@ -945,9 +945,9 @@ public:
     bool getIsAddressOf() const { return isAddressOf; }
     bool getIsDereference() const { return isDereference; }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string op = isAddressOf ? "&" : "*";
-        std::string prettyString = indentSpace + "|--pointer_expression\n";
+    string prettyPrint(string indentSpace) const override {
+        string op = isAddressOf ? "&" : "*";
+        string prettyString = indentSpace + "|--pointer_expression\n";
 
         prettyString += addIndent(indentSpace) + "|--op: " + op + "\n";
         if (argument) {
@@ -957,8 +957,8 @@ public:
         return prettyString;
     }
 
-    std::string toString() const override{
-        std::string op = isAddressOf ? "&" : "*";
+    string toString() const override{
+        string op = isAddressOf ? "&" : "*";
         return op + argument->toString();
     }
 };
@@ -977,15 +977,15 @@ public:
 
     IrExpr* getInnerExpr() const { return innerExpr; }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--parenthesizedExpr\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--parenthesizedExpr\n";
         if (innerExpr) {
             prettyString += innerExpr->prettyPrint(addIndent(indentSpace));
         }
         return prettyString;
     }
 
-    std::string toString() const override {
+    string toString() const override {
         return "(" + innerExpr->toString() + ")";
     }
 
@@ -996,11 +996,11 @@ public:
 
 class IrUnaryExpr : public IrNonBinaryExpr {
 private:
-    std::string op;  // Operator (e.g., '-', '!')
+    string op;  // Operator (e.g., '-', '!')
     IrExpr* argument;
 
 public:
-    IrUnaryExpr(const std::string& op, IrExpr* arg, const TSNode &node) 
+    IrUnaryExpr(const string& op, IrExpr* arg, const TSNode &node) 
         : Ir(node), IrNonBinaryExpr(node), op(op), argument(arg) {}
 
     ~IrUnaryExpr() {
@@ -1008,23 +1008,23 @@ public:
     }
 
     IrExpr* getArgument() const { return argument; }
-    std::string getOperator() const { return op; }
+    const string& getOperator() const { return op; }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--unaryExpr\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--unaryExpr\n";
         prettyString += addIndent(indentSpace) + "|--op: " + op + "\n";
         prettyString += argument->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
-    std::string toString() const override {
+    string toString() const override {
         return op + argument->toString();
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         LlLocation* arg = argument->generateLlIr(builder, symbolTable);
         LlLocation* returnLocation = builder.generateTemp();
-        LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new std::string(op));
+        LlAssignStmtUnaryOp* unaryOp = new LlAssignStmtUnaryOp(returnLocation, arg, new string(op));
         builder.appendStatement(unaryOp);
         return returnLocation;
     }
@@ -1035,13 +1035,13 @@ class IrStatement : public Ir {
 public:
     IrStatement(const TSNode& node) : Ir(node) {}
     virtual ~IrStatement() = default;
-    std::string toString() const override{
+    string toString() const override{
         return "IrStatement";
     }
     
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("")); // Return empty location
+        cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << endl;
+        return new LlLocationVar(new string("")); // Return empty location
     }
 };
 
@@ -1051,8 +1051,8 @@ public:
     virtual ~IrStmtReturn() = default;
     
     virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        std::cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-        return new LlLocationVar(new std::string("")); // Return empty location
+        cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << endl;
+        return new LlLocationVar(new string("")); // Return empty location
     }
 };
 
@@ -1069,14 +1069,14 @@ public:
     //     return this->result->getExpressionType();
     // }
 
-    std::string prettyPrint(std::string indentSpace)const override {
-        std::string prettyString = indentSpace + "|--returnExpr\n";
+    string prettyPrint(string indentSpace)const override {
+        string prettyString = indentSpace + "|--returnExpr\n";
 
         prettyString += this->result->prettyPrint(addIndent(indentSpace));
 
         return prettyString;
     }
-    std::string toString() const override{
+    string toString() const override{
         string s = "return " + result->toString();
         return s;
     }
@@ -1097,11 +1097,11 @@ public:
     //     return new IrTypeVoid(this->getLineNumber(), this->getColNumber());
     // }
 
-    std::string prettyPrint(std::string indentSpace)const override  {
-        std::string prettyString = indentSpace + "|--returnVoid\n";
+    string prettyPrint(string indentSpace)const override  {
+        string prettyString = indentSpace + "|--returnVoid\n";
         return prettyString;
     }
-    std::string toString() const override{
+    string toString() const override{
         return "IrStmtReturnVoid";
     }
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
@@ -1113,7 +1113,7 @@ public:
 
 class IrCompoundStmt : public IrStatement {
 private:
-    std::deque<IrStatement*> stmtsList;
+    deque<IrStatement*> stmtsList;
 public:
     IrCompoundStmt(const TSNode& node)
         : IrStatement(node),
@@ -1128,8 +1128,8 @@ public:
         this->stmtsList.push_front(stmt);
     }
 
-    std::string prettyPrint(std::string indentSpace)const override  {
-        std::string prettyString = indentSpace + "|--compoundStmt:\n";
+    string prettyPrint(string indentSpace)const override  {
+        string prettyString = indentSpace + "|--compoundStmt:\n";
 
         for (IrStatement* statement: this->stmtsList) {
             prettyString += statement->prettyPrint(addIndent(indentSpace));
@@ -1137,8 +1137,8 @@ public:
 
         return prettyString;
     }
-    std::string toString() const override{
-        std::string s = "";
+    string toString() const override{
+        string s = "";
         for (IrStatement* statement: this->stmtsList) {
             s += statement->toString() + "\n";
         }
@@ -1166,13 +1166,13 @@ public:
         return this->expr;
     }
 
-    std::string prettyPrint(std::string indentSpace)const override  {
-        std::string prettyString = indentSpace + "|--exprStmt\n";
+    string prettyPrint(string indentSpace)const override  {
+        string prettyString = indentSpace + "|--exprStmt\n";
         prettyString += this->expr->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         string s = expr->toString();
         return s;
     }
@@ -1198,14 +1198,14 @@ public:
         return alternative;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--elseClause\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--elseClause\n";
         prettyString += alternative->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
-    std::string toString() const override {
-        std::string result = "else " + alternative->toString();
+    string toString() const override {
+        string result = "else " + alternative->toString();
         return result;
     }
 
@@ -1230,8 +1230,8 @@ public:
         delete elseBody;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--ifStmt\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--ifStmt\n";
 
         // Print condition
         prettyString += addIndent(indentSpace) + "|--condition\n";
@@ -1250,8 +1250,8 @@ public:
         return prettyString;
     }
 
-    std::string toString() const override {
-        std::string result = "if " + condition->toString() + " " + thenBody->toString();
+    string toString() const override {
+        string result = "if " + condition->toString() + " " + thenBody->toString();
         if (elseBody) {
             result += " " + elseBody->toString();
         }
@@ -1261,12 +1261,12 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
 
-        std::string label = builder.generateLabel();
-        std::string* ifThenLabel = new std::string();
+        string label = builder.generateLabel();
+        string* ifThenLabel = new string();
         ifThenLabel->append("if.then.");
         ifThenLabel->append(label);
         
-        std::string* endLabel = new std::string();
+        string* endLabel = new string();
         endLabel->append("if.end.");
         endLabel->append(label);
 
@@ -1275,7 +1275,7 @@ public:
         builder.appendStatement(conditionalJump);
 
         if (elseBody) {
-            std::string* elseLabel = new std::string();
+            string* elseLabel = new string();
             elseLabel->append("if.else.");
             elseLabel->append(label);
             LlEmptyStmt* emptyStmtElse = new LlEmptyStmt();
@@ -1304,21 +1304,21 @@ public:
 
 class IrStorageClassSpecifier : public Ir {
 private:
-    std::string specifier;
+    string specifier;
 
 public:
-    IrStorageClassSpecifier(const std::string& specifier, const TSNode& node)
+    IrStorageClassSpecifier(const string& specifier, const TSNode& node)
         : Ir(node), specifier(specifier) {}
 
-    const std::string& getValue() const {
+    const string& getValue() const {
         return this->specifier;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
+    string prettyPrint(string indentSpace) const override {
         return indentSpace + "|--storageClassSpecifier: " + this->specifier + "\n";
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "IrStorageClassSpecifier: " + this->specifier;
     }
 
@@ -1348,20 +1348,20 @@ public:
 
     // int getBitfieldSize() const { return bitfieldSize; }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string str = indentSpace + "|--field_declaration:\n";
+    string prettyPrint(string indentSpace) const override {
+        string str = indentSpace + "|--field_declaration:\n";
         str += type->prettyPrint(addIndent(indentSpace));
 
         if (declarator) {
             str += declarator->prettyPrint(addIndent(indentSpace));
         }
         // if (bitfieldSize != -1) {
-        //     str += indentSpace + "  |--bitfield_size: " + std::to_string(bitfieldSize) + "\n";
+        //     str += indentSpace + "  |--bitfield_size: " + to_string(bitfieldSize) + "\n";
         // }
         return str;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return type->toString() + " " + declarator->toString();
     }
 
@@ -1375,7 +1375,7 @@ public:
 
 class IrFieldDeclList : public Ir {
 private:
-    std::deque<IrFieldDecl*> fieldDeclarations; // List of field declarations
+    deque<IrFieldDecl*> fieldDeclarations; // List of field declarations
 
 public:
     IrFieldDeclList(const TSNode& node) : Ir(node) {}
@@ -1390,20 +1390,20 @@ public:
         fieldDeclarations.push_front(fieldDecl);
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
+    string prettyPrint(string indentSpace) const override {
         if (fieldDeclarations.empty()) {
             return "";
         }
         
-        std::string str = indentSpace + "|--field_declaration_list:\n";
+        string str = indentSpace + "|--field_declaration_list:\n";
         for (auto* fieldDecl : fieldDeclarations) {
             str += fieldDecl->prettyPrint(addIndent(indentSpace));
         }
         return str;
     }
 
-    std::string toString() const override{
-        std::string str = "";
+    string toString() const override{
+        string str = "";
         for (auto* fieldDecl : fieldDeclarations) {
             str += fieldDecl->toString() + ", ";
         }
@@ -1439,15 +1439,15 @@ public:
         return this->declarator;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         if (declarator) {
             return paramType->toString() + " " + declarator->toString();
         }
         return paramType->toString();
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--param:\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--param:\n";
 
         prettyString += paramType->prettyPrint(addIndent(indentSpace));
 
@@ -1467,7 +1467,7 @@ public:
 
 class IrParamList : public Ir {
 private:
-    std::deque<IrParamDecl*> paramsList;
+    deque<IrParamDecl*> paramsList;
 
 public:
     IrParamList(const TSNode& node) : Ir(node) {}
@@ -1477,7 +1477,7 @@ public:
         }
     }
 
-    std::deque<IrParamDecl*> getParamsList() {
+    deque<IrParamDecl*> getParamsList() {
         return this->paramsList;
     }
 
@@ -1485,16 +1485,16 @@ public:
         this->paramsList.push_front(newParam);
     }
 
-    std::string toString() const override{
-        std::string paramsString = "";
+    string toString() const override{
+        string paramsString = "";
         for (IrParamDecl* paramDecl: this->paramsList) {
             paramsString += paramDecl->toString() + ", ";
         }
         return paramsString;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--paramList:\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--paramList:\n";
 
         for (IrParamDecl* paramDecl: this->paramsList) {
             prettyString += paramDecl->prettyPrint(addIndent(indentSpace));
@@ -1527,24 +1527,24 @@ public:
 
     IrParamList* getParamsList() const { return paramsList; }
 
-    const std::string getName() const override {
+    const string getName() const override {
         if (declarator) return declarator->getName();
         return "";
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return getName() + " (" + paramsList->toString() + ")";
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--function_declarator\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--function_declarator\n";
         prettyString += declarator->prettyPrint(addIndent(indentSpace));
         prettyString += paramsList->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        return new LlLocationVar(new std::string(getName()));
+        return new LlLocationVar(new string(getName()));
     }
 };
 
@@ -1566,15 +1566,15 @@ public:
     IrCompoundStmt* getCompoundStmt() const { return compoundStmt; }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        std::string name = functionDecl->getName();
+        string name = functionDecl->getName();
         LlEmptyStmt* emptyStmt = new LlEmptyStmt();
         builder.appendStatement(name, emptyStmt);
         this->compoundStmt->generateLlIr(builder, symbolTable);
         return nullptr;
     }
 
-    std::string toString() const override{
-        std::string result = returnType->toString() + " ";
+    string toString() const override{
+        string result = returnType->toString() + " ";
         result += functionDecl->toString();
         result += " {\n";
         if (compoundStmt) {
@@ -1583,10 +1583,10 @@ public:
         result += "\n}";
         return result;
     }
-    std::string getFunctionName() { return functionDecl->toString();}
+    string getFunctionName() { return functionDecl->toString();}
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--function_definition\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--function_definition\n";
         prettyString += returnType->prettyPrint(addIndent(indentSpace));
         prettyString += functionDecl->prettyPrint(addIndent(indentSpace));
         prettyString += compoundStmt->prettyPrint(addIndent(indentSpace));
@@ -1596,7 +1596,7 @@ public:
 
 class IrInitializerList : public IrExpr {
 private:
-    std::deque<IrExpr*> elements;
+    deque<IrExpr*> elements;
 
 public:
     IrInitializerList(const TSNode& node) : IrExpr(node), Ir(node) {}
@@ -1611,20 +1611,20 @@ public:
         elements.push_front(expr);
     }
 
-    std::deque<IrExpr*> getElements() const {
+    deque<IrExpr*> getElements() const {
         return elements;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyPrint = indentSpace + "|--initializer_list\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyPrint = indentSpace + "|--initializer_list\n";
         for (IrExpr* expr : elements) {
             prettyPrint += expr->prettyPrint(addIndent(indentSpace));
         }
         return prettyPrint;
     }
 
-    std::string toString() const override {
-        std::string str = "{ ";
+    string toString() const override {
+        string str = "{ ";
         for (auto expr : elements) {
             str += expr->toString() + ", ";
         }
@@ -1650,14 +1650,14 @@ public:
     IrDeclDeclarator* getDeclarator() const { return declarator; }
     IrExpr* getInitializer() const { return initializer; }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--init_declarator:\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--init_declarator:\n";
         prettyString += declarator->prettyPrint(addIndent(indentSpace));
         prettyString += initializer->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return declarator->toString() + " = " + initializer->toString();
     }
 
@@ -1715,7 +1715,7 @@ public:
         return simpleDecl;
     }
 
-    std::string getName() const {
+    string getName() const {
         if (initDecl) {
             return initDecl->getDeclarator()->getName();
         } else if (simpleDecl) {
@@ -1724,8 +1724,8 @@ public:
         return "";
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--declaration:\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--declaration:\n";
 
         if (specifier) {
             prettyString += specifier->prettyPrint(addIndent(indentSpace));
@@ -1743,8 +1743,8 @@ public:
         return prettyString;
     }
 
-    std::string toString() const override {
-        std::string str;
+    string toString() const override {
+        string str;
         if (specifier) {
             str += specifier->getValue() + " ";
         }
@@ -1781,7 +1781,7 @@ public:
 
 class IrMultiDecl : public IrStatement {
 private:
-    std::deque<IrDecl*> decls;
+    deque<IrDecl*> decls;
 
 public:
     IrMultiDecl(const TSNode& node)
@@ -1799,24 +1799,24 @@ public:
     }
 
     // Ownership-transfer method
-    std::deque<IrDecl*> releaseDeclarations() {
+    deque<IrDecl*> releaseDeclarations() {
         // Move the entire 'decls' out to a temporary. 
         // 'decls' will become empty.
-        std::deque<IrDecl*> temp = std::move(decls); 
+        deque<IrDecl*> temp = std::move(decls); 
         // now 'decls' is empty, so ~IrMultiDecl won't delete these pointers
         return temp;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string result = indentSpace + "|--multiDecl:\n";
+    string prettyPrint(string indentSpace) const override {
+        string result = indentSpace + "|--multiDecl:\n";
         for (auto* d : decls) {
             result += d->prettyPrint(addIndent(indentSpace));
         }
         return result;
     }
 
-    std::string toString() const override {
-        std::string out;
+    string toString() const override {
+        string out;
         for (auto* d : decls) {
             out += d->toString() + ";\n";
         }
@@ -1849,8 +1849,8 @@ public:
         delete body;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--forStmt\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--forStmt\n";
 
         if (initializer) {
             prettyString += addIndent(indentSpace) + "|--initializer\n";
@@ -1870,8 +1870,8 @@ public:
         return prettyString;
     }
 
-    std::string toString() const override {
-        std::string result = "for (";
+    string toString() const override {
+        string result = "for (";
 
         result += initializer->toString() + "; ";
         result += condition->toString()+ "; ";
@@ -1890,16 +1890,16 @@ public:
             initializer->generateLlIr(builder, symbolTable);
         }
 
-        std::string forLable = builder.generateLabel();
-        std::string* condLabel = new std::string();
+        string forLable = builder.generateLabel();
+        string* condLabel = new string();
         condLabel->append("for.cond.");
         condLabel->append(forLable);
 
-        std::string* bodyLabel = new std::string();
+        string* bodyLabel = new string();
         bodyLabel->append("for.body.");
         bodyLabel->append(forLable);
         
-        std::string* endLabel = new std::string();
+        string* endLabel = new string();
         endLabel->append("for.end.");
         endLabel->append(forLable);
 
@@ -1918,7 +1918,7 @@ public:
             body->generateLlIr(builder, symbolTable);
         }
 
-        std::string* incLabel = new std::string();
+        string* incLabel = new string();
         incLabel->append("for.inc.");
         incLabel->append(forLable);
         LlEmptyStmt* emptyStmtForInc = new LlEmptyStmt();
@@ -1955,7 +1955,7 @@ public:
         level = l;
     }
 
-    const std::string getName() const override {
+    const string getName() const override {
         return baseExpr->getName();
     }
 
@@ -1967,8 +1967,8 @@ public:
         return indexExpr;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--subscript_expression\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--subscript_expression\n";
 
         if (baseExpr) {
             prettyString += baseExpr->prettyPrint(addIndent(indentSpace));
@@ -1986,17 +1986,17 @@ public:
         return prettyString;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return baseExpr->toString() + "[" + indexExpr->toString() + "]";
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        std::string baseName = baseExpr->getName();
+        string baseName = baseExpr->getName();
         IrType* type = symbolTable.getFromVarTable(baseName);
         IrTypeArray* arrayType = dynamic_cast<IrTypeArray*>(type);
 
         if (!arrayType) {
-            std::cerr << "Error: " << baseName << " is not an array." << std::endl;
+            cerr << "Error: " << baseName << " is not an array." << endl;
             return nullptr;
         }
 
@@ -2013,7 +2013,7 @@ public:
 
         while (auto* sub = dynamic_cast<IrSubscriptExpr*>(currentExpr)) {
             if (currentLevel <= 0) {
-                std::cerr << "Error: Too many subscripts for array " << baseName << std::endl;
+                cerr << "Error: Too many subscripts for array " << baseName << endl;
                 return nullptr;
             }
 
@@ -2039,16 +2039,16 @@ public:
             currentExpr = sub->getBaseExpr();
             currentLevel--;
         }
-        return new LlLocationArray(new std::string(baseName), offsetTemp);
+        return new LlLocationArray(new string(baseName), offsetTemp);
     }
 };
 
 
 class IrTypeIdent : public IrType {
     private:
-        const std::string name;
+        const string name;
     public:
-        IrTypeIdent(const std::string& name, const TSNode& node) 
+        IrTypeIdent(const string& name, const TSNode& node) 
             : IrType(node), name(name) {}
         ~IrTypeIdent() = default;
 
@@ -2056,7 +2056,7 @@ class IrTypeIdent : public IrType {
             return new IrTypeIdent(*this);
         }
 
-        const std::string& getName() const {
+        const string& getName() const {
             return name;
         }
 
@@ -2071,15 +2071,15 @@ class IrTypeIdent : public IrType {
         }
 
         int hashCode() const {
-            std::hash<std::string> hasher;
+            hash<string> hasher;
             return hasher(this->name);
         }
 
-        std::string prettyPrint(std::string indentSpace) const override{
+        string prettyPrint(string indentSpace) const override{
             return indentSpace + "|--typeId: " + name + "\n";
         }
 
-        std::string toString() const override{
+        string toString() const override{
             return name;
         }
 
@@ -2099,12 +2099,12 @@ public:
 
     ~IrPointerType() { delete baseType; }
 
-    std::string toString() const override {
+    string toString() const override {
         return baseType->toString() + "*";
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string result = indentSpace + "|--pointer: *\n";
+    string prettyPrint(string indentSpace) const override {
+        string result = indentSpace + "|--pointer: *\n";
         result += baseType->prettyPrint(addIndent(indentSpace));
         return result;
     }
@@ -2141,8 +2141,8 @@ public:
         return new IrTypeStruct(*this);
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--type: struct\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--type: struct\n";
         if (name) {
             prettyString += name->prettyPrint(addIndent(indentSpace));
         }
@@ -2150,8 +2150,8 @@ public:
         return prettyString;
     }
 
-    std::string toString() const override{
-        std::string str = "struct ";
+    string toString() const override{
+        string str = "struct ";
         if (name) {
             str += name->toString();
         }
@@ -2186,14 +2186,14 @@ public:
         return alias;
     }
 
-    std::string prettyPrint(std::string indentSpace) const override {
-        std::string prettyString = indentSpace + "|--typedef:\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--typedef:\n";
         prettyString += type->prettyPrint(addIndent(indentSpace));
         prettyString += alias->prettyPrint(addIndent(indentSpace));
         return prettyString;
     }
 
-    std::string toString() const override{
+    string toString() const override{
         return "typedef " + type->toString() + " " + alias->toString();
     }
 
