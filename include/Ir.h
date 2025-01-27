@@ -33,9 +33,10 @@ class Ir {
         return this == &other;
     }
 
+    // virtual size_t hashCode() const = 0;
     // virtual string semanticCheck(ScopeStack& scopeStack) = 0;
+
     virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) = 0;
-    
     virtual string prettyPrint(string indentSpace) const =0;
     virtual string toString() const = 0;
     
@@ -52,19 +53,6 @@ public:
     
     string toString() const override {
         return "baseIrExpr";
-    }
-
-    bool operator==(const IrExpr& other) const {
-        // Implementation of operator==
-        if (&other == this) {
-            return true;
-        }
-        return false;
-    }
-
-    int hashCode() const {
-        // Implementation of hashCode
-        return 0;
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
@@ -140,7 +128,6 @@ protected:
 public:
     IrType(const TSNode& node) : Ir(node) {}
     virtual ~IrType() = default;
-    int hashCode() const{ return 0;}
     virtual IrType* clone() const = 0;
     int getWidth() const { return width; }
 };
@@ -177,10 +164,6 @@ public:
         return true;
     }
 
-    int hashCode() const {
-        return 11; // some arbitrary prime
-    }
-
     string toString() const override{
         return "bool";
     }
@@ -213,10 +196,6 @@ public:
         }
 
         return true;
-    }
-
-    int hashCode() const {
-        return 13; // some arbitrary prime
     }
 
     string toString() const override{
@@ -253,16 +232,44 @@ public:
         return true;
     }
 
-    int hashCode() const {
-        return 17; // some arbitrary prime
-    }
-
     string toString() const override{
         return "int";
     }
 
     string prettyPrint(string indentSpace) const override{
         return indentSpace + "|--type: int\n";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
+        return nullptr;
+    }
+};
+
+class IrTypeChar : public IrType {
+public:
+    IrTypeChar(const TSNode& node) : IrType(node) { width = 1;}
+    ~IrTypeChar() override = default;
+
+    IrTypeChar* clone() const override {
+        return new IrTypeChar(*this);
+    }
+
+    bool operator==(const Ir& that) const override{
+        if (&that == this) {
+            return true;
+        }
+        if (dynamic_cast<const IrTypeChar*>(&that) == nullptr) {
+            return false;
+        }
+        return true;
+    }
+
+    string prettyPrint(string indentSpace) const override{
+        return indentSpace + "|--type: char\n";
+    }
+
+    string toString() const override{
+        return "char";
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
@@ -290,52 +297,12 @@ public:
         return true;
     }
 
-    int hashCode() const {
-        return 7; // some arbitrary prime
-    }
-
     string toString() const override{
         return "string";
     }
 
     string prettyPrint(string indentSpace) const override{
         return indentSpace + "|--type: string\n";
-    }
-
-    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        return nullptr;
-    }
-};
-
-class IrTypeChar : public IrType {
-public:
-    IrTypeChar(const TSNode& node) : IrType(node) { width = 1;}
-    ~IrTypeChar() override = default;
-
-    IrTypeChar* clone() const override {
-        return new IrTypeChar(*this);
-    }
-
-    bool operator==(const Ir& that) const override{
-        if (&that == this) {
-            return true;
-        }
-        if (dynamic_cast<const IrTypeChar*>(&that) == nullptr) {
-            return false;
-        }
-        return true;
-    }
-
-    int hashCode() const {
-        return 19; // some arbitrary prime
-    }
-
-    string prettyPrint(string indentSpace) const override{
-        return indentSpace + "|--type: char\n";
-    }
-
-    string toString() const override{
-        return "char";
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
@@ -390,8 +357,6 @@ public:
         }
         return false;
     }
-
-    int hashCode() const;
 
     string prettyPrint(string indentSpace) const override ;
 
@@ -703,10 +668,6 @@ public:
         return false;
     }
 
-    int hashCode() const {
-        hash<string> hasher;
-        return hasher(this->name);
-    }
     bool isType() const { return isTypeAlias; }
     void markAsTypeAlias() { isTypeAlias = true; }
 
@@ -2068,11 +2029,6 @@ class IrTypeIdent : public IrType {
                 return this->name == thatIdent->name;
             }
             return false;
-        }
-
-        int hashCode() const {
-            hash<string> hasher;
-            return hasher(this->name);
         }
 
         string prettyPrint(string indentSpace) const override{

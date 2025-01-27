@@ -4,13 +4,6 @@
 
 #include "Ir.h"
 
-int IrTypeArray::hashCode() const {
-    int hash = 0;
-    for (auto* dim : dimension) {
-        hash += dim->hashCode();
-    }
-    return baseType->hashCode() + hash;
-}
 
 std::string IrTypeArray::prettyPrint(std::string indentSpace) const {
     std::string prettyString = indentSpace + "|--type: array\n";
