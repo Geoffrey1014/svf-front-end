@@ -1511,7 +1511,10 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        return new LlLocationVar(new string(getName()));
+        LlLocation* name = declarator->generateLlIr(builder, symbolTable);
+        LlLocation* params = paramsList->generateLlIr(builder, symbolTable);
+        // TODO: Implement (as the functionName may not be a variable)
+        return nullptr;
     }
 };
 
@@ -1762,7 +1765,7 @@ public:
 
     // Add an IrDecl to this container
     void addDeclaration(IrDecl* decl) {
-        decls.push_back(decl);
+        decls.push_front(decl);
     }
 
     // Ownership-transfer method

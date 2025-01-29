@@ -316,7 +316,7 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
 
             while (!allDecls.empty()) {
                 IrDecl* singleDecl = allDecls.front();
-                allDecls.pop_front();  // no error now!
+                allDecls.pop_front();
 
                 if (auto decl = dynamic_cast<IrDecl*>(singleDecl)) {
                     transUnitNode->addTopLevelNodeFront(decl);
