@@ -189,4 +189,34 @@ public:
         return nullptr;
     }
 };
+
+class IrStaticItem : public IrStatement {
+private:
+    IrMutableSpec* mut;
+    IrIdent* ident;
+    IrType* type;
+    IrExpr* expr;
+public:
+    IrStaticItem(IrMutableSpec* mut, IrIdent* ident, IrType* type, IrExpr* expr, const TSNode& node) : mut(mut), ident(ident), type(type), expr(expr), IrStatement(node) {}
+    ~IrStaticItem() {
+        delete mut;
+        delete ident;
+        delete type;
+        delete expr;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--staticItem\n";
+        if (mut) {
+            prettyString += mut->prettyPrint("  " + indentSpace);
+        }
+        prettyString += ident->prettyPrint("  " + indentSpace);
+        prettyString += "  " + indentSpace + "|--type\n";
+        prettyString += type->prettyPrint("    " + indentSpace);
+        prettyString += "  " + indentSpace + "|--value\n";
+        prettyString += expr->prettyPrint("    " + indentSpace);
+        return prettyString;
+    }
+};
+
 #endif

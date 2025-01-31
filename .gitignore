@@ -8,3 +8,6 @@ tree-sitter-rust/
 z3/
 .idea/
 cmake-build-debug/
+.DS_Store
+tests/.DS_Store
+tests/parser/.DS_Store

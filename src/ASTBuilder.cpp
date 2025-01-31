@@ -111,9 +111,30 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
         return;
     }
 
-    IrExpr* expr = dynamic_cast<IrExpr*>(this->ast_stack.top());
-    if (expr) {
-        this->ast_stack.pop();
+    // Get the alternative if specified
+    IrCompoundStmt* declAlt = nullptr;
+    TSNode alt_node = ts_node_child_by_field_name(cst_node, "alternative", 11);
+    if (!ts_node_is_null(alt_node)) {
+        IrCompoundStmt* declAlt = dynamic_cast<IrCompoundStmt*>(this->ast_stack.top());
+        if (declAlt) {
+            this->ast_stack.pop();
+        } else {
+            std::cerr << "Error: Invalid let declaration alternative" << std::endl;
+            return;
+        }
+    }
+
+    // Get the value if specified
+    IrExpr* declValue = nullptr;
+    TSNode value_node = ts_node_child_by_field_name(cst_node, "value", 5);
+    if (!ts_node_is_null(value_node)) {
+        IrExpr* declValue = dynamic_cast<IrExpr*>(this->ast_stack.top());
+        if (declValue) {
+            this->ast_stack.pop();
+        } else {
+            std::cerr << "Error: Invalid let declaration value" << std::endl;
+            return;
+        }
     }
 
     // Get the type if specified
@@ -150,7 +171,7 @@ void ASTBuilder::exitDeclaration(const TSNode & cst_node){
     }
 
     // Create the declaration node
-    node = new IrDecl(mutable_spec, declName, declType, expr, cst_node);
+    node = new IrDecl(mutable_spec, declName, declType, declValue, cst_node);
     this->ast_stack.push(node);
 }
 
@@ -298,7 +319,6 @@ void ASTBuilder:: exitCompoundStatement(const TSNode & cst_node){
             break;
         }
 
-        // Pop statement from the stack and add to the compound statement
         IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
         
         if (stmt) {
@@ -307,6 +327,20 @@ void ASTBuilder:: exitCompoundStatement(const TSNode & cst_node){
         } else {
             break;
         }
+    }
+
+    this->ast_stack.push(node);
+}
+
+void ASTBuilder::exitUnsafeBlock(const TSNode & cst_node) {
+    IrUnsafeBlock* node = nullptr;
+    IrCompoundStmt* cmpd = dynamic_cast<IrCompoundStmt*>(this->ast_stack.top());
+    if (cmpd) {
+        this->ast_stack.pop();
+        node = new IrUnsafeBlock(cmpd, cst_node);
+    } else {
+        std::cerr << "Error: Invalid unsafe block" << std::endl;
+        return;
     }
 
     this->ast_stack.push(node);
@@ -321,6 +355,20 @@ void ASTBuilder::exitLiteralNumber(const TSNode & cst_node){
 void ASTBuilder::exitCharLiteral(const TSNode & cst_node){
     std::string* node_text = getNodeText(cst_node);
     IrLiteralChar* node = new IrLiteralChar((*node_text)[1], cst_node);
+    this->ast_stack.push(node);
+}
+
+void ASTBuilder::exitStringLiteral(const TSNode & cst_node) {
+    std::string* node_text = getNodeText(cst_node);
+    IrStringContent* stringContent = dynamic_cast<IrStringContent*>(this->ast_stack.top());
+    this->ast_stack.pop();
+    IrLiteralString* node = new IrLiteralString(node_text, cst_node);
+    this->ast_stack.push(node);
+}
+
+void ASTBuilder::exitStringContent(const TSNode & cst_node) {
+    std::string* node_text = getNodeText(cst_node);
+    IrStringContent* node = new IrStringContent(node_text, cst_node);
     this->ast_stack.push(node);
 }
 
@@ -484,10 +532,6 @@ void ASTBuilder::exitIfExpr(const TSNode & cst_node){
     if (condition && thenBlock) {
         node = new IrIfExpr(condition, thenBlock, elseClause, cst_node);
         this->ast_stack.push(node);
-    } else if (condition) {
-        std::cerr << "Error: Invalid thenBlock" << std::endl;
-    } else if (thenBlock) {
-        std::cerr << "Error: Invalid condition" << std::endl;
     } else {
         std::cerr << "Error: Invalid if expression" << std::endl;
     }
@@ -684,14 +728,81 @@ void ASTBuilder::exitExprStmt(const TSNode & cst_node){
     }
 
     IrExpr* expr = dynamic_cast<IrExpr*>(this->ast_stack.top());
+    IrUnsafeBlock* unsafeBlock = nullptr;
+    if (!expr) {
+        unsafeBlock = dynamic_cast<IrUnsafeBlock*>(this->ast_stack.top());
+    }
     this->ast_stack.pop();
 
     if (expr) {
         node = new IrExprStmt(expr, cst_node);
         this->ast_stack.push(node);
+    } else if (unsafeBlock) {
+        node = new IrExprStmt(unsafeBlock, cst_node);
+        this->ast_stack.push(node);
     } else {
         std::cerr << "Error: Invalid expression statement" << std::endl;
     }
+}
+
+void ASTBuilder::exitStaticItem(const TSNode & cst_node) {
+    IrStaticItem* node = nullptr;
+    // Use stack to get the type and name
+    if (this->ast_stack.size() < 2) {
+        std::cerr << "Error: Not enough elements on the stack for static item" << std::endl;
+    }
+
+    // Get the value if specified
+    IrExpr* declValue = nullptr;
+    TSNode value_node = ts_node_child_by_field_name(cst_node, "value", 5);
+    if (!ts_node_is_null(value_node)) {
+        declValue = dynamic_cast<IrExpr*>(this->ast_stack.top());
+        if (declValue) {
+            this->ast_stack.pop();
+        } else {
+            std::cerr << "Error: Invalid static item value" << std::endl;
+            return;
+        }
+    }
+
+    // Get the type
+    IrType* declType = nullptr;
+    TSNode type_node = ts_node_child_by_field_name(cst_node, "type", 4);
+    if (!ts_node_is_null(type_node)) {
+        declType = dynamic_cast<IrType*>(this->ast_stack.top());
+        if (declType) {
+            this->ast_stack.pop();
+        } else {
+            std::cerr << "Error: Invalid static item type" << std::endl;
+            return;
+        }
+    }
+
+    // Get the name/pattern
+    IrIdent* declName = nullptr;
+    TSNode name_node = ts_node_child_by_field_name(cst_node, "name", 4);
+    if (!ts_node_is_null(name_node)) {
+        declName = dynamic_cast<IrIdent*>(this->ast_stack.top());
+        if (declName) {
+            this->ast_stack.pop();
+        } else {
+            std::cerr << "Error: Invalid static item name/pattern" << std::endl;
+            return;
+        }
+    }
+
+    // Check for mutable binding
+    IrMutableSpec* mut = nullptr;
+    if (this->ast_stack.size() > 0) {
+        mut = dynamic_cast<IrMutableSpec*>(this->ast_stack.top());
+        if (mut) {
+            this->ast_stack.pop();
+        }
+    }
+
+    // Create the declaration node
+    node = new IrStaticItem(mut, declName, declType, declValue, cst_node);
+    this->ast_stack.push(node);
 }
 
 void ASTBuilder::exitTransUnit(const TSNode & cst_node) {
@@ -823,6 +934,22 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 246: // reference_expr
             exitReferenceExpr(cst_node);
+            break;
+        case 286: // unsafe_block
+            exitUnsafeBlock(cst_node);
+            break;
+        case 145: // string_content
+            exitStringContent(cst_node);
+            break;
+        case 307: // string_literal
+            exitStringLiteral(cst_node);
+            break;
+        case 166: // token_tree
+            break;
+        case 236: // macro_invocation
+            break;
+        case 184: // static_item
+            exitStaticItem(cst_node);
             break;
         default:
             std::cerr << "Error: Unknown CST node type: " << std::to_string(symbol_type) << std::endl;

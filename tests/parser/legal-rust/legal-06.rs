@@ -8,5 +8,4 @@ fn main() {
     unsafe {
         A = add(2, 3);
     }
-    println!("{}", unsafe { A });
 }

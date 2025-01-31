@@ -114,13 +114,33 @@ public:
 
 };
 
+class IrUnsafeBlock : public IrStatement {
+private:
+    IrCompoundStmt* block;
+public:
+    IrUnsafeBlock(IrCompoundStmt* block, const TSNode& node)
+        : IrStatement(node), block(block) {}
+    ~IrUnsafeBlock() {
+        delete block;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyString = indentSpace + "|--unsafeBlock\n";
+        prettyString += block->prettyPrint("  " + indentSpace);
+        return prettyString;
+    }
+};
+
 class IrExprStmt : public IrStatement {
 private:
     IrExpr* expr;
+    IrUnsafeBlock* unsafeBlock;
 public:
     IrExprStmt(IrExpr* expr, const TSNode& node) : IrStatement(node), expr(expr) {}
+    IrExprStmt(IrUnsafeBlock* unsafeBlock, const TSNode& node) : IrStatement(node), unsafeBlock(unsafeBlock) {}
     ~IrExprStmt() {
         delete expr;
+        delete unsafeBlock;
     }
 
     IrExpr* getExpr() {
@@ -131,7 +151,11 @@ public:
         std::string prettyString = indentSpace + "|--exprStmt\n";
 
         // pretty print the expression
-        prettyString += this->expr->prettyPrint("  " + indentSpace);
+        if (this->expr) {
+            prettyString += this->expr->prettyPrint("  " + indentSpace);
+        } else if (this->unsafeBlock) {
+            prettyString += this->unsafeBlock->prettyPrint("  " + indentSpace);
+        }
 
         return prettyString;
     }

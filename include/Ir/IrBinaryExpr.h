@@ -49,5 +49,13 @@ public:
 
         return prettyString;
     }
+
+    // LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    //     LlLocation* left = leftOperand->generateLlIr(builder, symbolTable);
+    //     LlLocation* right = rightOperand->generateLlIr(builder, symbolTable);
+    //     LlLocationVar* result = builder.generateTemp();
+    //     builder.appendStatement(new LlAssignStmtBinaryOp(result, left, operation, right));
+    //     return result;
+    // }
 };
 #endif

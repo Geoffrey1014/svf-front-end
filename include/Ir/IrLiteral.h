@@ -97,11 +97,31 @@ public:
     // }
 
 
-    std::string prettyPrint(std::string indentSpace) {
+    std::string prettyPrint(std::string indentSpace) const override {
         std::string prettyPrint = indentSpace + "|--StringLiteral\n";
         prettyPrint += "  " + indentSpace + "|--value: " + *(this->value) + "\n";
         return prettyPrint;
     }
 
 };
+
+class IrStringContent : public Ir {
+private:
+    std::string* value;
+public:
+    IrStringContent(std::string* value, const TSNode& node) : Ir(node), value(value) {}
+    ~IrStringContent() {
+        delete value;
+    }
+    std::string* getValue() {
+        return this->value;
+    }
+
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string prettyPrint = indentSpace + "|--StringContent\n";
+        prettyPrint += "  " + indentSpace + "|--value: " + *(this->value) + "\n";
+        return prettyPrint;
+    }
+};
+
 #endif
