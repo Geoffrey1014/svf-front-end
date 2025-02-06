@@ -1905,6 +1905,27 @@ public:
     }
 };
 
+class IrBreakStmt : public IrStatement {
+public:
+    IrBreakStmt(const TSNode& node) : IrStatement(node) {}
+
+    string prettyPrint(string indentSpace) const override {
+        return indentSpace + "|--breakStmt\n";
+    }
+
+    string toString() const override {
+        return "break;";
+    }
+
+    // LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+    //     string* breakLabel = new string("break.");  
+    //     LlJumpUnconditional* breakJump = new LlJumpUnconditional(breakLabel);
+    //     builder.appendStatement(breakJump);
+    //     return nullptr;
+    // }
+};
+
+
 
 class IrSubscriptExpr : public IrNonBinaryExpr {
 private:
