@@ -944,12 +944,11 @@ public:
             builder.appendStatement(load);
         }
         else if (isDereference) {
+            // Store pointer address in temp before dereferencing
+            LlAssignStmtRegular* assignStmtRegular = new LlAssignStmtRegular(returnLocation, arg);
+            builder.appendStatement(assignStmtRegular);
+
             return new LlLocationDeref(arg);
-            // LlAssignStmtRegular* assignStmtRegular = new LlAssignStmtRegular(returnLocation, arg);
-            // std::cerr << assignStmtRegular->toString() << std::endl;
-            // builder.appendStatement(assignStmtRegular);
-            // LlAssignStmtDeref* store = new LlAssignStmtDeref(returnLocation, arg);
-            // builder.appendStatement(store);
         }
         return returnLocation;
     }
