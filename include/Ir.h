@@ -358,14 +358,14 @@ public:
         return false;
     }
 
-    string prettyPrint(string indentSpace) {
+    string prettyPrint(string indentSpace)  const override{
         string prettyPrint = indentSpace + "|--boolLiteral\n";
         prettyPrint += addIndent(indentSpace)+ "|--value: " + (this->value ? "true" : "false") + "\n";
         return prettyPrint;
     }
 
-    string toString() {
-        return "IrLiteralBool";
+    string toString() const override{
+        return std::string(1, value);
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
@@ -396,14 +396,14 @@ public:
         return false;
     }
 
-    string prettyPrint(string indentSpace) {
+    string prettyPrint(string indentSpace)  const override{
         string prettyPrint = indentSpace + "|--charLiteral\n";
-        prettyPrint += addIndent(indentSpace) + "|--value: " + this->value + "\n";
+        prettyPrint += addIndent(indentSpace) + "|--value: '" + this->value + "'\n";
         return prettyPrint;
     }
 
     string toString() const override{
-        return "IrLiteralChar";
+        return "'" + std::string(1, value) + "'";
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
@@ -928,6 +928,23 @@ public:
         string op = isAddressOf ? "&" : "*";
         return op + argument->toString();
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* arg = argument->generateLlIr(builder, symbolTable);
+        LlLocation* returnLocation = builder.generateTemp();
+        if (isAddressOf) {
+            LlAssignStmtAddr* load = new LlAssignStmtAddr(returnLocation, arg);
+            builder.appendStatement(load);
+        }
+        else if (isDereference) {
+            LlAssignStmtRegular* assignStmtRegular = new LlAssignStmtRegular(returnLocation, arg);
+            std::cerr << assignStmtRegular->toString() << std::endl;
+            builder.appendStatement(assignStmtRegular);
+            LlAssignStmtDeref* store = new LlAssignStmtDeref(returnLocation, arg);
+            builder.appendStatement(store);
+        }
+        return returnLocation;
+    }
 };
 
 class IrParenthesizedExpr : public IrNonBinaryExpr {
@@ -1426,7 +1443,7 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        // TODO: Implement
+        symbolTable.putOnVarTable(declarator->getName(), paramType);
         return nullptr;
     }
 };
@@ -1471,7 +1488,9 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        // TODO: Implement
+        for (IrParamDecl* param: this->paramsList) {
+            param->generateLlIr(builder, symbolTable);
+        }
         return nullptr;
     }
 };
@@ -1511,6 +1530,7 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        paramsList->generateLlIr(builder, symbolTable);
         return new LlLocationVar(new string(getName()));
     }
 };
@@ -1536,6 +1556,7 @@ public:
         string name = functionDecl->getName();
         LlEmptyStmt* emptyStmt = new LlEmptyStmt();
         builder.appendStatement(name, emptyStmt);
+        functionDecl->generateLlIr(builder, symbolTable);
         this->compoundStmt->generateLlIr(builder, symbolTable);
         return nullptr;
     }

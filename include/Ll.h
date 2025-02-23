@@ -202,6 +202,83 @@ public:
 
 };
 
+class LlAssignStmtAddr : public LlAssignStmt {
+private:
+    LlLocation* loadLocation;
+public:
+    LlAssignStmtAddr(LlLocation* storeLocation, LlLocation* loadLocation)
+        : LlAssignStmt(storeLocation), loadLocation(loadLocation) {}
+
+    ~LlAssignStmtAddr() override {
+        delete loadLocation;
+    }
+
+    LlLocation* getLoadLocation() {
+        return this->loadLocation;
+    }
+
+    std::string toString() override{
+        return this->storeLocation->toString() + " = &" + this->loadLocation->toString();
+    }
+
+    bool operator==(const Ll& other) const override{
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherOp = dynamic_cast<const LlAssignStmtAddr*>(&other)) {
+            return *storeLocation == *otherOp->storeLocation &&
+                   *loadLocation == *otherOp->loadLocation;
+        }
+        return false;
+    }
+
+    std::size_t hashCode() const override{
+        return storeLocation->hashCode() * loadLocation->hashCode();
+    }
+};
+
+class LlAssignStmtDeref : public LlAssignStmt {
+private:
+    LlComponent* storeValue;
+
+public:
+    LlAssignStmtDeref(LlLocation* storeLocation, LlComponent* storeValue)
+        : LlAssignStmt(storeLocation), storeValue(storeValue) {}
+
+    ~LlAssignStmtDeref() override {
+        delete storeValue;
+    }
+
+    LlComponent* getStoreValue() {
+        return this->storeValue;
+    }
+
+    std::string toString() override{
+        std::string storeValueStr;
+        if (storeLocation == nullptr)
+            storeValueStr = "nullptr";
+        else
+            storeValueStr = storeLocation->toString();
+
+        return storeValueStr + " = " +  "*" + this->storeValue->toString();
+    }
+
+    bool operator==(const Ll& other) const override{
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherOp = dynamic_cast<const LlAssignStmtDeref*>(&other)) {
+            return *storeLocation == *otherOp->storeLocation &&
+                   *storeValue == *otherOp->storeValue;
+        }
+        return false;
+    }
+
+    std::size_t hashCode() const override{
+        return storeLocation->hashCode() * storeValue->hashCode();
+    }
+};
+
 class LlAssignStmtUnaryOp : public LlAssignStmt {
 private:
     LlComponent* operand;
