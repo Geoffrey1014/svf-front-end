@@ -837,7 +837,14 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         LlLocation* left = lhs->generateLlIr(builder, symbolTable);
         LlLocation* right = rhs->generateLlIr(builder, symbolTable);
-        LlLocation* location = dynamic_cast<LlLocation*>(left);
+        // If LHS is a pointer dereference, store the value and return immediately
+        // CAN BE IMPROVED LATER
+        if (dynamic_cast<LlLocationDeref*>(left)) {
+            LlAssignStmtDeref* storeStmt = new LlAssignStmtDeref(left, right);
+            builder.appendStatement(storeStmt);
+            return nullptr; 
+        }
+        LlLocation* location = dynamic_cast<LlLocation*>(left);        
         string operation = op;
         if (op != "=") {
             operation = op.substr(0, op.size() - 1);
@@ -937,11 +944,12 @@ public:
             builder.appendStatement(load);
         }
         else if (isDereference) {
-            LlAssignStmtRegular* assignStmtRegular = new LlAssignStmtRegular(returnLocation, arg);
-            std::cerr << assignStmtRegular->toString() << std::endl;
-            builder.appendStatement(assignStmtRegular);
-            LlAssignStmtDeref* store = new LlAssignStmtDeref(returnLocation, arg);
-            builder.appendStatement(store);
+            return new LlLocationDeref(arg);
+            // LlAssignStmtRegular* assignStmtRegular = new LlAssignStmtRegular(returnLocation, arg);
+            // std::cerr << assignStmtRegular->toString() << std::endl;
+            // builder.appendStatement(assignStmtRegular);
+            // LlAssignStmtDeref* store = new LlAssignStmtDeref(returnLocation, arg);
+            // builder.appendStatement(store);
         }
         return returnLocation;
     }

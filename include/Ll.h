@@ -96,6 +96,24 @@ public:
     }
 };
 
+class LlLocationDeref : public LlLocation {
+    private:
+        LlLocation* base; 
+    public:
+    LlLocationDeref(LlLocation* base) : LlLocation(base->getVarName()), base(base) {}
+    ~LlLocationDeref() override {
+        delete base;
+    }
+
+    std::string toString() override {
+        return "*" + base->toString();
+    }
+
+    LlLocation* getBase() {
+        return base;
+    }    
+};
+
 class LlAssignStmt : public LlStatement {
 protected:
     LlLocation* storeLocation;
@@ -254,13 +272,7 @@ public:
     }
 
     std::string toString() override{
-        std::string storeValueStr;
-        if (storeLocation == nullptr)
-            storeValueStr = "nullptr";
-        else
-            storeValueStr = storeLocation->toString();
-
-        return storeValueStr + " = " +  "*" + this->storeValue->toString();
+        return storeLocation->toString() + " = " + storeValue->toString(); 
     }
 
     bool operator==(const Ll& other) const override{
