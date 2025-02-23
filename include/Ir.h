@@ -948,7 +948,7 @@ public:
             LlAssignStmtRegular* assignStmtRegular = new LlAssignStmtRegular(returnLocation, arg);
             builder.appendStatement(assignStmtRegular);
 
-            return new LlLocationDeref(arg);
+            return new LlLocationDeref(returnLocation);
         }
         return returnLocation;
     }
