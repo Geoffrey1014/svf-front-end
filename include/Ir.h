@@ -837,13 +837,20 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         LlLocation* left = lhs->generateLlIr(builder, symbolTable);
         LlLocation* right = rhs->generateLlIr(builder, symbolTable);
-        // If LHS is a pointer dereference, store the value and return immediately
-        // CAN BE IMPROVED LATER
+        // If RHS is a pointer dereference, load into a temp first
+        if (dynamic_cast<LlLocationDeref*>(right)) {
+            LlLocation* temp = builder.generateTemp();
+            LlAssignStmtRegular* derefLoad = new LlAssignStmtRegular(temp, right);
+            builder.appendStatement(derefLoad);
+            right = temp;
+        }
+        // If LHS is a pointer dereference, assign *t0 = value directly
         if (dynamic_cast<LlLocationDeref*>(left)) {
             LlAssignStmtDeref* storeStmt = new LlAssignStmtDeref(left, right);
             builder.appendStatement(storeStmt);
-            return nullptr; 
+            return nullptr;
         }
+
         LlLocation* location = dynamic_cast<LlLocation*>(left);        
         string operation = op;
         if (op != "=") {
