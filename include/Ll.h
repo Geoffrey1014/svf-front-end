@@ -15,11 +15,17 @@ public:
 };
 
 class LlStatement: public Ll{
+protected:
+        bool jump;
 public:
-    LlStatement ()= default;
+    LlStatement (): jump(false){};
     ~LlStatement () override =default;
     std::string toString() override{
         return "LlStatement";
+    }
+
+    bool isJump() const {
+        return jump;
     }
 };
 
@@ -335,15 +341,20 @@ public:
 class LlJump : public LlStatement {
 protected:
     std::string* jumpToLabel;
+    bool conditionalJump;
 
 public:
-    LlJump(std::string* jumpToLabel) : jumpToLabel(jumpToLabel) {}
+    LlJump(std::string* jumpToLabel) : jumpToLabel(jumpToLabel) {this->jump = true; this->conditionalJump = false;}
     ~LlJump() override {
         delete jumpToLabel;
     }
 
     std::string* getJumpToLabel() {
         return jumpToLabel;
+    }
+
+    bool isConditionalJump() {
+        return this->conditionalJump;
     }
     
     std::string toString() override{
@@ -370,7 +381,7 @@ private:
 
 public:
     LlJumpConditional(std::string* jumpToLabel, LlComponent* condition) 
-        : LlJump(jumpToLabel), condition(condition) {}
+        : LlJump(jumpToLabel), condition(condition) {this->conditionalJump = true;}
     
     ~LlJumpConditional() override {
         delete condition;
@@ -381,7 +392,7 @@ public:
     }
 
     std::string toString() override{
-        return "if " + condition->toString() + " goto " + *(this->jumpToLabel);
+        return "ifZ " + condition->toString() + " goto " + *(this->jumpToLabel);
     }
 
     bool operator==(const Ll& other) const override{
@@ -401,7 +412,7 @@ public:
 
 class LlJumpUnconditional : public LlJump {
 public:
-    LlJumpUnconditional(std::string* jumpToLabel) : LlJump(jumpToLabel) {}
+    LlJumpUnconditional(std::string* jumpToLabel) : LlJump(jumpToLabel) {this->conditionalJump = false;}
 
     ~LlJumpUnconditional() override {}
 

@@ -1260,37 +1260,31 @@ public:
         LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
 
         string label = builder.generateLabel();
-        string* ifThenLabel = new string();
-        ifThenLabel->append("if.then.");
-        ifThenLabel->append(label);
+
         
         string* endLabel = new string();
         endLabel->append("if.end.");
         endLabel->append(label);
 
-        
-        LlJumpConditional* conditionalJump = new LlJumpConditional(ifThenLabel,conditionVar);
-        builder.appendStatement(conditionalJump);
+        string* elseLabel = new string();
+        elseLabel->append("if.else.");
+        elseLabel->append(label);
 
         if (elseBody) {
-            string* elseLabel = new string();
-            elseLabel->append("if.else.");
-            elseLabel->append(label);
-            LlEmptyStmt* emptyStmtElse = new LlEmptyStmt();
-            LlJumpUnconditional *jumpUnconditionalToElse = new LlJumpUnconditional(elseLabel);
+            LlJumpConditional *jumpUnconditionalToElse = new LlJumpConditional(elseLabel, conditionVar);
             builder.appendStatement(jumpUnconditionalToElse);
+
+        }
+
+
+        thenBody->generateLlIr(builder, symbolTable);
+        builder.appendStatement(new LlJumpUnconditional(endLabel));
+
+        if (elseBody) {
+            LlEmptyStmt* emptyStmtElse = new LlEmptyStmt();
             builder.appendStatement(*elseLabel, emptyStmtElse);
             elseBody->generateLlIr(builder, symbolTable);
         }
-        
-        LlJumpUnconditional *jumpUnconditionalToEnd = new LlJumpUnconditional(endLabel);
-        builder.appendStatement(jumpUnconditionalToEnd);
-
-        // add the label to the if body block
-        LlEmptyStmt* emptyStmt = new LlEmptyStmt();
-        builder.appendStatement(*ifThenLabel, emptyStmt);
-        thenBody->generateLlIr(builder, symbolTable);
-
 
         // append end if label
         LlEmptyStmt* endIfEmptyStmt = new LlEmptyStmt();
