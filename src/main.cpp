@@ -58,13 +58,29 @@ int main(int argc, char *argv[]) {
     std::cout << llBuildersList->toString() << std::endl;
   }
 
+  vector<CFG*> cfgs;
   if (program.is_used("--cfg")){
     CFGBuilder cfgBuilder;
     LlBuildersList* llBuildersList = unit->getLlBuilder();
+    int count = 0;
     for (LlBuilder* builder : llBuildersList->getBuilders()) {
       CFG* cfg = cfgBuilder.buildCFG(*builder);
-      std::cout << builder->getName() << ":\t" << cfg->toString() << std::endl;
+      cfgs.push_back(cfg);
+
+      count++;
     }
+  }
+
+  SSAGenerator ssaGenerator;
+  int count = 0;
+  for (CFG* cfg : cfgs) {
+      if(count == 2){
+          ssaGenerator.convertToSSA(cfg);
+//          cfg->writeDotFile("cfg" + to_string(count) + ".dot");
+      }
+
+      count++;
+
   }
 
   // Clean up

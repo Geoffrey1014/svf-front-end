@@ -7,11 +7,10 @@
 #include <unordered_set>
 #include <vector>
 #include <queue>
+#include <sstream>
+#include <fstream>
+#include <algorithm>
 
-// Helper function to create phi functions
-inline LlStatement* createPhiFunction(const std::string& var, size_t numPreds) {
-    return new LlPhiStatement(var, numPreds);
-}
 
 // Control Flow Graph class
 class CFG {
@@ -96,6 +95,51 @@ public:
         }
         
         return ss.str();
+    }
+
+    // generate a dot file for the CFG
+    std::string generateDotFile() const {
+        std::stringstream dot;
+        dot << "digraph CFG {\n";
+        dot << "    node [shape=box];\n\n";
+        
+        // Add nodes (basic blocks)
+        for (const auto& pair : blocks) {
+            BasicBlock* block = pair.second;
+            dot << "    \"" << block->getLabel() << "\" [label=\"" << block->getLabel() << "\\n";
+            
+            // Add instructions to node label
+            for (const auto& stmt : block->getLlStatements()) {
+                std::string stmtStr = stmt->toString();
+                // Escape special characters for DOT format
+                std::replace(stmtStr.begin(), stmtStr.end(), '"', '\'');
+                std::replace(stmtStr.begin(), stmtStr.end(), '\n', ' ');
+                dot << stmtStr << "\\n";
+            }
+            dot << "\"];\n";
+        }
+        
+        dot << "\n";
+        
+        // Add edges (control flow)
+        for (const auto& pair : blocks) {
+            BasicBlock* block = pair.second;
+            for (const auto* succ : block->getSuccessors()) {
+                dot << "    \"" << block->getLabel() << "\" -> \"" << succ->getLabel() << "\";\n";
+            }
+        }
+        
+        dot << "}\n";
+        return dot.str();
+    }
+
+    // Write the DOT representation to a file
+    void writeDotFile(const std::string& filename) const {
+        std::ofstream outFile(filename);
+        if (outFile.is_open()) {
+            outFile << generateDotFile();
+            outFile.close();
+        }
     }
 };
 
@@ -254,16 +298,12 @@ private:
 
     // Helper function to find common dominator
     BasicBlock* intersectDominators(BasicBlock* b1, BasicBlock* b2) {
-        while (b1 != b2) {
-            while (b1 && b2 && b1 != b2) {
-                if (b1->getLabel() > b2->getLabel()) {
-                    b1 = immediateDominator[b1];
-                } else {
-                    b2 = immediateDominator[b2];
-                }
-            }
+        // Find common dominator of b1 and b2
+        BasicBlock* runner = b1;
+        while (runner != immediateDominator[b2]) {
+            runner = immediateDominator[runner];
         }
-        return b1;
+        return runner;
     }
 
     // Compute dominance frontier
@@ -321,8 +361,7 @@ private:
                 for (BasicBlock* dfBlock : dominanceFrontier[block]) {
                     if (phiBlocks.find(dfBlock) == phiBlocks.end()) {
                         // Create and insert phi function
-                        // You'll need to implement createPhiFunction()
-                        LlStatement* phi = createPhiFunction(var, dfBlock->getPredecessors().size());
+                        LlStatement* phi = new LlPhiStatement(var, dfBlock->getPredecessors().size());
                         dfBlock->getLlStatements().insert(dfBlock->getLlStatements().begin(), phi);
                         phiBlocks.insert(dfBlock);
                         workList.push(dfBlock);
@@ -388,11 +427,31 @@ public:
         // Step 1: Compute dominators
         computeDominators(cfg);
 
+        // output the dominance tree
+        std::cout << "\nDominance Tree:" << std::endl;
+        for (const auto& pair : immediateDominator) {
+            std::cout << pair.first->getLabel() << " <- " << pair.second->getLabel() << std::endl;
+        }
+
         // Step 2: Compute dominance frontier
         computeDominanceFrontier(cfg);
 
+        // output the dominance frontier
+        std::cout << "Dominance Frontier:" << std::endl;
+        for (const auto& pair : dominanceFrontier) {
+            std::cout << pair.first->getLabel() << " -> ";
+            for (const auto &dfBlock: pair.second) {
+                std::cout << dfBlock->getLabel() << " ";
+            }
+            std::cout << std::endl;
+        }
+
         // Step 3: Insert phi functions
         insertPhiFunctions(cfg);
+
+        // output the CFG after inserting phi functions
+        std::cout << "\nCFG after inserting phi functions:" << std::endl;
+        cfg->writeDotFile("cfg_phi.dot");
 
         // Step 4: Rename variables
         renameVariables(cfg);
