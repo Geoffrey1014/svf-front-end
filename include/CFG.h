@@ -331,7 +331,6 @@ private:
         std::unordered_set<std::string> variables;
         for (BasicBlock* block : cfg->getBlocksList()) {
             for (LlStatement* stmt : block->getLlStatements()) {
-                // You'll need to implement getDefinedVariable() in LlStatement
                 std::string* def = stmt->getDefinedVariable();
                 if (def) variables.insert(*def);
             }
@@ -360,8 +359,19 @@ private:
 
                 for (BasicBlock* dfBlock : dominanceFrontier[block]) {
                     if (phiBlocks.find(dfBlock) == phiBlocks.end()) {
-                        // Create and insert phi function
-                        LlStatement* phi = new LlPhiStatement(var, dfBlock->getPredecessors().size());
+                        // Create phi function with the right number of incoming edges
+                        LlPhiStatement* phi = new LlPhiStatement(var, dfBlock->getPredecessors().size());
+                        
+                        // Set incoming values for each predecessor
+                        size_t index = 0;
+                        for (BasicBlock* pred : dfBlock->getPredecessors()) {
+                            // For each predecessor, we'll use the original variable name
+                            // The actual renaming will happen in the renameVariables phase
+                            std::string* incomingVar = new std::string(var);
+                            phi->setIncoming(index++, incomingVar, pred);
+                        }
+                        
+                        // Insert phi at the beginning of the block
                         dfBlock->getLlStatements().insert(dfBlock->getLlStatements().begin(), phi);
                         phiBlocks.insert(dfBlock);
                         workList.push(dfBlock);

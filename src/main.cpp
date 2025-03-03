@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
   for (CFG* cfg : cfgs) {
       if(count == 2){
           ssaGenerator.convertToSSA(cfg);
-//          cfg->writeDotFile("cfg" + to_string(count) + ".dot");
+          cfg->writeDotFile("cfg" + to_string(count) + ".dot");
       }
 
       count++;
