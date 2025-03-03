@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
   // Parse command line arguments
   parse_command_line(program, argc, argv);
 
-   // Read C++ code from file
+  // Read C++ code from file
   std::string *source_code = read_file(program.get<std::string>("filename"));
   if (source_code == nullptr) {
     return 1;
@@ -76,11 +76,9 @@ int main(int argc, char *argv[]) {
   for (CFG* cfg : cfgs) {
       if(count == 2){
           ssaGenerator.convertToSSA(cfg);
-//          cfg->writeDotFile("cfg" + to_string(count) + ".dot");
+          cfg->writeDotFile("cfg" + to_string(count) + ".dot");
       }
-
       count++;
-
   }
 
   // Clean up

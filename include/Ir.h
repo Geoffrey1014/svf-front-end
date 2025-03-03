@@ -1885,45 +1885,38 @@ public:
         if (initializer) {
             initializer->generateLlIr(builder, symbolTable);
         }
+        // each for-loop gets its own unique label--forLabel
+        string forLabel = builder.generateLabel();
+        string* condLabel = new string("for.cond." + forLabel);
+        string* bodyLabel = new string("for.body." + forLabel);
+        string* incLabel = new string("for.inc." + forLabel); // increment e.g. i +=1
+        string* endLabel = new string("for.end." + forLabel);
 
-        string forLable = builder.generateLabel();
-        string* condLabel = new string();
-        condLabel->append("for.cond.");
-        condLabel->append(forLable);
-
-        string* bodyLabel = new string();
-        bodyLabel->append("for.body.");
-        bodyLabel->append(forLable);
-        
-        string* endLabel = new string();
-        endLabel->append("for.end.");
-        endLabel->append(forLable);
-
+        // Condition Check Block
         LlEmptyStmt* emptyStmtFor = new LlEmptyStmt();
         builder.appendStatement(*condLabel, emptyStmtFor);
 
         LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
-        LlJumpConditional* conditionalJump = new LlJumpConditional(bodyLabel,conditionVar);
+        LlJumpConditional* conditionalJump = new LlJumpConditional(endLabel,conditionVar);        
         builder.appendStatement(conditionalJump);
-        LlJumpUnconditional* jumpToForEnd = new LlJumpUnconditional(endLabel);
-        builder.appendStatement(jumpToForEnd);
 
+        // Loop Body Block
         LlEmptyStmt* emptyStmtForBody = new LlEmptyStmt();
         builder.appendStatement(*bodyLabel, emptyStmtForBody);
         if (body) {
             body->generateLlIr(builder, symbolTable);
         }
 
-        string* incLabel = new string();
-        incLabel->append("for.inc.");
-        incLabel->append(forLable);
+        // Update Block
         LlEmptyStmt* emptyStmtForInc = new LlEmptyStmt();
         builder.appendStatement(*incLabel, emptyStmtForInc);
         update->generateLlIr(builder, symbolTable);
-
+        
+        // Jump back to condition
         LlJumpUnconditional* jumpToFor = new LlJumpUnconditional(condLabel);
         builder.appendStatement(jumpToFor);
 
+        // End Block
         LlEmptyStmt* emptyStmtForEnd = new LlEmptyStmt();
         builder.appendStatement(*endLabel, emptyStmtForEnd);
 
