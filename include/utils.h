@@ -28,6 +28,10 @@ void parse_command_line(argparse::ArgumentParser& program, int argc, char *argv[
   .required()
   .help("specify the output file.");
 
+  program.add_argument("-cfg", "--cfg")
+  .help("specify the output file for control flow graph.")
+  .default_value(false)
+  .implicit_value(true);
 
   try {
     program.parse_args(argc, argv);

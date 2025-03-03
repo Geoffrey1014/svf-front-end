@@ -358,14 +358,14 @@ public:
         return false;
     }
 
-    string prettyPrint(string indentSpace) {
+    string prettyPrint(string indentSpace)  const override{
         string prettyPrint = indentSpace + "|--boolLiteral\n";
         prettyPrint += addIndent(indentSpace)+ "|--value: " + (this->value ? "true" : "false") + "\n";
         return prettyPrint;
     }
 
-    string toString() {
-        return "IrLiteralBool";
+    string toString() const override{
+        return std::string(1, value);
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
@@ -396,14 +396,14 @@ public:
         return false;
     }
 
-    string prettyPrint(string indentSpace) {
+    string prettyPrint(string indentSpace)  const override{
         string prettyPrint = indentSpace + "|--charLiteral\n";
-        prettyPrint += addIndent(indentSpace) + "|--value: " + this->value + "\n";
+        prettyPrint += addIndent(indentSpace) + "|--value: '" + this->value + "'\n";
         return prettyPrint;
     }
 
     string toString() const override{
-        return "IrLiteralChar";
+        return "'" + std::string(1, value) + "'";
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
@@ -837,7 +837,21 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         LlLocation* left = lhs->generateLlIr(builder, symbolTable);
         LlLocation* right = rhs->generateLlIr(builder, symbolTable);
-        LlLocation* location = dynamic_cast<LlLocation*>(left);
+        // If RHS is a pointer dereference, load into a temp first
+        if (dynamic_cast<LlLocationDeref*>(right)) {
+            LlLocation* temp = builder.generateTemp();
+            LlAssignStmtRegular* derefLoad = new LlAssignStmtRegular(temp, right);
+            builder.appendStatement(derefLoad);
+            right = temp;
+        }
+        // If LHS is a pointer dereference, assign *t0 = value directly
+        if (dynamic_cast<LlLocationDeref*>(left)) {
+            LlAssignStmtDeref* storeStmt = new LlAssignStmtDeref(left, right);
+            builder.appendStatement(storeStmt);
+            return nullptr;
+        }
+
+        LlLocation* location = dynamic_cast<LlLocation*>(left);        
         string operation = op;
         if (op != "=") {
             operation = op.substr(0, op.size() - 1);
@@ -927,6 +941,23 @@ public:
     string toString() const override{
         string op = isAddressOf ? "&" : "*";
         return op + argument->toString();
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* arg = argument->generateLlIr(builder, symbolTable);
+        LlLocation* returnLocation = builder.generateTemp();
+        if (isAddressOf) {
+            LlAssignStmtAddr* load = new LlAssignStmtAddr(returnLocation, arg);
+            builder.appendStatement(load);
+        }
+        else if (isDereference) {
+            // Store pointer address in temp before dereferencing
+            LlAssignStmtRegular* assignStmtRegular = new LlAssignStmtRegular(returnLocation, arg);
+            builder.appendStatement(assignStmtRegular);
+
+            return new LlLocationDeref(returnLocation);
+        }
+        return returnLocation;
     }
 };
 
@@ -1229,37 +1260,31 @@ public:
         LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
 
         string label = builder.generateLabel();
-        string* ifThenLabel = new string();
-        ifThenLabel->append("if.then.");
-        ifThenLabel->append(label);
+
         
         string* endLabel = new string();
         endLabel->append("if.end.");
         endLabel->append(label);
 
-        
-        LlJumpConditional* conditionalJump = new LlJumpConditional(ifThenLabel,conditionVar);
-        builder.appendStatement(conditionalJump);
+        string* elseLabel = new string();
+        elseLabel->append("if.else.");
+        elseLabel->append(label);
 
         if (elseBody) {
-            string* elseLabel = new string();
-            elseLabel->append("if.else.");
-            elseLabel->append(label);
-            LlEmptyStmt* emptyStmtElse = new LlEmptyStmt();
-            LlJumpUnconditional *jumpUnconditionalToElse = new LlJumpUnconditional(elseLabel);
+            LlJumpConditional *jumpUnconditionalToElse = new LlJumpConditional(elseLabel, conditionVar);
             builder.appendStatement(jumpUnconditionalToElse);
+
+        }
+
+
+        thenBody->generateLlIr(builder, symbolTable);
+        builder.appendStatement(new LlJumpUnconditional(endLabel));
+
+        if (elseBody) {
+            LlEmptyStmt* emptyStmtElse = new LlEmptyStmt();
             builder.appendStatement(*elseLabel, emptyStmtElse);
             elseBody->generateLlIr(builder, symbolTable);
         }
-        
-        LlJumpUnconditional *jumpUnconditionalToEnd = new LlJumpUnconditional(endLabel);
-        builder.appendStatement(jumpUnconditionalToEnd);
-
-        // add the label to the if body block
-        LlEmptyStmt* emptyStmt = new LlEmptyStmt();
-        builder.appendStatement(*ifThenLabel, emptyStmt);
-        thenBody->generateLlIr(builder, symbolTable);
-
 
         // append end if label
         LlEmptyStmt* endIfEmptyStmt = new LlEmptyStmt();
@@ -1426,7 +1451,7 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        // TODO: Implement
+        symbolTable.putOnVarTable(declarator->getName(), paramType);
         return nullptr;
     }
 };
@@ -1471,7 +1496,9 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
-        // TODO: Implement
+        for (IrParamDecl* param: this->paramsList) {
+            param->generateLlIr(builder, symbolTable);
+        }
         return nullptr;
     }
 };
@@ -1511,10 +1538,8 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        LlLocation* name = declarator->generateLlIr(builder, symbolTable);
-        LlLocation* params = paramsList->generateLlIr(builder, symbolTable);
-        // TODO: Implement (as the functionName may not be a variable)
-        return nullptr;
+        paramsList->generateLlIr(builder, symbolTable);
+        return new LlLocationVar(new string(getName()));
     }
 };
 
@@ -1539,6 +1564,7 @@ public:
         string name = functionDecl->getName();
         LlEmptyStmt* emptyStmt = new LlEmptyStmt();
         builder.appendStatement(name, emptyStmt);
+        functionDecl->generateLlIr(builder, symbolTable);
         this->compoundStmt->generateLlIr(builder, symbolTable);
         return nullptr;
     }

@@ -5,8 +5,9 @@
 #include <string>
 #include <vector>
 #include <stack>
-#include <sstream> // Include this header for std::stringstream
-#include <iomanip> 
+#include <sstream>
+#include <iomanip>
+#include "Ll.h"
 
 // Generated Ll Ir for a single scope
 class LlBuilder {
@@ -31,6 +32,10 @@ public:
         for(auto& param : params){
             delete param;
         }
+    }
+
+    std::vector<std::string> getInsertionOrder(){
+        return this->insertionOrder;
     }
 
     std::string getName() {

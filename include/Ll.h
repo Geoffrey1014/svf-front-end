@@ -15,11 +15,17 @@ public:
 };
 
 class LlStatement: public Ll{
+protected:
+        bool jump;
 public:
-    LlStatement ()= default;
+    LlStatement (): jump(false){};
     ~LlStatement () override =default;
     std::string toString() override{
         return "LlStatement";
+    }
+
+    bool isJump() const {
+        return jump;
     }
 };
 
@@ -94,6 +100,24 @@ public:
     std::size_t hashCode() const override{
         return std::hash<std::string>()(*varName);
     }
+};
+
+class LlLocationDeref : public LlLocation {
+    private:
+        LlLocation* base; 
+    public:
+    LlLocationDeref(LlLocation* base) : LlLocation(base->getVarName()), base(base) {}
+    ~LlLocationDeref() override {
+        delete base;
+    }
+
+    std::string toString() override {
+        return "*" + base->toString();
+    }
+
+    LlLocation* getBase() {
+        return base;
+    }    
 };
 
 class LlAssignStmt : public LlStatement {
@@ -202,6 +226,77 @@ public:
 
 };
 
+class LlAssignStmtAddr : public LlAssignStmt {
+private:
+    LlLocation* loadLocation;
+public:
+    LlAssignStmtAddr(LlLocation* storeLocation, LlLocation* loadLocation)
+        : LlAssignStmt(storeLocation), loadLocation(loadLocation) {}
+
+    ~LlAssignStmtAddr() override {
+        delete loadLocation;
+    }
+
+    LlLocation* getLoadLocation() {
+        return this->loadLocation;
+    }
+
+    std::string toString() override{
+        return this->storeLocation->toString() + " = &" + this->loadLocation->toString();
+    }
+
+    bool operator==(const Ll& other) const override{
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherOp = dynamic_cast<const LlAssignStmtAddr*>(&other)) {
+            return *storeLocation == *otherOp->storeLocation &&
+                   *loadLocation == *otherOp->loadLocation;
+        }
+        return false;
+    }
+
+    std::size_t hashCode() const override{
+        return storeLocation->hashCode() * loadLocation->hashCode();
+    }
+};
+
+class LlAssignStmtDeref : public LlAssignStmt {
+private:
+    LlComponent* storeValue;
+
+public:
+    LlAssignStmtDeref(LlLocation* storeLocation, LlComponent* storeValue)
+        : LlAssignStmt(storeLocation), storeValue(storeValue) {}
+
+    ~LlAssignStmtDeref() override {
+        delete storeValue;
+    }
+
+    LlComponent* getStoreValue() {
+        return this->storeValue;
+    }
+
+    std::string toString() override{
+        return storeLocation->toString() + " = " + storeValue->toString(); 
+    }
+
+    bool operator==(const Ll& other) const override{
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherOp = dynamic_cast<const LlAssignStmtDeref*>(&other)) {
+            return *storeLocation == *otherOp->storeLocation &&
+                   *storeValue == *otherOp->storeValue;
+        }
+        return false;
+    }
+
+    std::size_t hashCode() const override{
+        return storeLocation->hashCode() * storeValue->hashCode();
+    }
+};
+
 class LlAssignStmtUnaryOp : public LlAssignStmt {
 private:
     LlComponent* operand;
@@ -246,15 +341,20 @@ public:
 class LlJump : public LlStatement {
 protected:
     std::string* jumpToLabel;
+    bool conditionalJump;
 
 public:
-    LlJump(std::string* jumpToLabel) : jumpToLabel(jumpToLabel) {}
+    LlJump(std::string* jumpToLabel) : jumpToLabel(jumpToLabel) {this->jump = true; this->conditionalJump = false;}
     ~LlJump() override {
         delete jumpToLabel;
     }
 
     std::string* getJumpToLabel() {
         return jumpToLabel;
+    }
+
+    bool isConditionalJump() {
+        return this->conditionalJump;
     }
     
     std::string toString() override{
@@ -281,7 +381,7 @@ private:
 
 public:
     LlJumpConditional(std::string* jumpToLabel, LlComponent* condition) 
-        : LlJump(jumpToLabel), condition(condition) {}
+        : LlJump(jumpToLabel), condition(condition) {this->conditionalJump = true;}
     
     ~LlJumpConditional() override {
         delete condition;
@@ -292,7 +392,7 @@ public:
     }
 
     std::string toString() override{
-        return "if " + condition->toString() + " goto " + *(this->jumpToLabel);
+        return "ifZ " + condition->toString() + " goto " + *(this->jumpToLabel);
     }
 
     bool operator==(const Ll& other) const override{
@@ -312,7 +412,7 @@ public:
 
 class LlJumpUnconditional : public LlJump {
 public:
-    LlJumpUnconditional(std::string* jumpToLabel) : LlJump(jumpToLabel) {}
+    LlJumpUnconditional(std::string* jumpToLabel) : LlJump(jumpToLabel) {this->conditionalJump = false;}
 
     ~LlJumpUnconditional() override {}
 

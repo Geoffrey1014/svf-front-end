@@ -234,6 +234,13 @@ void ASTBuilder::exitLiteralNumber(const TSNode & cst_node){
     this->ast_stack.push(node);
 }
 
+void ASTBuilder::exitLiteralChar(const TSNode & cst_node){
+    std::string node_text = getNodeText(cst_node);
+    IrLiteralChar* node = new IrLiteralChar(node_text[0], cst_node);
+    this->ast_stack.push(node);
+}
+
+
 void ASTBuilder::exitArgList(const TSNode & cst_node){
     IrArgList* argList = new IrArgList(cst_node);
     uint32_t arg_count = ts_node_named_child_count(cst_node);
@@ -890,6 +897,11 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 141: // literal_number
             exitLiteralNumber(cst_node);
             break;
+        case 147: // character
+            exitLiteralChar(cst_node);
+            break;
+        case 318: // char_literal
+            break;
         case 275: // return_statement
             exitReturnStatement(cst_node);
             break;
@@ -996,7 +1008,8 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             exitCaseStatement(cst_node);
             break;    
         default:
-            std::cerr << "Error: Unknown CST node type" << std::endl;
+            std::cerr << "Error: Unhandled CST node type: " ;
+            std::cerr << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:" << std::to_string(symbol_type) << std::endl;
             break;
     }
     return;

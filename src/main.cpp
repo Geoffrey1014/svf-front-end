@@ -8,6 +8,7 @@
 #include "utils.h"
 #include <memory>
 #include "ASTBuilder.h"
+#include "CFG.h"
 
 // Include the C parser header
 extern "C" const TSLanguage *tree_sitter_c();
@@ -55,6 +56,15 @@ int main(int argc, char *argv[]) {
     std::cout << "\n=======IR:\n" << std::endl;
     LlBuildersList* llBuildersList = unit->getLlBuilder();
     std::cout << llBuildersList->toString() << std::endl;
+  }
+
+  if (program.is_used("--cfg")){
+    CFGBuilder cfgBuilder;
+    LlBuildersList* llBuildersList = unit->getLlBuilder();
+    for (LlBuilder* builder : llBuildersList->getBuilders()) {
+      CFG* cfg = cfgBuilder.buildCFG(*builder);
+      std::cout << builder->getName() << ":\t" << cfg->toString() << std::endl;
+    }
   }
 
   // Clean up

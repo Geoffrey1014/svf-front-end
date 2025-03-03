@@ -39,7 +39,8 @@ public:
     void exitUnaryExpr(const TSNode & cst_node);
     void exitReturnStatement(const TSNode & cst_node);
     void exitCompoundStatement(const TSNode & cst_node);
-    void exitLiteralNumber(const TSNode & cst_node);    
+    void exitLiteralNumber(const TSNode & cst_node);
+    void exitLiteralChar(const TSNode & cst_node);
     void exitArgList(const TSNode & cst_node);
     void exitCallExpr(const TSNode & cst_node);
     void exitAssignExpr(const TSNode & cst_node);
