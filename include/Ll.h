@@ -4,36 +4,115 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <sstream>
+#include "BasicBlock.h"
 
 class Ll{
 public:
     Ll (){};
     virtual ~Ll()=default;
-    virtual std::string toString()=0;
+    virtual std::string toString() const = 0;
     virtual bool operator==(const Ll& other) const = 0;
     virtual std::size_t hashCode() const = 0;
 };
 
-class LlStatement: public Ll{
+class LlStatement : public Ll{
 protected:
-        bool jump;
+    std::string* definedVar;
+    std::vector<std::string*> usedVars;
+    bool isJumpInst;
+    bool isCondJump;
+    std::string* jumpLabel;
+
 public:
-    LlStatement (): jump(false){};
-    ~LlStatement () override =default;
-    std::string toString() override{
-        return "LlStatement";
+    LlStatement() : definedVar(nullptr), isJumpInst(false), isCondJump(false), jumpLabel(nullptr) {}
+    virtual ~LlStatement() {
+        delete definedVar;
+        delete jumpLabel;
+        for(auto var : usedVars) {
+            delete var;
+        }
     }
 
-    bool isJump() const {
-        return jump;
+    std::string* getDefinedVariable() const { return definedVar; }
+    const std::vector<std::string*>& getUsedVariables() const { return usedVars; }
+    bool isJump() const { return isJumpInst; }
+    bool isConditionalJump() const { return isCondJump; }
+    std::string* getJumpToLabel() const { return jumpLabel; }
+
+    void renameUse(const std::string& oldName, const std::string& newName) {
+        for(auto var : usedVars) {
+            if(*var == oldName) *var = newName;
+        }
+    }
+
+    void renameDef(const std::string& oldName, const std::string& newName) {
+        if(definedVar && *definedVar == oldName) *definedVar = newName;
     }
 };
+
+class BasicBlock;
+// Phi function statement
+class LlPhiStatement : public LlStatement {
+private:
+    std::vector<std::string*> incomingVars;
+    std::vector<BasicBlock*> incomingBlocks;
+
+public:
+    LlPhiStatement(const std::string& var, size_t numPreds) {
+        definedVar = new std::string(var);
+        incomingVars.resize(numPreds, nullptr);
+        incomingBlocks.resize(numPreds, nullptr);
+    }
+
+    void setIncoming(size_t index, std::string* var, BasicBlock* block) {
+        if(index < incomingVars.size()) {
+            incomingVars[index] = var;
+            incomingBlocks[index] = block;
+        }
+    }
+    std::string toString() const override;
+
+    bool operator==(const Ll& other) const override {
+        if (&other == this) {
+            return true;
+        }
+        if (auto otherPhi = dynamic_cast<const LlPhiStatement*>(&other)) {
+            if (*definedVar != *otherPhi->definedVar) {
+                return false;
+            }
+            if (incomingVars.size() != otherPhi->incomingVars.size()) {
+                return false;
+            }
+            for (size_t i = 0; i < incomingVars.size(); i++) {
+                if (*incomingVars[i] != *otherPhi->incomingVars[i]) {
+                    return false;
+                }
+                if (incomingBlocks[i] != otherPhi->incomingBlocks[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    std::size_t hashCode() const override {
+        std::size_t hash = std::hash<std::string>()(*definedVar);
+        for (size_t i = 0; i < incomingVars.size(); i++) {
+            hash ^= std::hash<std::string>()(*incomingVars[i]);
+            hash ^= std::hash<BasicBlock*>()(incomingBlocks[i]);
+        }
+        return hash;
+    }
+};
+
 
 class LlComponent: public Ll{
     public:
         LlComponent ()= default;
         ~LlComponent () override =default;
-        std::string toString() override{
+        std::string toString() const override{
             return "LlComponent";
         }
         bool operator==(const Ll& other) const override{
@@ -48,7 +127,7 @@ class LlLiteral: public LlComponent{
     public:
         LlLiteral ()= default;
         ~LlLiteral () override =default;
-        std::string toString() override{
+        std::string toString() const override{
             return "LlLiteral";
         }
 
@@ -58,7 +137,7 @@ class LlEmptyStmt : public LlStatement {
 public:
     LlEmptyStmt() = default;
     ~LlEmptyStmt() override = default;
-    std::string toString() override{
+    std::string toString() const override{
         return "EMPTY_STATEMENT";
     }
 
@@ -77,16 +156,16 @@ public:
 
 class LlLocation: public LlComponent{
 private:
-    const std::string* varName;
+    std::string* varName;
 public:
-    LlLocation (const std::string* varName): varName(varName){};
+    LlLocation (std::string* varName): varName(varName){};
     ~LlLocation () override{delete varName;};
     
-    std::string toString() override{
+    std::string toString() const override{
         return *(this->varName);
     };
 
-    const std::string* getVarName() const {
+    std::string* getVarName() const {
         return varName;
     }
 
@@ -111,7 +190,7 @@ class LlLocationDeref : public LlLocation {
         delete base;
     }
 
-    std::string toString() override {
+    std::string toString() const override {
         return "*" + base->toString();
     }
 
@@ -125,7 +204,9 @@ protected:
     LlLocation* storeLocation;
 
 public:
-    LlAssignStmt(LlLocation* storeLocation) : storeLocation(storeLocation) {}
+    LlAssignStmt(LlLocation* storeLocation) : storeLocation(storeLocation) {
+        definedVar = storeLocation->getVarName();
+    }
     virtual ~LlAssignStmt() {
         delete storeLocation;
     }
@@ -133,7 +214,7 @@ public:
     LlLocation* getStoreLocation() {
         return this->storeLocation;
     }
-    std::string toString() override{
+    std::string toString() const override{
         return this->storeLocation->toString() + " = ";
     }
 };
@@ -153,7 +234,7 @@ public:
         return this->rightHandSide;
     }
 
-    std::string toString() override{       
+    std::string toString() const override{
         return this->storeLocation->toString() + " = " + this->rightHandSide->toString();
     }
 
@@ -200,7 +281,7 @@ public:
         return this->rightOperand;
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         return this->storeLocation->toString() + " = " + this->leftOperand->toString() + " " + (this->operation)  + " " + this->rightOperand->toString();
     }
 
@@ -241,7 +322,7 @@ public:
         return this->loadLocation;
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         return this->storeLocation->toString() + " = &" + this->loadLocation->toString();
     }
 
@@ -277,7 +358,7 @@ public:
         return this->storeValue;
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         return storeLocation->toString() + " = " + storeValue->toString(); 
     }
 
@@ -318,7 +399,7 @@ public:
         return this->operator_;
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         return this->storeLocation->toString() + " = " + *(operator_) + " " + operand->toString();
     }
 
@@ -344,7 +425,7 @@ protected:
     bool conditionalJump;
 
 public:
-    LlJump(std::string* jumpToLabel) : jumpToLabel(jumpToLabel) {this->jump = true; this->conditionalJump = false;}
+    LlJump(std::string* jumpToLabel) : jumpToLabel(jumpToLabel) {this->isJumpInst = true; this->conditionalJump = false;}
     ~LlJump() override {
         delete jumpToLabel;
     }
@@ -357,7 +438,7 @@ public:
         return this->conditionalJump;
     }
     
-    std::string toString() override{
+    std::string toString() const override{
         return "goto " + *(this->jumpToLabel);
     }
     bool operator==(const Ll& other) const override{
@@ -391,7 +472,7 @@ public:
         return this->condition;
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         return "ifZ " + condition->toString() + " goto " + *(this->jumpToLabel);
     }
 
@@ -416,7 +497,7 @@ public:
 
     ~LlJumpUnconditional() override {}
 
-    std::string toString() override{
+    std::string toString() const override{
         return "goto " + *(this->jumpToLabel);
     }
 
@@ -447,7 +528,7 @@ public:
         return this->boolValue;
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         return this->boolValue ? "true" : "false";
     }
 
@@ -478,7 +559,7 @@ public:
         return this->intValue;
     }
 
-    std::string toString() override{
+    std::string toString()  const override{
         return std::to_string(this->intValue);
     }
 
@@ -508,7 +589,7 @@ public:
         return this->charValue;
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         return std::string(1, this->charValue);
     }
 
@@ -539,7 +620,7 @@ public:
         return this->stringValue;
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         return *(this->stringValue);
     }
 
@@ -571,7 +652,7 @@ public:
         return this->elementIndex;
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         return *(this->getVarName()) + "[" + elementIndex->toString() + "] ";
     }
 
@@ -597,11 +678,11 @@ public:
 
 class LlLocationVar : public LlLocation {
 public:
-    LlLocationVar(const std::string* varName) : LlLocation(varName) {}
+    LlLocationVar(std::string* varName) : LlLocation(varName) {}
     ~LlLocationVar() override {}
 
 
-    std::string toString() override{
+    std::string toString() const override{
         return *(this->getVarName());
     }
 
@@ -653,7 +734,7 @@ public:
         return this->argsList;  // Return a copy of the vector
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         std::string argsString = "";
         for(auto &arg : argsList){
             argsString +=  arg->toString() +",";
@@ -696,7 +777,7 @@ public:
     LlParallelMethodStmt(std::string methodName) : parallelMethodName(methodName) {}
     ~LlParallelMethodStmt() override {}
 
-    std::string toString() override {
+    std::string toString() const override {
         return "create_and_run_threads(" + this->parallelMethodName + ")";
     }
 };
@@ -716,7 +797,7 @@ public:
         return this->returnValue;
     }
 
-    std::string toString() override{
+    std::string toString() const override{
         if (this->returnValue == nullptr) {
             return "return ";
         }
@@ -766,7 +847,7 @@ private:
     const std::string* aliasName;
 
 public:
-    LlLocationTypeAlias(const std::string* aliasName)
+    LlLocationTypeAlias(std::string* aliasName)
         : LlLocation(aliasName), aliasName(aliasName) {}
 
     ~LlLocationTypeAlias() override {
@@ -779,7 +860,7 @@ public:
     }
 
     // Override toString for clarity
-    std::string toString() override {
+    std::string toString() const override {
         return "TypeAlias: " + *aliasName;
     }
 };
@@ -810,7 +891,7 @@ public:
         return offset;
     }
 
-    std::string toString() override {
+    std::string toString() const override {
         return baseLocation->toString() + "->" + fieldName;
     }
 

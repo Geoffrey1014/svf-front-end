@@ -2063,9 +2063,9 @@ public:
 
 class IrTypeIdent : public IrType {
     private:
-        const string name;
+        string name;
     public:
-        IrTypeIdent(const string& name, const TSNode& node) 
+        IrTypeIdent(string& name, const TSNode& node)
             : IrType(node), name(name) {}
         ~IrTypeIdent() = default;
 
