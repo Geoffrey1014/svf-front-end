@@ -9,7 +9,6 @@ int main() {
             break;
         default:
             x++;
-            y++;
             break;
         }
         return 0;

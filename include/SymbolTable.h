@@ -6,7 +6,6 @@
 #include <vector>
 #include "Ll.h"
 
-// TypeTable:
 //     m : int               // Variable (not a type)
 //     A : struct {...}      // Type alias
 

@@ -323,7 +323,7 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
 
             while (!allDecls.empty()) {
                 IrDecl* singleDecl = allDecls.front();
-                allDecls.pop_front();  // no error now!
+                allDecls.pop_front();
 
                 if (auto decl = dynamic_cast<IrDecl*>(singleDecl)) {
                     transUnitNode->addTopLevelNodeFront(decl);
@@ -831,6 +831,32 @@ void ASTBuilder::exitInitList(const TSNode &cst_node) {
     }
 }
 
+void ASTBuilder::exitBreakStatement(const TSNode &cst_node) {
+    IrBreakStmt* breakStmt = new IrBreakStmt(cst_node);
+    this->ast_stack.push(breakStmt);
+}
+
+    // case_statement: $ => prec.right(seq(
+    //   choice(
+    //     seq('case', field('value', $.expression)),
+    //     'default',
+    //   ),
+    //   ':',
+    //   repeat(choice(
+    //     $._non_case_statement,
+    //     $.declaration,
+    //     $.type_definition,
+    //   )),
+    // )),
+void ASTBuilder::exitCaseStatement(const TSNode &cst_node) {
+    try {
+        this->debugStackState();
+        
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitCaseStatement: " << e.what() << std::endl;
+    }
+}
 
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
@@ -975,9 +1001,12 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 313: // initializer_list
             exitInitList(cst_node);
             break;
-        // case 276: // break_statement
-            
-        //     break;    
+        case 276: // break_statement
+            exitBreakStatement(cst_node);
+            break;
+        case 270: // case_statement
+            exitCaseStatement(cst_node);
+            break;    
         default:
             std::cerr << "Error: Unhandled CST node type: " ;
             std::cerr << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:" << std::to_string(symbol_type) << std::endl;
