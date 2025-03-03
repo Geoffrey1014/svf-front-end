@@ -195,7 +195,7 @@ public:
             currentBlock->addLlStatement(stmt);
         }
 
-        // connect the blocks according to the last instruction of each block
+        // connect the blocks 
         std::vector<BasicBlock*> blocksList = cfg->getBlocksList();
         for (int i = 0; i < blocksList.size(); i++) {
             BasicBlock* block = blocksList[i];
@@ -213,18 +213,29 @@ public:
                     blocksList[i+1]->addPredecessor(block);
                 }
             }
-            else if (i + 1 == blocksList.size()){
-                // add exit as a successor
-                block->addSuccessor(cfg->getExit());
-                cfg->getExit()->addPredecessor(block);
-            }
-            else{
+            else if (i + 1 < blocksList.size()) {
                 block->addSuccessor(blocksList[i+1]);
                 blocksList[i+1]->addPredecessor(block);
             }
-
-            
         }
+
+        // Set entry and exit blocks
+        if (!blocksList.empty()) {
+            cfg->setEntry(blocksList[0]);
+
+            // Find blocks with no successors and connect them to an exit block
+            BasicBlock* exitBlock = new BasicBlock("EXIT");
+            cfg->addBlock(exitBlock);
+            cfg->setExit(exitBlock);
+
+            for (BasicBlock* const block: cfg->getBlocksList()) {
+                if (block != exitBlock && block->getSuccessors().empty()) {
+                    block->addSuccessor(exitBlock);
+                    exitBlock->addPredecessor(block);
+                }
+            }
+        }
+
         return cfg;
     }
 };
