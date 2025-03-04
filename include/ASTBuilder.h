@@ -69,6 +69,7 @@ public:
     void exitIfStatement(const TSNode & cst_node);
     void exitElseClause(const TSNode & cst_node);
     void exitForStatement(const TSNode & cst_node);
+    void exitWhileStatement(const TSNode & cst_node);
     void exitBreakStatement(const TSNode & cst_node);
     void exitCaseStatement(const TSNode & cst_node);
     

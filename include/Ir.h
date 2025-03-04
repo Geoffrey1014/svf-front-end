@@ -1924,6 +1924,71 @@ public:
     }
 };
 
+class IrWhileStmt : public IrStatement {
+    private:
+        IrParenthesizedExpr* condition;
+        IrStatement* body;
+    
+    public:
+        IrWhileStmt(IrParenthesizedExpr* condition, IrStatement* body, const TSNode& node)
+            : IrStatement(node), condition(condition), body(body) {}
+    
+        ~IrWhileStmt() {
+            delete condition;
+            delete body;
+        }
+    
+        string prettyPrint(string indentSpace) const override {
+            string prettyString = indentSpace + "|--whileStmt\n";
+    
+            prettyString += addIndent(indentSpace) + "|--condition\n";
+            prettyString += condition->prettyPrint(addIndent(indentSpace, 2));
+    
+            prettyString += addIndent(indentSpace) + "|--body\n";
+            prettyString += body->prettyPrint(addIndent(indentSpace, 2));
+    
+            return prettyString;
+        }
+    
+        string toString() const override {
+            return "while " + condition->toString() + " {" + body->toString(); + "}";
+        }
+    
+        LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+            // Generate IR for while loop
+            string loopLabel = builder.generateLabel();
+            string* condLabel = new string("while.cond." + loopLabel);
+            string* bodyLabel = new string("while.body." + loopLabel);
+            string* endLabel = new string("while.end." + loopLabel);
+    
+            // Condition Block
+            LlEmptyStmt* emptyStmtWhile = new LlEmptyStmt();
+            builder.appendStatement(*condLabel, emptyStmtWhile);
+    
+            LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
+            LlJumpConditional* conditionalJump = new LlJumpConditional(endLabel, conditionVar);
+            builder.appendStatement(conditionalJump);
+    
+            // Body Block
+            LlEmptyStmt* emptyStmtWhileBody = new LlEmptyStmt();
+            builder.appendStatement(*bodyLabel, emptyStmtWhileBody);
+            if (body) {
+                body->generateLlIr(builder, symbolTable);
+            }
+    
+            // Jump back to condition
+            LlJumpUnconditional* jumpToWhile = new LlJumpUnconditional(condLabel);
+            builder.appendStatement(jumpToWhile);
+    
+            // End Block
+            LlEmptyStmt* emptyStmtWhileEnd = new LlEmptyStmt();
+            builder.appendStatement(*endLabel, emptyStmtWhileEnd);
+    
+            return nullptr;
+}
+};
+    
+
 class IrBreakStmt : public IrStatement {
 public:
     IrBreakStmt(const TSNode& node) : IrStatement(node) {}

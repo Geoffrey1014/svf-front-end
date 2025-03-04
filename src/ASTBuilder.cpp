@@ -858,6 +858,29 @@ void ASTBuilder::exitCaseStatement(const TSNode &cst_node) {
     }
 }
 
+void ASTBuilder::exitWhileStatement(const TSNode &cst_node) {
+    try {
+        this->debugStackState();
+
+        IrStatement* body = this->popFromStack<IrStatement>(cst_node);
+
+        TSNode conditionNode = ts_node_child_by_field_name(cst_node, "condition", 9);
+        IrParenthesizedExpr* condition = nullptr;
+        if (!ts_node_is_null(conditionNode)) {
+            condition = this->popFromStack<IrParenthesizedExpr>(cst_node);
+        } else {
+            std::cerr << "Error: While statement missing condition.\n";
+            return;
+        }
+
+        IrWhileStmt* whileStmt = new IrWhileStmt(condition, body, cst_node);
+        this->ast_stack.push(whileStmt);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitWhileStatement: " << e.what() << std::endl;
+    }
+}
+
+
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
@@ -1001,12 +1024,15 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 313: // initializer_list
             exitInitList(cst_node);
             break;
+        case 271: // while_statement
+            exitWhileStatement(cst_node);
+            break; 
         case 276: // break_statement
             exitBreakStatement(cst_node);
             break;
         case 270: // case_statement
             exitCaseStatement(cst_node);
-            break;    
+            break; 
         default:
             std::cerr << "Error: Unhandled CST node type: " ;
             std::cerr << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:" << std::to_string(symbol_type) << std::endl;

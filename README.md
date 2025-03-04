@@ -8,4 +8,4 @@ This is the frontend of svf.
 4. git clone https://github.com/tree-sitter/tree-sitter-c
 5. mkdir build; cd build; cmake ..
 6. CST dot file: ./svf_frontend file-path -c
-7. dot file to the png file: dot -Tpng cst.dot -o cst.png
+7. dot file to the png file: dot -Tpng cst.dot -o cst.png; dot -Tpng cfg2.dot -o cfg2.png
