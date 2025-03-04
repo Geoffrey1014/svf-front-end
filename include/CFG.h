@@ -184,8 +184,6 @@ private:
 public:
     CFG* buildCFG(LlBuilder& builder) {
         CFG* cfg = new CFG();
-        cfg->setEntry(new BasicBlock("BB_entry"));
-        cfg->setExit(new BasicBlock("BB_exit"));
         
         // Identify leaders (first instruction of each basic block)
         std::unordered_set<std::string> leaders = identifyLeaders(builder);
@@ -213,7 +211,7 @@ public:
                     block->addSuccessor(cfg->getBlock("BB_" + *targetLabel));
                     cfg->getBlock("BB_" + *targetLabel)->addPredecessor(block);
                 }
-                if (jumpStmt->isConditionalJump()){
+                if (jumpStmt->isConditionalJump() && i + 1 < blocksList.size()){
                     // add the next block as a successor
                     block->addSuccessor(blocksList[i+1]);
                     blocksList[i+1]->addPredecessor(block);
@@ -250,7 +248,7 @@ public:
 class SSAGenerator {
 private:
     std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>> dominanceFrontier;
-    std::unordered_map<BasicBlock*, BasicBlock*> immediateDominator;
+    std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>> immediateDominator;
     std::unordered_map<std::string, int> variableVersions;
     std::unordered_map<std::string, std::stack<int>> variableStack;
 
@@ -261,9 +259,12 @@ private:
         
         // Initialize dominators
         for (BasicBlock* block : blocks) {
-            immediateDominator[block] = nullptr;
+            std::unordered_set<BasicBlock*> domSet(blocks.begin(), blocks.end());
+            immediateDominator[block] = domSet;
         }
-        immediateDominator[entry] = entry;
+        
+        immediateDominator[entry].clear();
+        immediateDominator[entry].insert(entry);
 
         bool changed = true;
         while (changed) {
@@ -271,40 +272,35 @@ private:
             for (BasicBlock* block : blocks) {
                 if (block == entry) continue;
 
-                // Find first processed predecessor
-                BasicBlock* newIdom = nullptr;
-                for (BasicBlock* pred : block->getPredecessors()) {
-                    if (immediateDominator[pred] != nullptr) {
-                        newIdom = pred;
-                        break;
-                    }
-                }
+                auto oldDom = immediateDominator[block];
+                std::unordered_set<BasicBlock*> new_dom (blocks.begin(), blocks.end());
 
-                // Intersect all other processed predecessors
                 for (BasicBlock* pred : block->getPredecessors()) {
-                    if (pred == newIdom) continue;
-                    if (immediateDominator[pred] != nullptr) {
-                        newIdom = intersectDominators(pred, newIdom);
+                    std::unordered_set<BasicBlock*> temp;
+                    const auto& pred_dom = immediateDominator[pred];
+                    // Compute intersection of new_dom and pred_dom
+                    std::copy_if(new_dom.begin(), new_dom.end(),
+                                std::inserter(temp, temp.begin()),
+                                [&pred_dom](BasicBlock* d) { return pred_dom.count(d) > 0; });
+                    for (BasicBlock* d : new_dom) {
+                        if (pred_dom.find(d) != pred_dom.end()) {
+                            temp.insert(d);
+                        }
                     }
+                    new_dom = temp;
                 }
+                new_dom.insert(block);
 
-                if (immediateDominator[block] != newIdom) {
-                    immediateDominator[block] = newIdom;
+                if (oldDom.size() != new_dom.size() || 
+                    !std::all_of(new_dom.begin(), new_dom.end(),
+                               [&oldDom](BasicBlock* b) { return oldDom.find(b) != oldDom.end(); })) {
+                    immediateDominator[block] = new_dom;
                     changed = true;
                 }
             }
         }
     }
 
-    // Helper function to find common dominator
-    BasicBlock* intersectDominators(BasicBlock* b1, BasicBlock* b2) {
-        // Find common dominator of b1 and b2
-        BasicBlock* runner = b1;
-        while (runner != immediateDominator[b2]) {
-            runner = immediateDominator[runner];
-        }
-        return runner;
-    }
 
     // Compute dominance frontier
     void computeDominanceFrontier(CFG* cfg) {
@@ -316,9 +312,14 @@ private:
             if (block->getPredecessors().size() >= 2) {
                 for (BasicBlock* pred : block->getPredecessors()) {
                     BasicBlock* runner = pred;
-                    while (runner != immediateDominator[block] && runner != nullptr) {
+                    const auto& idom = immediateDominator[block];
+                    while (idom.find(runner) == idom.end() && runner != nullptr) {
                         dominanceFrontier[runner].insert(block);
-                        runner = immediateDominator[runner];
+                        if (!immediateDominator[runner].empty()) {
+                            runner = *immediateDominator[runner].begin(); // Take any dominator
+                        } else {
+                            runner = nullptr;
+                        }
                     }
                 }
             }
@@ -440,14 +441,18 @@ public:
         // output the dominance tree
         std::cout << "\nDominance Tree:" << std::endl;
         for (const auto& pair : immediateDominator) {
-            std::cout << pair.first->getLabel() << " <- " << pair.second->getLabel() << std::endl;
+            std::cout << pair.first->getLabel() << " is dominated by: ";
+            for (const auto& dom : pair.second) {
+                std::cout << dom->getLabel() << " ";
+            }
+            std::cout << std::endl;
         }
 
         // Step 2: Compute dominance frontier
         computeDominanceFrontier(cfg);
 
         // output the dominance frontier
-        std::cout << "Dominance Frontier:" << std::endl;
+        std::cout << "\nDominance Frontier:" << std::endl;
         for (const auto& pair : dominanceFrontier) {
             std::cout << pair.first->getLabel() << " -> ";
             for (const auto &dfBlock: pair.second) {
