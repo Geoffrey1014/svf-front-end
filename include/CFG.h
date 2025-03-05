@@ -248,10 +248,13 @@ public:
 class SSAGenerator {
 private:
     std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>> dominanceFrontier;
-    std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>> immediateDominator;
+    std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>> dom;
     std::unordered_map<std::string, int> variableVersions;
     std::unordered_map<std::string, std::stack<int>> variableStack;
 
+public:
+    const auto& getDom() const { return dom; }
+    
     // Compute dominance tree using Cooper, Harvey, Kennedy algorithm
     void computeDominators(CFG* cfg) {
         BasicBlock* entry = cfg->getEntry();
@@ -260,11 +263,11 @@ private:
         // Initialize dominators
         for (BasicBlock* block : blocks) {
             std::unordered_set<BasicBlock*> domSet(blocks.begin(), blocks.end());
-            immediateDominator[block] = domSet;
+            dom[block] = domSet;
         }
         
-        immediateDominator[entry].clear();
-        immediateDominator[entry].insert(entry);
+        dom[entry].clear();
+        dom[entry].insert(entry);
 
         bool changed = true;
         while (changed) {
@@ -272,12 +275,12 @@ private:
             for (BasicBlock* block : blocks) {
                 if (block == entry) continue;
 
-                auto oldDom = immediateDominator[block];
+                auto oldDom = dom[block];
                 std::unordered_set<BasicBlock*> new_dom (blocks.begin(), blocks.end());
 
                 for (BasicBlock* pred : block->getPredecessors()) {
                     std::unordered_set<BasicBlock*> temp;
-                    const auto& pred_dom = immediateDominator[pred];
+                    const auto& pred_dom = dom[pred];
                     // Compute intersection of new_dom and pred_dom
                     std::copy_if(new_dom.begin(), new_dom.end(),
                                 std::inserter(temp, temp.begin()),
@@ -294,7 +297,7 @@ private:
                 if (oldDom.size() != new_dom.size() || 
                     !std::all_of(new_dom.begin(), new_dom.end(),
                                [&oldDom](BasicBlock* b) { return oldDom.find(b) != oldDom.end(); })) {
-                    immediateDominator[block] = new_dom;
+                    dom[block] = new_dom;
                     changed = true;
                 }
             }
@@ -312,11 +315,11 @@ private:
             if (block->getPredecessors().size() >= 2) {
                 for (BasicBlock* pred : block->getPredecessors()) {
                     BasicBlock* runner = pred;
-                    const auto& idom = immediateDominator[block];
+                    const auto& idom = dom[block];
                     while (idom.find(runner) == idom.end() && runner != nullptr) {
                         dominanceFrontier[runner].insert(block);
-                        if (!immediateDominator[runner].empty()) {
-                            runner = *immediateDominator[runner].begin(); // Take any dominator
+                        if (!dom[runner].empty()) {
+                            runner = *dom[runner].begin(); // Take any dominator
                         } else {
                             runner = nullptr;
                         }
@@ -433,14 +436,14 @@ private:
         variableStack = savedStacks;
     }
 
-public:
+
     void convertToSSA(CFG* cfg) {
         // Step 1: Compute dominators
         computeDominators(cfg);
 
         // output the dominance tree
         std::cout << "\nDominance Tree:" << std::endl;
-        for (const auto& pair : immediateDominator) {
+        for (const auto& pair : dom) {
             std::cout << pair.first->getLabel() << " is dominated by: ";
             for (const auto& dom : pair.second) {
                 std::cout << dom->getLabel() << " ";

@@ -61,3 +61,13 @@ add_executable(svf_frontend ${SOURCES})
 
 
 target_link_libraries(svf_frontend ${Tree_Sitter_LIB})
+
+# Find Google Test
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+# Create test executable
+add_executable(test_ssa test/TestSSA.cpp)
+
+# Link against Google Test and pthread
+target_link_libraries(test_ssa ${GTEST_LIBRARIES} pthread)
