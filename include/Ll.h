@@ -59,17 +59,14 @@ private:
     std::vector<BasicBlock*> incomingBlocks;
 
 public:
-    LlPhiStatement(const std::string& var, size_t numPreds) {
+    LlPhiStatement(const std::string& var) {
         definedVar = new std::string(var);
-        incomingVars.resize(numPreds, nullptr);
-        incomingBlocks.resize(numPreds, nullptr);
+
     }
 
-    void setIncoming(size_t index, std::string* var, BasicBlock* block) {
-        if(index < incomingVars.size()) {
-            incomingVars[index] = var;
-            incomingBlocks[index] = block;
-        }
+    void setIncoming(std::string* var, BasicBlock* block) {
+        incomingVars.push_back(var);
+        incomingBlocks.push_back(block);
     }
     std::string toString() const override;
 

@@ -184,8 +184,6 @@ private:
 public:
     CFG* buildCFG(LlBuilder& builder) {
         CFG* cfg = new CFG();
-        cfg->setEntry(new BasicBlock("BB_entry"));
-        cfg->setExit(new BasicBlock("BB_exit"));
         
         // Identify leaders (first instruction of each basic block)
         std::unordered_set<std::string> leaders = identifyLeaders(builder);
@@ -213,7 +211,7 @@ public:
                     block->addSuccessor(cfg->getBlock("BB_" + *targetLabel));
                     cfg->getBlock("BB_" + *targetLabel)->addPredecessor(block);
                 }
-                if (jumpStmt->isConditionalJump()){
+                if (jumpStmt->isConditionalJump() && i + 1 < blocksList.size()){
                     // add the next block as a successor
                     block->addSuccessor(blocksList[i+1]);
                     blocksList[i+1]->addPredecessor(block);
@@ -250,20 +248,26 @@ public:
 class SSAGenerator {
 private:
     std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>> dominanceFrontier;
-    std::unordered_map<BasicBlock*, BasicBlock*> immediateDominator;
+    std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>> dom;
     std::unordered_map<std::string, int> variableVersions;
     std::unordered_map<std::string, std::stack<int>> variableStack;
+
+public:
+    const auto& getDom() const { return dom; }
 
     // Compute dominance tree using Cooper, Harvey, Kennedy algorithm
     void computeDominators(CFG* cfg) {
         BasicBlock* entry = cfg->getEntry();
         const auto& blocks = cfg->getBlocksList();
-        
+
         // Initialize dominators
         for (BasicBlock* block : blocks) {
-            immediateDominator[block] = nullptr;
+            std::unordered_set<BasicBlock*> domSet(blocks.begin(), blocks.end());
+            dom[block] = domSet;
         }
-        immediateDominator[entry] = entry;
+
+        dom[entry].clear();
+        dom[entry].insert(entry);
 
         bool changed = true;
         while (changed) {
@@ -271,40 +275,35 @@ private:
             for (BasicBlock* block : blocks) {
                 if (block == entry) continue;
 
-                // Find first processed predecessor
-                BasicBlock* newIdom = nullptr;
-                for (BasicBlock* pred : block->getPredecessors()) {
-                    if (immediateDominator[pred] != nullptr) {
-                        newIdom = pred;
-                        break;
-                    }
-                }
+                auto oldDom = dom[block];
+                std::unordered_set<BasicBlock*> new_dom (blocks.begin(), blocks.end());
 
-                // Intersect all other processed predecessors
                 for (BasicBlock* pred : block->getPredecessors()) {
-                    if (pred == newIdom) continue;
-                    if (immediateDominator[pred] != nullptr) {
-                        newIdom = intersectDominators(pred, newIdom);
+                    std::unordered_set<BasicBlock*> temp;
+                    const auto& pred_dom = dom[pred];
+                    // Compute intersection of new_dom and pred_dom
+                    std::copy_if(new_dom.begin(), new_dom.end(),
+                                std::inserter(temp, temp.begin()),
+                                [&pred_dom](BasicBlock* d) { return pred_dom.count(d) > 0; });
+                    for (BasicBlock* d : new_dom) {
+                        if (pred_dom.find(d) != pred_dom.end()) {
+                            temp.insert(d);
+                        }
                     }
+                    new_dom = temp;
                 }
+                new_dom.insert(block);
 
-                if (immediateDominator[block] != newIdom) {
-                    immediateDominator[block] = newIdom;
+                if (oldDom.size() != new_dom.size() ||
+                    !std::all_of(new_dom.begin(), new_dom.end(),
+                               [&oldDom](BasicBlock* b) { return oldDom.find(b) != oldDom.end(); })) {
+                    dom[block] = new_dom;
                     changed = true;
                 }
             }
         }
     }
 
-    // Helper function to find common dominator
-    BasicBlock* intersectDominators(BasicBlock* b1, BasicBlock* b2) {
-        // Find common dominator of b1 and b2
-        BasicBlock* runner = b1;
-        while (runner != immediateDominator[b2]) {
-            runner = immediateDominator[runner];
-        }
-        return runner;
-    }
 
     // Compute dominance frontier
     void computeDominanceFrontier(CFG* cfg) {
@@ -316,9 +315,14 @@ private:
             if (block->getPredecessors().size() >= 2) {
                 for (BasicBlock* pred : block->getPredecessors()) {
                     BasicBlock* runner = pred;
-                    while (runner != immediateDominator[block] && runner != nullptr) {
+                    const auto& idom = dom[block];
+                    while (idom.find(runner) == idom.end() && runner != nullptr) {
                         dominanceFrontier[runner].insert(block);
-                        runner = immediateDominator[runner];
+                        if (!dom[runner].empty()) {
+                            runner = *dom[runner].begin(); // Take any dominator
+                        } else {
+                            runner = nullptr;
+                        }
                     }
                 }
             }
@@ -327,48 +331,91 @@ private:
 
     // Insert Phi functions
     void insertPhiFunctions(CFG* cfg) {
-        // Collect all variables that are assigned to
+        // 0   worklist = ∅
+        // 1   for each node n do
+        // 2   {
+        // 3       inserted_n = x0         /* x0 should not occur in the program */
+        // 4       inWorklist_n = x0
+        // 5   }
+
+        // 6   for each variable x do
+        // 7       for each n ∈ assign(x) do
+        // 8       {
+        // 9           inWorklist_n = x
+        // 10          worklist = worklist ∪ {n}
+        // 11      }
+
+        // 12  while worklist ≠ ∅ do
+        // 13  {
+        // 14      remove a node n from worklist
+        // 15      for each m ∈ dfn do
+        // 16          if inserted_m ≠ x then
+        // 17          {
+        // 18              place a Φ-instruction for x at m
+        // 19              inserted_m = x
+        // 20              if inWorklist_m ≠ x then
+        // 21              {
+        // 22                  inWorklist_m = x
+        // 23                  worklist = worklist ∪ {m}
+        // 24              }
+        // 25          }
+        // 26      }
+        // 27  }
+
+        std::unordered_set<BasicBlock*> worklist;
+        std::unordered_map<BasicBlock*, std::string> inserted;
+        std::unordered_map<BasicBlock*, std::string> inWorklist;
+
+        for (BasicBlock* block : cfg->getBlocksList()) {
+            inserted[block] = "";
+            inWorklist[block] = "";
+        }
+
         std::unordered_set<std::string> variables;
+        std::unordered_map<std::string, std::unordered_set<BasicBlock*>> variableBlocks;
+
+        // get all variables in the program
         for (BasicBlock* block : cfg->getBlocksList()) {
             for (LlStatement* stmt : block->getLlStatements()) {
-                // You'll need to implement getDefinedVariable() in LlStatement
                 std::string* def = stmt->getDefinedVariable();
-                if (def) variables.insert(*def);
+                // def is not start with #, which means it is a variable
+                if (def && def->at(0) != '#') {
+                    variables.insert(*def);
+                    variableBlocks[*def].insert(block);
+                }
             }
         }
 
-        // For each variable, insert phi functions where needed
-        for (const std::string& var : variables) {
-            std::unordered_set<BasicBlock*> phiBlocks;
-            std::queue<BasicBlock*> workList;
-            
-            // Find blocks where variable is defined
-            for (BasicBlock* block : cfg->getBlocksList()) {
-                for (LlStatement* stmt : block->getLlStatements()) {
-                    std::string* def = stmt->getDefinedVariable();
-                    if (def && *def == var) {
-                        workList.push(block);
-                        break;
-                    }
-                }
+        for (const auto& var : variables) {
+            for (BasicBlock* block : variableBlocks[var]) {
+                inWorklist[block] = var;
+                worklist.insert(block);
             }
+            // while worklist is not empty
+            while (!worklist.empty()) {
+                BasicBlock* block = *worklist.begin();
+                worklist.erase(worklist.begin());
 
-            // Insert phi functions in dominance frontier
-            while (!workList.empty()) {
-                BasicBlock* block = workList.front();
-                workList.pop();
-
+                // for each block in the dominance frontier of block
                 for (BasicBlock* dfBlock : dominanceFrontier[block]) {
-                    if (phiBlocks.find(dfBlock) == phiBlocks.end()) {
-                        // Create and insert phi function
-                        LlStatement* phi = new LlPhiStatement(var, dfBlock->getPredecessors().size());
+                    if (inserted[dfBlock] != var) {
+                        inserted[dfBlock] = var;
+                        // place a phi function for var at dfBlock
+                        LlPhiStatement* phi = new LlPhiStatement(var);
+                        
+                        // Add the phi function to the beginning of the block
                         dfBlock->getLlStatements().insert(dfBlock->getLlStatements().begin(), phi);
-                        phiBlocks.insert(dfBlock);
-                        workList.push(dfBlock);
+
+                        if (inWorklist[dfBlock] != var) {
+                            inWorklist[dfBlock] = var;
+                            worklist.insert(dfBlock);
+                        }
                     }
                 }
             }
         }
+
+
     }
 
     // Rename variables
@@ -377,7 +424,7 @@ private:
         for (BasicBlock* block : cfg->getBlocksList()) {
             for (LlStatement* stmt : block->getLlStatements()) {
                 std::string* def = stmt->getDefinedVariable();
-                if (def) {
+                if (def && def->at(0) != '#') {
                     variableStack[*def] = std::stack<int>();
                     variableStack[*def].push(0);
                 }
@@ -389,55 +436,92 @@ private:
     }
 
     void renameVariablesInBlock(BasicBlock* block) {
-        // Save copies of stacks
-        std::unordered_map<std::string, std::stack<int>> savedStacks;
-        for (const auto& pair : variableStack) {
-            savedStacks[pair.first] = pair.second;
-        }
 
-        // Rename definitions and uses in the block
+        // For each phi function in block
         for (LlStatement* stmt : block->getLlStatements()) {
-            // Rename uses
-            for (std::string* use : stmt->getUsedVariables()) {
-                if (variableStack.find(*use) != variableStack.end() && !variableStack[*use].empty()) {
-                    stmt->renameUse(*use, *use + "_" + std::to_string(variableStack[*use].top()));
+            if (auto phi = dynamic_cast<LlPhiStatement*>(stmt)) {
+                std::string* def = phi->getDefinedVariable();
+                if (def && def->at(0) != '#') {
+                    int newVersion = variableVersions[*def]++;
+                    variableStack[*def].push(newVersion);
+                    phi->renameDef(*def, *def + "_" + std::to_string(newVersion));
                 }
             }
+        }
 
-            // Rename definition
-            std::string* def = stmt->getDefinedVariable();
-            if (def) {
-                int newVersion = variableVersions[*def]++;
-                variableStack[*def].push(newVersion);
-                stmt->renameDef(*def, *def + "_" + std::to_string(newVersion));
+        // For each regular statement in block
+        for (LlStatement* stmt : block->getLlStatements()) {
+            if (dynamic_cast<LlPhiStatement*>(stmt) == nullptr) {
+                // Rename uses
+                for (std::string* use : stmt->getUsedVariables()) {
+                    if (!variableStack[*use].empty()) {
+                        stmt->renameUse(*use, *use + "_" + std::to_string(variableStack[*use].top()));
+                    }
+                }
+                
+                // Rename definition
+                std::string* def = stmt->getDefinedVariable();
+                if (def && def->at(0) != '#') {
+                    int newVersion = variableVersions[*def]++;
+                    variableStack[*def].push(newVersion);
+                    stmt->renameDef(*def, *def + "_" + std::to_string(newVersion));
+                }
             }
         }
 
-        // Recursively rename in successor blocks
+        // For each successor block
         for (BasicBlock* succ : block->getSuccessors()) {
-            renameVariablesInBlock(succ);
+            // Fill in phi function parameters in successor
+            for (LlStatement* stmt : succ->getLlStatements()) {
+                if (auto phi = dynamic_cast<LlPhiStatement*>(stmt)) {
+                    std::string* phiVar = phi->getDefinedVariable();
+                    if (phiVar && !variableStack[*phiVar].empty()) {
+                        // Set the incoming value from this predecessor
+                        phi->setIncoming(
+                            new std::string(*phiVar + "_" + std::to_string(variableStack[*phiVar].top())),
+                            block
+                        );
+                    }
+                }
+            }
         }
 
-        // Restore stacks
-        variableStack = savedStacks;
+        // Recursively rename in dominator tree children
+        for (BasicBlock* succ : block->getSuccessors()) {
+            if (dom[succ].count(block) > 0) {  // if block dominates succ
+                renameVariablesInBlock(succ);
+            }
+        }
+
+        // Restore stacks by popping variables defined in this block
+        for (LlStatement* stmt : block->getLlStatements()) {
+            std::string* def = stmt->getDefinedVariable();
+            if (def && def->at(0) != '#' && !variableStack[*def].empty()) {
+                variableStack[*def].pop();
+            }
+        }
     }
 
-public:
+
     void convertToSSA(CFG* cfg) {
         // Step 1: Compute dominators
         computeDominators(cfg);
 
         // output the dominance tree
         std::cout << "\nDominance Tree:" << std::endl;
-        for (const auto& pair : immediateDominator) {
-            std::cout << pair.first->getLabel() << " <- " << pair.second->getLabel() << std::endl;
+        for (const auto& pair : dom) {
+            std::cout << pair.first->getLabel() << " is dominated by: ";
+            for (const auto& dom : pair.second) {
+                std::cout << dom->getLabel() << " ";
+            }
+            std::cout << std::endl;
         }
 
         // Step 2: Compute dominance frontier
         computeDominanceFrontier(cfg);
 
         // output the dominance frontier
-        std::cout << "Dominance Frontier:" << std::endl;
+        std::cout << "\nDominance Frontier:" << std::endl;
         for (const auto& pair : dominanceFrontier) {
             std::cout << pair.first->getLabel() << " -> ";
             for (const auto &dfBlock: pair.second) {
@@ -449,12 +533,13 @@ public:
         // Step 3: Insert phi functions
         insertPhiFunctions(cfg);
 
-        // output the CFG after inserting phi functions
-        std::cout << "\nCFG after inserting phi functions:" << std::endl;
-        cfg->writeDotFile("cfg_phi.dot");
 
         // Step 4: Rename variables
         renameVariables(cfg);
+
+        // output the CFG after inserting phi functions
+        std::cout << "\nCFG after inserting phi functions:" << std::endl;
+        cfg->writeDotFile("cfg_phi.dot");
     }
 };
 
