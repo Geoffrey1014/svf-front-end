@@ -378,7 +378,8 @@ public:
         for (BasicBlock* block : cfg->getBlocksList()) {
             for (LlStatement* stmt : block->getLlStatements()) {
                 std::string* def = stmt->getDefinedVariable();
-                if (def) {
+                // def is not start with #, which means it is a variable
+                if (def && def->at(0) != '#') {
                     variables.insert(*def);
                     variableBlocks[*def].insert(block);
                 }
@@ -423,7 +424,7 @@ public:
         for (BasicBlock* block : cfg->getBlocksList()) {
             for (LlStatement* stmt : block->getLlStatements()) {
                 std::string* def = stmt->getDefinedVariable();
-                if (def) {
+                if (def && def->at(0) != '#') {
                     variableStack[*def] = std::stack<int>();
                     variableStack[*def].push(0);
                 }
@@ -435,37 +436,70 @@ public:
     }
 
     void renameVariablesInBlock(BasicBlock* block) {
-        // Save copies of stacks
-        std::unordered_map<std::string, std::stack<int>> savedStacks;
-        for (const auto& pair : variableStack) {
-            savedStacks[pair.first] = pair.second;
-        }
 
-        // Rename definitions and uses in the block
+        // For each phi function in block
         for (LlStatement* stmt : block->getLlStatements()) {
-            // Rename uses
-            for (std::string* use : stmt->getUsedVariables()) {
-                if (variableStack.find(*use) != variableStack.end() && !variableStack[*use].empty()) {
-                    stmt->renameUse(*use, *use + "_" + std::to_string(variableStack[*use].top()));
+            if (auto phi = dynamic_cast<LlPhiStatement*>(stmt)) {
+                std::string* def = phi->getDefinedVariable();
+                if (def && def->at(0) != '#') {
+                    int newVersion = variableVersions[*def]++;
+                    variableStack[*def].push(newVersion);
+                    phi->renameDef(*def, *def + "_" + std::to_string(newVersion));
                 }
             }
+        }
 
-            // Rename definition
-            std::string* def = stmt->getDefinedVariable();
-            if (def) {
-                int newVersion = variableVersions[*def]++;
-                variableStack[*def].push(newVersion);
-                stmt->renameDef(*def, *def + "_" + std::to_string(newVersion));
+        // For each regular statement in block
+        for (LlStatement* stmt : block->getLlStatements()) {
+            if (dynamic_cast<LlPhiStatement*>(stmt) == nullptr) {
+                // Rename uses
+                for (std::string* use : stmt->getUsedVariables()) {
+                    if (!variableStack[*use].empty()) {
+                        stmt->renameUse(*use, *use + "_" + std::to_string(variableStack[*use].top()));
+                    }
+                }
+                
+                // Rename definition
+                std::string* def = stmt->getDefinedVariable();
+                if (def && def->at(0) != '#') {
+                    int newVersion = variableVersions[*def]++;
+                    variableStack[*def].push(newVersion);
+                    stmt->renameDef(*def, *def + "_" + std::to_string(newVersion));
+                }
             }
         }
 
-        // Recursively rename in successor blocks
+        // For each successor block
         for (BasicBlock* succ : block->getSuccessors()) {
-            renameVariablesInBlock(succ);
+            // Fill in phi function parameters in successor
+            for (LlStatement* stmt : succ->getLlStatements()) {
+                if (auto phi = dynamic_cast<LlPhiStatement*>(stmt)) {
+                    std::string* phiVar = phi->getDefinedVariable();
+                    if (phiVar && !variableStack[*phiVar].empty()) {
+                        // Set the incoming value from this predecessor
+                        phi->setIncoming(
+                            new std::string(*phiVar + "_" + std::to_string(variableStack[*phiVar].top())),
+                            block
+                        );
+                    }
+                }
+            }
         }
 
-        // Restore stacks
-        variableStack = savedStacks;
+        // Recursively rename in dominator tree children
+        for (BasicBlock* succ : block->getSuccessors()) {
+            if (dom[succ].count(block) > 0) {  // if block dominates succ
+                renameVariablesInBlock(succ);
+            }
+        }
+
+        // Restore stacks by popping variables defined in this block
+        for (LlStatement* stmt : block->getLlStatements()) {
+            std::string* def = stmt->getDefinedVariable();
+            if (def && def->at(0) != '#' && !variableStack[*def].empty()) {
+                variableStack[*def].pop();
+            }
+        }
     }
 
 
