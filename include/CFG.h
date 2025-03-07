@@ -254,18 +254,18 @@ private:
 
 public:
     const auto& getDom() const { return dom; }
-    
+
     // Compute dominance tree using Cooper, Harvey, Kennedy algorithm
     void computeDominators(CFG* cfg) {
         BasicBlock* entry = cfg->getEntry();
         const auto& blocks = cfg->getBlocksList();
-        
+
         // Initialize dominators
         for (BasicBlock* block : blocks) {
             std::unordered_set<BasicBlock*> domSet(blocks.begin(), blocks.end());
             dom[block] = domSet;
         }
-        
+
         dom[entry].clear();
         dom[entry].insert(entry);
 
@@ -294,7 +294,7 @@ public:
                 }
                 new_dom.insert(block);
 
-                if (oldDom.size() != new_dom.size() || 
+                if (oldDom.size() != new_dom.size() ||
                     !std::all_of(new_dom.begin(), new_dom.end(),
                                [&oldDom](BasicBlock* b) { return oldDom.find(b) != oldDom.end(); })) {
                     dom[block] = new_dom;
@@ -331,58 +331,90 @@ public:
 
     // Insert Phi functions
     void insertPhiFunctions(CFG* cfg) {
-        // Collect all variables that are assigned to
+        // 0   worklist = ∅
+        // 1   for each node n do
+        // 2   {
+        // 3       inserted_n = x0         /* x0 should not occur in the program */
+        // 4       inWorklist_n = x0
+        // 5   }
+
+        // 6   for each variable x do
+        // 7       for each n ∈ assign(x) do
+        // 8       {
+        // 9           inWorklist_n = x
+        // 10          worklist = worklist ∪ {n}
+        // 11      }
+
+        // 12  while worklist ≠ ∅ do
+        // 13  {
+        // 14      remove a node n from worklist
+        // 15      for each m ∈ dfn do
+        // 16          if inserted_m ≠ x then
+        // 17          {
+        // 18              place a Φ-instruction for x at m
+        // 19              inserted_m = x
+        // 20              if inWorklist_m ≠ x then
+        // 21              {
+        // 22                  inWorklist_m = x
+        // 23                  worklist = worklist ∪ {m}
+        // 24              }
+        // 25          }
+        // 26      }
+        // 27  }
+
+        std::unordered_set<BasicBlock*> worklist;
+        std::unordered_map<BasicBlock*, std::string> inserted;
+        std::unordered_map<BasicBlock*, std::string> inWorklist;
+
+        for (BasicBlock* block : cfg->getBlocksList()) {
+            inserted[block] = "";
+            inWorklist[block] = "";
+        }
+
         std::unordered_set<std::string> variables;
+        std::unordered_map<std::string, std::unordered_set<BasicBlock*>> variableBlocks;
+
+        // get all variables in the program
         for (BasicBlock* block : cfg->getBlocksList()) {
             for (LlStatement* stmt : block->getLlStatements()) {
                 std::string* def = stmt->getDefinedVariable();
-                if (def) variables.insert(*def);
+                if (def) {
+                    variables.insert(*def);
+                    variableBlocks[*def].insert(block);
+                }
             }
         }
 
-        // For each variable, insert phi functions where needed
-        for (const std::string& var : variables) {
-            std::unordered_set<BasicBlock*> phiBlocks;
-            std::queue<BasicBlock*> workList;
-            
-            // Find blocks where variable is defined
-            for (BasicBlock* block : cfg->getBlocksList()) {
-                for (LlStatement* stmt : block->getLlStatements()) {
-                    std::string* def = stmt->getDefinedVariable();
-                    if (def && *def == var) {
-                        workList.push(block);
-                        break;
-                    }
-                }
+        for (const auto& var : variables) {
+            for (BasicBlock* block : variableBlocks[var]) {
+                inWorklist[block] = var;
+                worklist.insert(block);
             }
+            // while worklist is not empty
+            while (!worklist.empty()) {
+                BasicBlock* block = *worklist.begin();
+                worklist.erase(worklist.begin());
 
-            // Insert phi functions in dominance frontier
-            while (!workList.empty()) {
-                BasicBlock* block = workList.front();
-                workList.pop();
-
+                // for each block in the dominance frontier of block
                 for (BasicBlock* dfBlock : dominanceFrontier[block]) {
-                    if (phiBlocks.find(dfBlock) == phiBlocks.end()) {
-                        // Create phi function with the right number of incoming edges
-                        LlPhiStatement* phi = new LlPhiStatement(var, dfBlock->getPredecessors().size());
+                    if (inserted[dfBlock] != var) {
+                        inserted[dfBlock] = var;
+                        // place a phi function for var at dfBlock
+                        LlPhiStatement* phi = new LlPhiStatement(var);
                         
-                        // Set incoming values for each predecessor
-                        size_t index = 0;
-                        for (BasicBlock* pred : dfBlock->getPredecessors()) {
-                            // For each predecessor, we'll use the original variable name
-                            // The actual renaming will happen in the renameVariables phase
-                            std::string* incomingVar = new std::string(var);
-                            phi->setIncoming(index++, incomingVar, pred);
-                        }
-                        
-                        // Insert phi at the beginning of the block
+                        // Add the phi function to the beginning of the block
                         dfBlock->getLlStatements().insert(dfBlock->getLlStatements().begin(), phi);
-                        phiBlocks.insert(dfBlock);
-                        workList.push(dfBlock);
+
+                        if (inWorklist[dfBlock] != var) {
+                            inWorklist[dfBlock] = var;
+                            worklist.insert(dfBlock);
+                        }
                     }
                 }
             }
         }
+
+
     }
 
     // Rename variables
@@ -467,12 +499,13 @@ public:
         // Step 3: Insert phi functions
         insertPhiFunctions(cfg);
 
-        // output the CFG after inserting phi functions
-        std::cout << "\nCFG after inserting phi functions:" << std::endl;
-        cfg->writeDotFile("cfg_phi.dot");
 
         // Step 4: Rename variables
         renameVariables(cfg);
+
+        // output the CFG after inserting phi functions
+        std::cout << "\nCFG after inserting phi functions:" << std::endl;
+        cfg->writeDotFile("cfg_phi.dot");
     }
 };
 
