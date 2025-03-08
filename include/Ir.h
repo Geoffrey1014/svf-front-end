@@ -1,7 +1,7 @@
 #ifndef IR_H
 #define IR_H
 #include <string>
-#include <tree_sitter/api.h> 
+#include <tree_sitter/api.h>
 #include <vector>
 #include <deque>
 #include "Ll.h"
@@ -39,7 +39,7 @@ class Ir {
     virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) = 0;
     virtual string prettyPrint(string indentSpace) const =0;
     virtual string toString() const = 0;
-    
+
     string addIndent(const string& baseIndent, int level = 1) const {
         return baseIndent + string(level * 2, ' '); // 2 spaces per level
     }
@@ -50,14 +50,14 @@ class IrExpr : public virtual Ir {
 public:
     IrExpr(const TSNode & node) : Ir(node) {}
     ~IrExpr() = default;
-    
+
     string toString() const override {
         return "baseIrExpr";
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         cerr << "IrExpr Error: generateLlIr not implemented for " << typeid(*this).name() << endl;
-        return new LlLocationVar(new string("Error")); 
+        return new LlLocationVar(new string("Error"));
     }
 
     virtual const string getName() const {
@@ -73,8 +73,8 @@ private:
     IrExpr* rightOperand;
 
 public:
-    IrBinaryExpr(string& operation, IrExpr* leftOperand, IrExpr* rightOperand, const TSNode & node) 
-        : Ir(node), IrExpr(node), operation(operation), 
+    IrBinaryExpr(string& operation, IrExpr* leftOperand, IrExpr* rightOperand, const TSNode & node)
+        : Ir(node), IrExpr(node), operation(operation),
           leftOperand(leftOperand), rightOperand(rightOperand) {}
     ~IrBinaryExpr() {
         delete leftOperand;
@@ -117,7 +117,7 @@ public:
         builder.appendStatement(new LlAssignStmtBinaryOp(result, left, operation, right));
         return result;
     }
-       
+
 };
 
 
@@ -140,7 +140,7 @@ public:
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         cerr << "IrLiteral Error: generateLlIr not implemented for " << typeid(*this).name() << endl;
-        return new LlLocationVar(new string("Error")); 
+        return new LlLocationVar(new string("Error"));
     }
 };
 
@@ -540,7 +540,7 @@ public:
         for (IrExpr* arg: this->argsList) {
             delete arg;
         }
-    }   
+    }
 
     deque<IrExpr*> getArgsList() {
         return this->argsList;
@@ -554,7 +554,7 @@ public:
         string prettyString = indentSpace + "|--argList:\n";
 
         for (IrExpr* arg: this->argsList) {
-            prettyString += arg->prettyPrint(addIndent(indentSpace)); 
+            prettyString += arg->prettyPrint(addIndent(indentSpace));
         }
 
         return prettyString;
@@ -701,7 +701,7 @@ public:
 
     IrPreprocArg(const string& t, const TSNode& node)
         : Ir(node), text(t) {}
-    
+
     ~IrPreprocArg() = default;
 
     string prettyPrint(string indentSpace) const override {
@@ -720,16 +720,16 @@ public:
 
 class IrPreprocDef : public Ir {
 public:
-    IrIdent* name;  
-    IrPreprocArg* value; 
+    IrIdent* name;
+    IrPreprocArg* value;
 
-    IrPreprocDef(IrIdent* n, const TSNode& node, 
+    IrPreprocDef(IrIdent* n, const TSNode& node,
                  IrPreprocArg* v = nullptr)
         : Ir(node), name(n), value(v) {}
-    
+
     ~IrPreprocDef() {
         delete name;
-        delete value; 
+        delete value;
     }
 
     string prettyPrint(string indentSpace) const override {
@@ -761,7 +761,7 @@ private:
     IrArgList* argList;
 
 public:
-    IrCallExpr(IrIdent* functionName, IrArgList* argList, const TSNode & node) 
+    IrCallExpr(IrIdent* functionName, IrArgList* argList, const TSNode & node)
         : Ir(node), IrNonBinaryExpr(node), functionName(functionName), argList(argList) {}
     ~IrCallExpr() {
         delete functionName;
@@ -851,7 +851,7 @@ public:
             return nullptr;
         }
 
-        LlLocation* location = dynamic_cast<LlLocation*>(left);        
+        LlLocation* location = dynamic_cast<LlLocation*>(left);
         string operation = op;
         if (op != "=") {
             operation = op.substr(0, op.size() - 1);
@@ -871,10 +871,10 @@ class IrFieldExpr : public IrNonBinaryExpr {
 private:
     IrExpr* baseExpr;
     IrIdent* fieldName;
-    bool isArrow; 
+    bool isArrow;
 
 public:
-    IrFieldExpr(IrExpr* base, IrIdent* field, bool isArrow, const TSNode & node) 
+    IrFieldExpr(IrExpr* base, IrIdent* field, bool isArrow, const TSNode & node)
       : Ir(node), IrNonBinaryExpr(node), baseExpr(base), fieldName(field), isArrow(isArrow) {}
 
     ~IrFieldExpr() override {
@@ -894,7 +894,7 @@ public:
     string toString() const override{
         string op = isArrow ? "->" : ".";
         return baseExpr->toString() + op + fieldName->toString();
-    }   
+    }
 
     IrExpr* getBaseExpr() const { return baseExpr; }
     IrIdent* getFieldName() const { return fieldName; }
@@ -903,7 +903,7 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         LlLocation* base = baseExpr->generateLlIr(builder, symbolTable);
         //IrFieldExpr codegen is not fully implemented
-        return base;    
+        return base;
     }
 
 };
@@ -934,7 +934,7 @@ public:
         if (argument) {
             prettyString += argument->prettyPrint(addIndent(indentSpace));
         }
-        
+
         return prettyString;
     }
 
@@ -966,7 +966,7 @@ private:
     IrExpr* innerExpr;
 
 public:
-    IrParenthesizedExpr(IrExpr* expr, const TSNode & node) 
+    IrParenthesizedExpr(IrExpr* expr, const TSNode & node)
         : Ir(node), IrNonBinaryExpr(node), innerExpr(expr) {}
 
     ~IrParenthesizedExpr() {
@@ -998,7 +998,7 @@ private:
     IrExpr* argument;
 
 public:
-    IrUnaryExpr(const string& op, IrExpr* arg, const TSNode &node) 
+    IrUnaryExpr(const string& op, IrExpr* arg, const TSNode &node)
         : Ir(node), IrNonBinaryExpr(node), op(op), argument(arg) {}
 
     ~IrUnaryExpr() {
@@ -1036,7 +1036,7 @@ public:
     string toString() const override{
         return "IrStatement";
     }
-    
+
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << endl;
         return new LlLocationVar(new string("")); // Return empty location
@@ -1047,7 +1047,7 @@ class IrStmtReturn : public IrStatement {
 public:
     IrStmtReturn(const TSNode& node) : IrStatement(node) {}
     virtual ~IrStmtReturn() = default;
-    
+
     virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override{
         cerr << "Error: generateLlIr not implemented for " << typeid(*this).name() << endl;
         return new LlLocationVar(new string("")); // Return empty location
@@ -1215,9 +1215,9 @@ public:
 
 class IrIfStmt : public IrStatement {
 private:
-    IrParenthesizedExpr* condition;  
+    IrParenthesizedExpr* condition;
     IrStatement* thenBody;
-    IrElseClause* elseBody;  
+    IrElseClause* elseBody;
 public:
     IrIfStmt(IrParenthesizedExpr* condition, IrStatement* thenBody, IrElseClause* elseBody, const TSNode& node)
         : IrStatement(node), condition(condition), thenBody(thenBody), elseBody(elseBody) {}
@@ -1261,7 +1261,7 @@ public:
 
         string label = builder.generateLabel();
 
-        
+
         string* endLabel = new string();
         endLabel->append("if.end.");
         endLabel->append(label);
@@ -1386,7 +1386,7 @@ public:
         if (fieldDeclarations.empty()) {
             return "";
         }
-        
+
         string str = indentSpace + "|--field_declaration_list:\n";
         for (auto* fieldDecl : fieldDeclarations) {
             str += fieldDecl->prettyPrint(addIndent(indentSpace));
@@ -1631,8 +1631,8 @@ public:
 
 class IrInitDeclarator : public Ir {
 private:
-    IrDeclDeclarator* declarator; 
-    IrExpr* initializer;     
+    IrDeclDeclarator* declarator;
+    IrExpr* initializer;
 
 public:
     IrInitDeclarator(IrDeclDeclarator* declarator, IrExpr* initializer, const TSNode& node)
@@ -1669,12 +1669,12 @@ public:
 
 class IrDecl : public IrStatement {
 private:
-    IrType* type;                        
+    IrType* type;
     IrStorageClassSpecifier* specifier;
 
     // Store exactly ONE of these (whichever applies):
-    IrInitDeclarator* initDecl;      
-    IrDeclDeclarator* simpleDecl;      
+    IrInitDeclarator* initDecl;
+    IrDeclDeclarator* simpleDecl;
 
 public:
     // Constructor for an initialized declarator (e.g. int a=10)
@@ -1761,7 +1761,7 @@ public:
             if (simpleDecl) {
                 LlLocation *location = simpleDecl->generateLlIr(builder, symbolTable);
                 symbolTable.putOnVarTable(*(location->getVarName()), type);
-            } 
+            }
             else if (initDecl) {
                 LlLocation *location = initDecl->generateLlIr(builder, symbolTable);
                 symbolTable.putOnVarTable(*(location->getVarName()), type);
@@ -1769,7 +1769,7 @@ public:
         };
         if(auto castType = dynamic_cast<IrType*>(type)){
             handleDeclaration(type);
-        } 
+        }
         return nullptr;
     }
 };
@@ -1796,9 +1796,9 @@ public:
 
     // Ownership-transfer method
     deque<IrDecl*> releaseDeclarations() {
-        // Move the entire 'decls' out to a temporary. 
+        // Move the entire 'decls' out to a temporary.
         // 'decls' will become empty.
-        deque<IrDecl*> temp = std::move(decls); 
+        deque<IrDecl*> temp = std::move(decls);
         // now 'decls' is empty, so ~IrMultiDecl won't delete these pointers
         return temp;
     }
@@ -1897,7 +1897,7 @@ public:
         builder.appendStatement(*condLabel, emptyStmtFor);
 
         LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
-        LlJumpConditional* conditionalJump = new LlJumpConditional(endLabel,conditionVar);        
+        LlJumpConditional* conditionalJump = new LlJumpConditional(endLabel,conditionVar);
         builder.appendStatement(conditionalJump);
 
         // Loop Body Block
@@ -1911,7 +1911,7 @@ public:
         LlEmptyStmt* emptyStmtForInc = new LlEmptyStmt();
         builder.appendStatement(*incLabel, emptyStmtForInc);
         update->generateLlIr(builder, symbolTable);
-        
+
         // Jump back to condition
         LlJumpUnconditional* jumpToFor = new LlJumpUnconditional(condLabel);
         builder.appendStatement(jumpToFor);
@@ -1928,66 +1928,66 @@ class IrWhileStmt : public IrStatement {
     private:
         IrParenthesizedExpr* condition;
         IrStatement* body;
-    
+
     public:
         IrWhileStmt(IrParenthesizedExpr* condition, IrStatement* body, const TSNode& node)
             : IrStatement(node), condition(condition), body(body) {}
-    
+
         ~IrWhileStmt() {
             delete condition;
             delete body;
         }
-    
+
         string prettyPrint(string indentSpace) const override {
             string prettyString = indentSpace + "|--whileStmt\n";
-    
+
             prettyString += addIndent(indentSpace) + "|--condition\n";
             prettyString += condition->prettyPrint(addIndent(indentSpace, 2));
-    
+
             prettyString += addIndent(indentSpace) + "|--body\n";
             prettyString += body->prettyPrint(addIndent(indentSpace, 2));
-    
+
             return prettyString;
         }
-    
+
         string toString() const override {
             return "while " + condition->toString() + " {" + body->toString(); + "}";
         }
-    
+
         LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
             // Generate IR for while loop
             string loopLabel = builder.generateLabel();
             string* condLabel = new string("while.cond." + loopLabel);
             string* bodyLabel = new string("while.body." + loopLabel);
             string* endLabel = new string("while.end." + loopLabel);
-    
+
             // Condition Block
             LlEmptyStmt* emptyStmtWhile = new LlEmptyStmt();
             builder.appendStatement(*condLabel, emptyStmtWhile);
-    
+
             LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
             LlJumpConditional* conditionalJump = new LlJumpConditional(endLabel, conditionVar);
             builder.appendStatement(conditionalJump);
-    
+
             // Body Block
             LlEmptyStmt* emptyStmtWhileBody = new LlEmptyStmt();
             builder.appendStatement(*bodyLabel, emptyStmtWhileBody);
             if (body) {
                 body->generateLlIr(builder, symbolTable);
             }
-    
+
             // Jump back to condition
             LlJumpUnconditional* jumpToWhile = new LlJumpUnconditional(condLabel);
             builder.appendStatement(jumpToWhile);
-    
+
             // End Block
             LlEmptyStmt* emptyStmtWhileEnd = new LlEmptyStmt();
             builder.appendStatement(*endLabel, emptyStmtWhileEnd);
-    
+
             return nullptr;
 }
 };
-    
+
 
 class IrBreakStmt : public IrStatement {
 public:
@@ -2001,14 +2001,78 @@ public:
         return "break;";
     }
 
-    // LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-    //     string* breakLabel = new string("break.");  
-    //     LlJumpUnconditional* breakJump = new LlJumpUnconditional(breakLabel);
-    //     builder.appendStatement(breakJump);
-    //     return nullptr;
-    // }
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        string* breakLabel = new string("break.");
+        LlJumpUnconditional* breakJump = new LlJumpUnconditional(breakLabel);
+        builder.appendStatement(breakJump);
+        return nullptr;
+    }
 };
 
+
+class IrCaseStmt : public IrStatement {
+    private:
+        IrExpr* value; // Nullptr if default case
+        std::deque<IrStatement*> body;
+
+    public:
+        IrCaseStmt(IrExpr* value, std::deque<IrStatement*> body, const TSNode& node)
+            : IrStatement(node), value(value), body(body) {}
+
+        ~IrCaseStmt() {
+            delete value;
+            for (auto* stmt : body) {
+                delete stmt;
+            }
+        }
+
+        std::string prettyPrint(std::string indentSpace) const override {
+            std::string result = indentSpace + "|--caseStmt\n";
+            if (value) {
+                result += addIndent(indentSpace) + "|--caseValue\n" + value->prettyPrint(addIndent(indentSpace, 2));
+            } else {
+                result += addIndent(indentSpace) + "|--defaultCase\n";
+            }
+            for (auto* stmt : body) {
+                result += stmt->prettyPrint(addIndent(indentSpace));
+            }
+            return result;
+        }
+
+        std::string toString() const override {
+            std::string result = value ? "case " + value->toString() + ":" : "default:";
+            for (auto* stmt : body) {
+                result += "\n  " + stmt->toString();
+            }
+            return result;
+        }
+    };
+
+class IrSwitchStmt : public IrStatement {
+    private:
+        IrParenthesizedExpr* expr;
+        IrCompoundStmt* body; // Contains all case statements
+
+    public:
+        IrSwitchStmt(IrParenthesizedExpr* expr, IrCompoundStmt* body, const TSNode& node)
+            : IrStatement(node), expr(expr), body(body) {}
+
+        ~IrSwitchStmt() {
+            delete expr;
+            delete body;
+        }
+
+        std::string prettyPrint(std::string indentSpace) const override {
+            std::string result = indentSpace + "|--switchStmt\n";
+            result += addIndent(indentSpace) + "|--condition\n" + expr->prettyPrint(addIndent(indentSpace, 2));
+            result += addIndent(indentSpace) + "|--body\n" + body->prettyPrint(addIndent(indentSpace, 2));
+            return result;
+        }
+
+        std::string toString() const override {
+            return "switch " + expr->toString() + " {\n" + body->toString() + "}";
+        }
+};
 
 
 class IrSubscriptExpr : public IrNonBinaryExpr {
@@ -2080,7 +2144,7 @@ public:
         int arrSize = dims.size();
 
         IrExpr* currentExpr = this;
-        int currentLevel = arrSize; 
+        int currentLevel = arrSize;
 
         int cumulativeMultiplier = elemWidth;
 
@@ -2164,7 +2228,7 @@ private:
     IrType* baseType;
 
 public:
-    IrPointerType(IrType* baseType, const TSNode& node) 
+    IrPointerType(IrType* baseType, const TSNode& node)
         : IrType(node), baseType(baseType) {}
 
     ~IrPointerType() { delete baseType; }
@@ -2195,7 +2259,7 @@ public:
 // Comment: maybe refactor the IrType (add one layer for primitive types or ...)
 class IrTypeStruct : public IrType {
 private:
-    IrIdent* name;                       
+    IrIdent* name;
     IrFieldDeclList* fieldDeclList;      // List of field declarations
 
 public:
@@ -2270,11 +2334,11 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
         IrTypeStruct* structType = dynamic_cast<IrTypeStruct*>(type);
         if (structType) {
-            LlLocation *compo = alias->generateLlIr(builder, symbolTable);          
-            LlLocationTypeAlias* location = dynamic_cast<LlLocationTypeAlias*>(compo);           
+            LlLocation *compo = alias->generateLlIr(builder, symbolTable);
+            LlLocationTypeAlias* location = dynamic_cast<LlLocationTypeAlias*>(compo);
             symbolTable.putOnTypeDefTable(*location->getAliasTypeName(), structType);
         }
-        return nullptr;     
+        return nullptr;
     }
 };
 

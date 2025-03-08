@@ -72,7 +72,8 @@ public:
     void exitWhileStatement(const TSNode & cst_node);
     void exitBreakStatement(const TSNode & cst_node);
     void exitCaseStatement(const TSNode & cst_node);
-    
+    void exitSwitchStatement(const TSNode & cst_node);
+
     void debugStackState() const;
 
     void exitTransUnit(const TSNode & cst_node);
