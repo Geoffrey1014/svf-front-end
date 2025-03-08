@@ -29,6 +29,30 @@ public:
         }
     }
 
+    // get reverse postorder
+    std::vector<BasicBlock*> getPostOrder() {
+        std::vector<BasicBlock*> postOrder;
+        std::unordered_set<BasicBlock*> visited;
+
+        // Helper function to perform DFS
+        std::function<void(BasicBlock*)> dfs = [&](BasicBlock* block) {
+            visited.insert(block);
+            for (BasicBlock* succ : block->getSuccessors()) {
+                if (visited.find(succ) == visited.end()) {
+                    dfs(succ);
+                }
+            }
+            postOrder.push_back(block);
+        };
+
+        // Perform DFS from entry block
+        if (entry) {
+            dfs(entry);
+        }
+
+        return postOrder;
+    }
+
     void setEntry(BasicBlock* block) {
         entry = block;
     }
@@ -248,62 +272,106 @@ public:
 class SSAGenerator {
 private:
     std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>> dominanceFrontier;
-    std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>> dom;
+    std::unordered_map<BasicBlock*, BasicBlock*> idoms;
+    std::unordered_map<BasicBlock*, std::vector<BasicBlock*>> domTree; // dominator tree
+    std::vector<BasicBlock*> postOrder;
+    std::unordered_map<BasicBlock*, int>  postOrderNumbers;
     std::unordered_map<std::string, int> variableVersions;
     std::unordered_map<std::string, std::stack<int>> variableStack;
 
 public:
-    const auto& getDom() const { return dom; }
+    // getIdoms
+    std::unordered_map<BasicBlock*, BasicBlock*> getIdoms() {
+        return idoms;
+    }
+
+    // getDomTree
+    std::unordered_map<BasicBlock*, std::vector<BasicBlock*>> getDomTree() {
+        return domTree;
+    }
 
     // Compute dominance tree using Cooper, Harvey, Kennedy algorithm
     void computeDominators(CFG* cfg) {
-        BasicBlock* entry = cfg->getEntry();
-        const auto& blocks = cfg->getBlocksList();
+    // for all nodes, b  /* 初始化支配者数组 */
+    //     idoms[b] ← Undefined
+    // idoms[start_node] ← start_node
+    // Changed ← true
+    // while (Changed)
+    //     Changed ← false
+    //     for all nodes, b, in reverse postorder (except start_node)
+    //         new_idom ← first (processed) predecessor of b /* 选择一个前驱 */
+    //         for all other predecessors, p, of b
+    //             if idoms[p] ≠ Undefined /* 如果 idoms[p] 已经计算完成 */
+    //                 new_idom ← intersect(p, new_idom)
+    //         if idoms[b] ≠ new_idom
+    //             idoms[b] ← new_idom
+    //             Changed ← true
 
-        // Initialize dominators
-        for (BasicBlock* block : blocks) {
-            std::unordered_set<BasicBlock*> domSet(blocks.begin(), blocks.end());
-            dom[block] = domSet;
+        for (BasicBlock* block : cfg->getBlocksList()) {
+            idoms[block] = nullptr;
+        }
+        idoms[cfg->getEntry()] = cfg->getEntry();
+
+        postOrder = cfg->getPostOrder();
+
+        // calculate post order numbers
+        for (int i = 0; i < postOrder.size(); i++) {
+            postOrderNumbers[postOrder[i]] = i;
         }
 
-        dom[entry].clear();
-        dom[entry].insert(entry);
-
+        
         bool changed = true;
         while (changed) {
             changed = false;
-            for (BasicBlock* block : blocks) {
-                if (block == entry) continue;
-
-                auto oldDom = dom[block];
-                std::unordered_set<BasicBlock*> new_dom (blocks.begin(), blocks.end());
-
-                for (BasicBlock* pred : block->getPredecessors()) {
-                    std::unordered_set<BasicBlock*> temp;
-                    const auto& pred_dom = dom[pred];
-                    // Compute intersection of new_dom and pred_dom
-                    std::copy_if(new_dom.begin(), new_dom.end(),
-                                std::inserter(temp, temp.begin()),
-                                [&pred_dom](BasicBlock* d) { return pred_dom.count(d) > 0; });
-                    for (BasicBlock* d : new_dom) {
-                        if (pred_dom.find(d) != pred_dom.end()) {
-                            temp.insert(d);
-                        }
+            
+            // iterate blocks in reverse postorder
+            for (int i = postOrder.size() - 1; i >= 0; i--) {
+                BasicBlock *block = postOrder[i];
+                if (block == cfg->getEntry()) continue;
+                BasicBlock *new_idom = nullptr;
+                int count = 0;
+                for (BasicBlock *pred: block->getPredecessors()) {
+                    // new_idom ← first (processed) predecessor of b
+                    if (count == 0 && idoms[pred] != nullptr) {
+                        new_idom = pred;
+                        count++;
+                        continue;
                     }
-                    new_dom = temp;
+                    if (idoms[pred] != nullptr) {
+                        new_idom = intersect(pred, new_idom);
+                    }
                 }
-                new_dom.insert(block);
-
-                if (oldDom.size() != new_dom.size() ||
-                    !std::all_of(new_dom.begin(), new_dom.end(),
-                               [&oldDom](BasicBlock* b) { return oldDom.find(b) != oldDom.end(); })) {
-                    dom[block] = new_dom;
+                if (idoms[block] != new_idom) {
+                    idoms[block] = new_idom;
                     changed = true;
                 }
             }
         }
     }
 
+// function intersect(b1, b2) returns node
+//     finger1 ← b1
+//     finger2 ← b2
+//     while (finger1 ≠ finger2)
+//         while (finger1 < finger2)
+//             finger1 ← idoms[finger1]
+//         while (finger2 < finger1)
+//             finger2 ← idoms[finger2]
+//     return finger1
+
+    BasicBlock* intersect(BasicBlock* b1, BasicBlock* b2) {
+        BasicBlock* finger1 = b1;
+        BasicBlock* finger2 = b2;
+        while (finger1 != finger2) {
+            while (postOrderNumbers[finger1] < postOrderNumbers[finger2]) {
+                finger1 = idoms[finger1];
+            }
+            while (postOrderNumbers[finger2] < postOrderNumbers[finger1]) {
+                finger2 = idoms[finger2];
+            }
+        }
+        return finger1;
+    }
 
     // Compute dominance frontier
     void computeDominanceFrontier(CFG* cfg) {
@@ -315,14 +383,10 @@ public:
             if (block->getPredecessors().size() >= 2) {
                 for (BasicBlock* pred : block->getPredecessors()) {
                     BasicBlock* runner = pred;
-                    const auto& idom = dom[block];
-                    while (idom.find(runner) == idom.end() && runner != nullptr) {
+                    const auto& idom = idoms[block];
+                    while (idom != runner) {
                         dominanceFrontier[runner].insert(block);
-                        if (!dom[runner].empty()) {
-                            runner = *dom[runner].begin(); // Take any dominator
-                        } else {
-                            runner = nullptr;
-                        }
+                        runner = idoms[runner];
                     }
                 }
             }
@@ -486,11 +550,11 @@ public:
             }
         }
 
-        // Recursively rename in dominator tree children
-        for (BasicBlock* succ : block->getSuccessors()) {
-            if (dom[succ].count(block) > 0) {  // if block dominates succ
-                renameVariablesInBlock(succ);
-            }
+        // for each successor s of b in the dominator tree
+        // call renameVariablesInBlock(s)
+
+        for (BasicBlock* succ : domTree[block]) {
+            renameVariablesInBlock(succ);
         }
 
         // Restore stacks by popping variables defined in this block
@@ -502,20 +566,55 @@ public:
         }
     }
 
+    // Build dominator tree from immediate dominators
+    void buildDominatorTree(CFG* cfg) {
+        // Initialize dominator tree
+        for (BasicBlock* block : cfg->getBlocksList()) {
+            domTree[block] = std::vector<BasicBlock*>();
+        }
 
+        // For each block (except entry), add it to its immediate dominator's children
+        for (BasicBlock* block : cfg->getBlocksList()) {
+            if (block != cfg->getEntry() && idoms[block] != nullptr) {
+                domTree[idoms[block]].push_back(block);
+            }
+        }
+    }
+
+    // Print dominator tree in a tree-like format
+    void printDominatorTree(CFG* cfg) {
+        std::cout << "\nDominator Tree Structure:" << std::endl;
+        printDominatorTreeNode(cfg->getEntry(), 0);
+    }
+
+private:
+    void printDominatorTreeNode(BasicBlock* block, int depth) {
+        // Print current node with proper indentation
+        std::string indent(depth * 2, ' ');
+        std::cout << indent << block->getLabel() << std::endl;
+        
+        // Recursively print children
+        for (BasicBlock* child : domTree[block]) {
+            printDominatorTreeNode(child, depth + 1);
+        }
+    }
+
+public:
     void convertToSSA(CFG* cfg) {
         // Step 1: Compute dominators
         computeDominators(cfg);
 
-        // output the dominance tree
-        std::cout << "\nDominance Tree:" << std::endl;
-        for (const auto& pair : dom) {
-            std::cout << pair.first->getLabel() << " is dominated by: ";
-            for (const auto& dom : pair.second) {
-                std::cout << dom->getLabel() << " ";
+        // output the immediate dominators
+        std::cout << "\nImmediate Dominators:" << std::endl;
+        for (const auto& pair : idoms) {
+            if (pair.second != nullptr) {
+                std::cout << pair.first->getLabel() << " -> " << pair.second->getLabel() << std::endl;
             }
-            std::cout << std::endl;
         }
+
+        // Build and print dominator tree
+        buildDominatorTree(cfg);
+        printDominatorTree(cfg);
 
         // Step 2: Compute dominance frontier
         computeDominanceFrontier(cfg);
@@ -530,9 +629,13 @@ public:
             std::cout << std::endl;
         }
 
+        buildDominatorTree(cfg);
+        printDominatorTree(cfg);
+
         // Step 3: Insert phi functions
         insertPhiFunctions(cfg);
 
+        
 
         // Step 4: Rename variables
         renameVariables(cfg);
