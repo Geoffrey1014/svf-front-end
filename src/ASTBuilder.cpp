@@ -34,7 +34,7 @@ void ASTBuilder::exitPrimitiveType(const TSNode & cst_node) {
     if (node_text == "int") {
         node = new IrTypeInt(cst_node);
         this->ast_stack.push(node);
-    } 
+    }
     else if (node_text == "void")
     {
         node = new IrTypeVoid(cst_node);
@@ -119,7 +119,7 @@ void ASTBuilder::exitFunctionDeclarator(const TSNode &cst_node) {
                 this->ast_stack.pop();
                 declarator = ident;
             } else {
-                throw std::runtime_error("Error: Expected function name as IrIdent but found " 
+                throw std::runtime_error("Error: Expected function name as IrIdent but found "
                                          + std::string(typeid(*node).name()));
             }
         } else {
@@ -171,7 +171,7 @@ void ASTBuilder::exitBinaryExpr(const TSNode & cst_node){
     // Get the operation
     // get the second child of the cst_node
     TSNode second_child = ts_node_child(cst_node, 1);
-    std::string operation = getNodeText(second_child); 
+    std::string operation = getNodeText(second_child);
 
     if (leftOperand && rightOperand) {
         node = new IrBinaryExpr(operation, leftOperand, rightOperand, cst_node);
@@ -194,7 +194,7 @@ void ASTBuilder:: exitReturnStatement(const TSNode & cst_node){
         this->ast_stack.pop();
         node = new IrStmtReturnExpr(result,cst_node);
         this->ast_stack.push(node);
-    } 
+    }
     else if(ts_node_named_child_count(cst_node) == 0) {
         node = new IrStmtReturnVoid(cst_node);
         this->ast_stack.push(node);
@@ -217,7 +217,7 @@ void ASTBuilder::exitCompoundStatement(const TSNode &cst_node) {
 
         // Pop statement from the stack and add to the compound statement
         IrStatement* stmt = dynamic_cast<IrStatement*>(this->ast_stack.top());
-        
+
         if (stmt) {
             this->ast_stack.pop();
             compoundStmt->addStmtToFront(stmt);  // Preserve order
@@ -310,7 +310,7 @@ void ASTBuilder::exitExprStmt(const TSNode & cst_node){
 
 void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
     IrTransUnit* transUnitNode = new IrTransUnit(cst_node);
-    
+
     while (!this->ast_stack.empty()) {
         Ir* node = this->ast_stack.top();
         this->ast_stack.pop();
@@ -329,19 +329,19 @@ void ASTBuilder::exitTransUnit(const TSNode &cst_node) {
                     transUnitNode->addTopLevelNodeFront(decl);
                 } else {
                     std::cerr << "Warning: Unrecognized node inside IrMultiDecl.\n";
-                    delete singleDecl; 
+                    delete singleDecl;
                 }
             }
             delete multiDecl;
         }
-        else if (dynamic_cast<IrDecl*>(node) || 
+        else if (dynamic_cast<IrDecl*>(node) ||
                  dynamic_cast<IrFunctionDef*>(node) ||
                  dynamic_cast<IrPreprocInclude*>(node) ||
                  dynamic_cast<IrTypeDef*>(node) ||
                  dynamic_cast<IrPreprocDef*>(node) ||
                  dynamic_cast<IrExprStmt*>(node))
         {
-            transUnitNode->addTopLevelNodeFront(node); 
+            transUnitNode->addTopLevelNodeFront(node);
         } else {
             std::cerr << "Warning: Skipping unrecognized node." << std::endl;
             delete node;
@@ -365,7 +365,7 @@ void ASTBuilder::exitLiteralString(const TSNode & cst_node){
     if (this->ast_stack.empty()) {
         std::cerr << "Error: Not enough elements on the stack for string literal" << std::endl;
         return;
-    }    
+    }
 
     Ir* node = nullptr;
     // Use stack to get the type and name
@@ -441,7 +441,7 @@ void ASTBuilder::exitArrayDeclarator(const TSNode &cst_node) {
 void ASTBuilder::exitPointerDeclarator(const TSNode &cst_node) {
     try {
         IrDeclDeclarator* baseDeclarator = popFromStack<IrDeclDeclarator>(cst_node);
-        
+
         IrType* baseType = dynamic_cast<IrType*>(ast_stack.top());
         ast_stack.pop();
 
@@ -490,12 +490,12 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
 
             if (initDecl) {
                 this->ast_stack.pop();
-                initDecls.push_front(initDecl);
-            } 
+                initDecls.push_back(initDecl);
+            }
             else if (simpleDecl) {
                 this->ast_stack.pop();
-                simpleDecls.push_front(simpleDecl);
-            } 
+                simpleDecls.push_back(simpleDecl);
+            }
             else {
                 // Neither initDecl nor simpleDecl => stop
                 break;
@@ -503,7 +503,7 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
         }
 
         // 2) Pop the base type (e.g. int)
-        IrType* originalType = this->popFromStack<IrType>(cst_node);        
+        IrType* originalType = this->popFromStack<IrType>(cst_node);
 
         // 3) Optionally pop storage class specifier (e.g. static)
         IrStorageClassSpecifier* specifier = nullptr;
@@ -527,7 +527,7 @@ void ASTBuilder::exitDeclaration(const TSNode &cst_node) {
                 // Decide whether to reuse the original pointer or clone
                 IrType* typeForThis = nullptr;
                 if (!usedOriginalPointer) {
-                    typeForThis = originalType; 
+                    typeForThis = originalType;
                     usedOriginalPointer = true;
                 } else {
                     // For subsequent variables, clone the type so each IrDecl has its own pointer
@@ -619,7 +619,7 @@ void ASTBuilder::exitFieldDeclarationList(const TSNode &cst_node) {
 
         while (!this->ast_stack.empty()) {
             IrFieldDecl* fieldDecl = dynamic_cast<IrFieldDecl*>(this->ast_stack.top());
-            if (!fieldDecl) break; 
+            if (!fieldDecl) break;
             this->ast_stack.pop();
             fieldDeclList->addField(fieldDecl);
         }
@@ -654,9 +654,9 @@ void ASTBuilder::exitStructSpecifier(const TSNode& cst_node) {
 void ASTBuilder:: exitTypeDefinition(const TSNode &cst_node) {
     try {
         IrTypeIdent* alias = popFromStack<IrTypeIdent>(cst_node);
-        // IrIdent* alias = popFromStack<IrIdent>(cst_node);       
+        // IrIdent* alias = popFromStack<IrIdent>(cst_node);
         IrType* type = popFromStack<IrType>(cst_node);
-        
+
         // alias->markAsTypeAlias();
         IrTypeDef* typeDef = new IrTypeDef(type, alias, cst_node);
         this->ast_stack.push(typeDef);
@@ -742,7 +742,7 @@ void ASTBuilder::exitParenthesizedExpr(const TSNode &cst_node) {
 
 void ASTBuilder::exitUnaryExpr(const TSNode &cst_node) {
     try {
-        IrExpr* expr = this->popFromStack<IrExpr>(cst_node); 
+        IrExpr* expr = this->popFromStack<IrExpr>(cst_node);
         TSNode operatorNode = ts_node_child(cst_node, 0);
         std::string op = getNodeText(operatorNode);
 
@@ -757,10 +757,10 @@ void ASTBuilder::exitIfStatement(const TSNode &cst_node) {
     try {
         IrElseClause* alternative = nullptr;
         if (ts_node_child_count(cst_node) == 4) {
-            alternative = this->popFromStack<IrElseClause>(cst_node); 
+            alternative = this->popFromStack<IrElseClause>(cst_node);
         }
 
-        IrStatement* consequence = this->popFromStack<IrStatement>(cst_node); 
+        IrStatement* consequence = this->popFromStack<IrStatement>(cst_node);
         IrParenthesizedExpr* condition = this->popFromStack<IrParenthesizedExpr>(cst_node);
 
         IrIfStmt* ifStmt = new IrIfStmt(condition, consequence, alternative, cst_node);
@@ -836,40 +836,82 @@ void ASTBuilder::exitBreakStatement(const TSNode &cst_node) {
     this->ast_stack.push(breakStmt);
 }
 
-    // case_statement: $ => prec.right(seq(
-    //   choice(
-    //     seq('case', field('value', $.expression)),
-    //     'default',
-    //   ),
-    //   ':',
-    //   repeat(choice(
-    //     $._non_case_statement,
-    //     $.declaration,
-    //     $.type_definition,
-    //   )),
-    // )),
 void ASTBuilder::exitCaseStatement(const TSNode &cst_node) {
     try {
-        this->debugStackState();
-        
+        std::deque<IrStatement*> caseBody; // Store all statements inside the case
 
-    } catch (const std::exception& e) {
+        // body: non_case_statement, declaration, (CURRENTLY NOT IMPLEMENTED type_definition)
+        while (!ast_stack.empty() && dynamic_cast<IrStatement*>(ast_stack.top()) &&
+            !dynamic_cast<IrCaseStmt*>(ast_stack.top())) {
+            caseBody.push_front(popFromStack<IrStatement>(cst_node));
+        }
+
+    // Check if it's a default case
+    IrExpr* caseValue = nullptr;
+    std::string caseType = getNodeText(cst_node);
+    // std::string::npos: special constant that means "not found"
+    if (caseType.find("default") == std::string::npos) {
+        caseValue = popFromStack<IrExpr>(cst_node);
+    }
+
+        // Create an IrCaseStmt node
+        IrCaseStmt* caseStmt = new IrCaseStmt(caseValue, caseBody, cst_node);
+        ast_stack.push(caseStmt);
+    } catch (const std::runtime_error& e) {
         std::cerr << "Error in exitCaseStatement: " << e.what() << std::endl;
     }
 }
+
+
+void ASTBuilder::exitSwitchStatement(const TSNode &cst_node) {
+    try {
+        // 1. Pop the compound statement, which contains all case statements
+        IrCompoundStmt* body = popFromStack<IrCompoundStmt>(cst_node);
+
+        // 2. Pop the switch condition (inside parenthesis)
+        IrParenthesizedExpr* switchExpr = popFromStack<IrParenthesizedExpr>(cst_node);
+
+        // 3. Create an IrSwitchStmt node and push it onto the stack
+        IrSwitchStmt* switchStmt = new IrSwitchStmt(switchExpr, body, cst_node);
+        ast_stack.push(switchStmt);
+    } catch (const std::runtime_error& e) {
+        std::cerr << "Error in exitSwitchStatement: " << e.what() << std::endl;
+    }
+}
+
+void ASTBuilder::exitWhileStatement(const TSNode &cst_node) {
+    try {
+        IrStatement* body = this->popFromStack<IrStatement>(cst_node);
+
+        TSNode conditionNode = ts_node_child_by_field_name(cst_node, "condition", 9);
+        IrParenthesizedExpr* condition = nullptr;
+        if (!ts_node_is_null(conditionNode)) {
+            condition = this->popFromStack<IrParenthesizedExpr>(cst_node);
+        } else {
+            std::cerr << "Error: While statement missing condition.\n";
+            return;
+        }
+
+        IrWhileStmt* whileStmt = new IrWhileStmt(condition, body, cst_node);
+        this->ast_stack.push(whileStmt);
+    } catch (const std::exception& e) {
+        std::cerr << "Error in exitWhileStatement: " << e.what() << std::endl;
+    }
+}
+
 
 // Function to create an AST node from a CST node
 void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
     const char* type = ts_node_type(cst_node);
     TSSymbol symbol_type = ts_node_symbol(cst_node);
-    
+
     if (program["--verbose"] == true){
         if (ts_node_is_named(cst_node))
         std::cout << "Exiting CST node: "<< "Named, " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
         else
         std::cout << "Exiting CST node: " << "Not Named, " << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:"<< std::to_string(symbol_type) << std::endl;
     }
-    
+
     switch (symbol_type)
     {
         case 1: // Identifier
@@ -887,7 +929,7 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             break;
         case 258: // parameter_list
             exitParamList(cst_node);
-            break; 
+            break;
         case 230: // function_declarator
             exitFunctionDeclarator(cst_node);
             break;
@@ -932,7 +974,7 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
             exitLiteralString(cst_node);
             break;
         case 164: // preproc_include
-            exitPreprocInclude(cst_node);            
+            exitPreprocInclude(cst_node);
             break;
         case 242: // storage_class_specifier
             exitStorageClassSpecifier(cst_node);
@@ -1001,12 +1043,18 @@ void ASTBuilder::exit_cst_node(const TSNode & cst_node) {
         case 313: // initializer_list
             exitInitList(cst_node);
             break;
+        case 271: // while_statement
+            exitWhileStatement(cst_node);
+            break;
         case 276: // break_statement
             exitBreakStatement(cst_node);
             break;
         case 270: // case_statement
             exitCaseStatement(cst_node);
-            break;    
+            break;
+        case 269: // switch_statement
+            exitSwitchStatement(cst_node);
+            break;
         default:
             std::cerr << "Error: Unhandled CST node type: " ;
             std::cerr << ts_language_symbol_name(this->language, symbol_type) << ", symbol_type id:" << std::to_string(symbol_type) << std::endl;
@@ -1023,7 +1071,7 @@ void ASTBuilder::enter_cst_node(const TSNode & cst_node){
      else if (symbol_type == 298){
          arraylevel += 1;
      }
-    
+
 }
 
 void ASTBuilder::traverse_tree(const TSNode & node) {

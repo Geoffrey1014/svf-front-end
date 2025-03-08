@@ -5,10 +5,10 @@ int main() {
     switch (nd())
     {
         case 0:
-            x += 1;
+            x = 4;
             break;
         default:
-            x++;
+            x = 10;
             break;
         }
         return 0;
