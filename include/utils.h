@@ -14,12 +14,12 @@ void parse_command_line(argparse::ArgumentParser& program, int argc, char *argv[
   .implicit_value(true);
 
   program.add_argument("-c", "--output-cst")
-  .help("specify the output file for CST.")
+  .help("build the CST.")
   .default_value(false)
   .implicit_value(true);
 
   program.add_argument("-i", "--intermedial")
-  .help("specify the output file for intermedial code.")
+  .help("output files for intermedial code.")
   .default_value(false)
   .implicit_value(true);
 
@@ -29,7 +29,12 @@ void parse_command_line(argparse::ArgumentParser& program, int argc, char *argv[
   .help("specify the output file.");
 
   program.add_argument("-cfg", "--cfg")
-  .help("specify the output file for control flow graph.")
+  .help("output files for control flow graphs.")
+  .default_value(false)
+  .implicit_value(true);
+
+  program.add_argument("-ssa", "--ssa")
+  .help("output files for static single assignment.")
   .default_value(false)
   .implicit_value(true);
 

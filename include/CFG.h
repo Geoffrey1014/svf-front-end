@@ -587,6 +587,28 @@ public:
         printDominatorTreeNode(cfg->getEntry(), 0);
     }
 
+    // output the immediate dominators
+    void printIdoms(){
+        std::cout << "\nImmediate Dominators:" << std::endl;
+        for (const auto& pair : idoms) {
+            if (pair.second != nullptr) {
+                std::cout << pair.first->getLabel() << " -> " << pair.second->getLabel() << std::endl;
+            }
+        }
+    }
+
+    // output the dominance frontier
+    void printDominanceFrontier() {
+        std::cout << "\nDominance Frontier:" << std::endl;
+        for (const auto& pair : dominanceFrontier) {
+            std::cout << pair.first->getLabel() << " -> ";
+            for (const auto &dfBlock: pair.second) {
+                std::cout << dfBlock->getLabel() << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
 private:
     void printDominatorTreeNode(BasicBlock* block, int depth) {
         // Print current node with proper indentation
@@ -604,45 +626,18 @@ public:
         // Step 1: Compute dominators
         computeDominators(cfg);
 
-        // output the immediate dominators
-        std::cout << "\nImmediate Dominators:" << std::endl;
-        for (const auto& pair : idoms) {
-            if (pair.second != nullptr) {
-                std::cout << pair.first->getLabel() << " -> " << pair.second->getLabel() << std::endl;
-            }
-        }
-
         // Build and print dominator tree
         buildDominatorTree(cfg);
-        printDominatorTree(cfg);
 
         // Step 2: Compute dominance frontier
         computeDominanceFrontier(cfg);
 
-        // output the dominance frontier
-        std::cout << "\nDominance Frontier:" << std::endl;
-        for (const auto& pair : dominanceFrontier) {
-            std::cout << pair.first->getLabel() << " -> ";
-            for (const auto &dfBlock: pair.second) {
-                std::cout << dfBlock->getLabel() << " ";
-            }
-            std::cout << std::endl;
-        }
-
-        buildDominatorTree(cfg);
-        printDominatorTree(cfg);
-
         // Step 3: Insert phi functions
         insertPhiFunctions(cfg);
-
-        
 
         // Step 4: Rename variables
         renameVariables(cfg);
 
-        // output the CFG after inserting phi functions
-        std::cout << "\nCFG after inserting phi functions:" << std::endl;
-        cfg->writeDotFile("cfg_phi.dot");
     }
 };
 

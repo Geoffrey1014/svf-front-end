@@ -66,20 +66,24 @@ int main(int argc, char *argv[]) {
     for (LlBuilder* builder : llBuildersList->getBuilders()) {
       CFG* cfg = cfgBuilder.buildCFG(*builder);
       cfgs.push_back(cfg);
-
+      cfg->writeDotFile("cfg" + to_string(count) + ".dot");
       count++;
     }
   }
 
-  SSAGenerator ssaGenerator;
-  int count = 0;
-  for (CFG* cfg : cfgs) {
-      if(count == 2){
-          ssaGenerator.convertToSSA(cfg);
-          cfg->writeDotFile("cfg" + to_string(count) + ".dot");
-      }
-      count++;
-  }
+    if (program.is_used("--ssa")){
+        SSAGenerator ssaGenerator;
+        int count = 0;
+        for (CFG* cfg : cfgs) {
+            if (count == 0) {
+                count++;
+                continue;
+            }
+            ssaGenerator.convertToSSA(cfg);
+            cfg->writeDotFile("cfg_ssa" + to_string(count) + ".dot");
+            count++;
+        }
+    }
 
   // Clean up
   delete ast_root;
