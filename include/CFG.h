@@ -544,10 +544,11 @@ public:
             for (LlStatement* stmt : succ->getLlStatements()) {
                 if (auto phi = dynamic_cast<LlPhiStatement*>(stmt)) {
                     std::string* phiVar = phi->getDefinedVariable();
-                    if (phiVar && !variableStack[*phiVar].empty()) {
+                    std::string* var = new std::string(phiVar->substr(0, phiVar->find("_")));
+                    if (phiVar && !variableStack[*var].empty()) {
                         // Set the incoming value from this predecessor
                         phi->setIncoming(
-                            new std::string(*phiVar + "_" + std::to_string(variableStack[*phiVar].top())),
+                            new std::string(*var + "_" + std::to_string(variableStack[*var].top())),
                             block
                         );
                     }
