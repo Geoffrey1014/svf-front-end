@@ -43,11 +43,13 @@ public:
     void renameUse(const std::string& oldName, const std::string& newName) {
         for(auto var : usedVars) {
             if(*var == oldName) *var = newName;
+            else std::cerr << "Error: oldName variable " << oldName << " not found in used variables\n";
         }
     }
 
     void renameDef(const std::string& oldName, const std::string& newName) {
         if(definedVar && *definedVar == oldName) *definedVar = newName;
+        else std::cerr << "Error: oldName variable " << oldName << " not found in used definedVar\n";
     }
 };
 

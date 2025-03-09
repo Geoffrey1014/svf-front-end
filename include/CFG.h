@@ -495,7 +495,7 @@ public:
                 std::string* def = stmt->getDefinedVariable();
                 if (def && def->at(0) != '#') {
                     variableStack[*def] = std::stack<int>();
-                    variableStack[*def].push(0);
+                    variableVersions[*def] = 0;
                 }
             }
         }

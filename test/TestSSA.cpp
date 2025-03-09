@@ -596,7 +596,7 @@ TEST_F(TestSSA, TestDominators5) {
     EXPECT_EQ(df.at(block10), std::unordered_set<BasicBlock*>({block7}));
     EXPECT_EQ(df.at(exit), std::unordered_set<BasicBlock*>());
 
-
+    ssaGen.buildDominatorTree(cfg);
     ssaGen.insertPhiFunctions(cfg);
     ssaGen.renameVariables(cfg);
     cfg->writeDotFile("cfg_test5_phi.dot");
