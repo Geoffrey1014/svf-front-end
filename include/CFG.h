@@ -285,6 +285,11 @@ public:
         return idoms;
     }
 
+    // getDominanceFrontier
+    std::unordered_map<BasicBlock*, std::unordered_set<BasicBlock*>> getDominanceFrontier() {
+        return dominanceFrontier;
+    }
+
     // getDomTree
     std::unordered_map<BasicBlock*, std::vector<BasicBlock*>> getDomTree() {
         return domTree;
@@ -625,6 +630,7 @@ public:
     void convertToSSA(CFG* cfg) {
         // Step 1: Compute dominators
         computeDominators(cfg);
+        printIdoms();
 
         // Build and print dominator tree
         buildDominatorTree(cfg);
@@ -634,6 +640,8 @@ public:
 
         // Step 3: Insert phi functions
         insertPhiFunctions(cfg);
+
+        printDominanceFrontier();
 
         // Step 4: Rename variables
         renameVariables(cfg);
