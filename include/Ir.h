@@ -2038,13 +2038,13 @@ public:
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) {
 
         // Determine if we're inside a loop using `getCurrentBlock()`
-        std::string currentBlock = builder.getCurrentBlock();  // Get current block label
+        // std::string currentBlock = builder.getCurrentBlock();  // Get current block label
 
         // Retrieve the correct loop exit label
         std::string exitLabel = builder.getCurrentLoopExit();
 
         // Ensure we're inside a valid loop before using `break`
-        if (exitLabel.empty() || currentBlock.empty()) {
+        if (exitLabel.empty()) {
             std::cerr << "Error: break statement found outside of a loop!" << std::endl;
             return nullptr;
         }
@@ -2057,7 +2057,6 @@ public:
     }
 
 };
-
 
 class IrCaseStmt : public IrStatement {
     private:
@@ -2075,27 +2074,41 @@ class IrCaseStmt : public IrStatement {
             }
         }
 
-        std::string prettyPrint(std::string indentSpace) const override {
-            std::string result = indentSpace + "|--caseStmt\n";
-            if (value) {
-                result += addIndent(indentSpace) + "|--caseValue\n" + value->prettyPrint(addIndent(indentSpace, 2));
-            } else {
-                result += addIndent(indentSpace) + "|--defaultCase\n";
-            }
-            for (auto* stmt : body) {
-                result += stmt->prettyPrint(addIndent(indentSpace));
-            }
-            return result;
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string result = indentSpace + "|--caseStmt\n";
+        if (value) {
+            result += addIndent(indentSpace) + "|--caseValue\n" + value->prettyPrint(addIndent(indentSpace, 2));
+        } else {
+            result += addIndent(indentSpace) + "|--defaultCase\n";
         }
+        for (auto* stmt : body) {
+            result += stmt->prettyPrint(addIndent(indentSpace));
+        }
+        return result;
+    }
 
-        std::string toString() const override {
-            std::string result = value ? "case " + value->toString() + ":" : "default:";
-            for (auto* stmt : body) {
-                result += "\n  " + stmt->toString();
-            }
-            return result;
+    std::string toString() const override {
+        std::string result = value ? "case " + value->toString() + ":" : "default:";
+        for (auto* stmt : body) {
+            result += "\n  " + stmt->toString();
         }
-    };
+        return result;
+    }
+
+    IrExpr* getValueExpr() const {
+        return value;
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        if (value){
+            value->generateLlIr(builder, symbolTable);
+        }
+        for (auto* stmt : body) {
+            stmt->generateLlIr(builder, symbolTable);
+        }
+        return nullptr;
+    }
+};
 
 class IrSwitchStmt : public IrStatement {
     private:
@@ -2111,16 +2124,79 @@ class IrSwitchStmt : public IrStatement {
             delete body;
         }
 
-        std::string prettyPrint(std::string indentSpace) const override {
-            std::string result = indentSpace + "|--switchStmt\n";
-            result += addIndent(indentSpace) + "|--condition\n" + expr->prettyPrint(addIndent(indentSpace, 2));
-            result += addIndent(indentSpace) + "|--body\n" + body->prettyPrint(addIndent(indentSpace, 2));
-            return result;
+    std::string prettyPrint(std::string indentSpace) const override {
+        std::string result = indentSpace + "|--switchStmt\n";
+        result += addIndent(indentSpace) + "|--condition\n" + expr->prettyPrint(addIndent(indentSpace, 2));
+        result += addIndent(indentSpace) + "|--body\n" + body->prettyPrint(addIndent(indentSpace, 2));
+        return result;
+    }
+
+    std::string toString() const override {
+        return "switch " + expr->toString() + " {\n" + body->toString() + "}";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* switchVar = expr->generateLlIr(builder, symbolTable);
+        std::string* endLabel = new std::string("switch.end." + builder.generateLabel());
+        builder.pushLoopExit(*endLabel);
+
+        std::unordered_map<int, std::string*> caseLabels;
+        std::string* defaultLabel = nullptr;
+
+        for (auto* stmt : body->getStmtsList()) {
+            if (auto* caseStmt = dynamic_cast<IrCaseStmt*>(stmt)) {
+                if (caseStmt->getValueExpr()) {
+                    if (auto* literal = dynamic_cast<IrLiteralNumber*>(caseStmt->getValueExpr())) {
+                        caseLabels[literal->getValue()] = new std::string(
+                            "case." + std::to_string(literal->getValue()) + "." + builder.generateLabel()
+                        );
+                    }
+                } else {
+                    defaultLabel = new std::string("default." + builder.generateLabel());
+                }
+            }
         }
 
-        std::string toString() const override {
-            return "switch " + expr->toString() + " {\n" + body->toString() + "}";
+        for (const auto& [caseValue, caseLabel] : caseLabels) {
+            LlLocationVar* caseTemp = builder.generateTemp();
+            builder.appendStatement(new LlAssignStmtRegular(caseTemp, new LlLiteralInt(caseValue)));
+
+            LlLocationVar* cmpTemp = builder.generateTemp();
+            builder.appendStatement(new LlAssignStmtBinaryOp(cmpTemp, switchVar, "==", caseTemp));
+            // ifZ => default/end, else => case
+            if (defaultLabel) {
+                // If comparison == 0 => jump to default
+                builder.appendStatement(new LlJumpConditional(defaultLabel, cmpTemp));
+            } else {
+                // If comparison == 0 => jump to switch.end
+                builder.appendStatement(new LlJumpConditional(endLabel, cmpTemp));
+            }
+            builder.appendStatement(new LlJumpUnconditional(caseLabel));
         }
+
+        // if (defaultLabel) {
+        //     builder.appendStatement(new LlJumpUnconditional(defaultLabel));
+        // } else {
+        //     builder.appendStatement(new LlJumpUnconditional(endLabel));
+        // }
+
+        for (auto* stmt : body->getStmtsList()) {
+            if (auto* caseStmt = dynamic_cast<IrCaseStmt*>(stmt)) {
+                std::string* caseLabel = caseStmt->getValueExpr()
+                                             ? caseLabels[dynamic_cast<IrLiteralNumber*>(caseStmt->getValueExpr())->getValue()]
+                                             : defaultLabel;
+
+                builder.appendStatement(*caseLabel, new LlEmptyStmt());
+                caseStmt->generateLlIr(builder, symbolTable);
+            }
+        }
+
+        builder.popLoopExit();
+        builder.appendStatement(*endLabel, new LlEmptyStmt());
+
+        return nullptr;
+    }
+
 };
 
 
