@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "CFG.h"
+#include "Ll.h"
 #include "LlBuilder.h"
 
 class TestSSA : public ::testing::Test {
@@ -271,16 +272,42 @@ protected:
 
         CFG* cfg = new CFG();
         BasicBlock* entry = new BasicBlock("entry");
+        entry->addLlStatement(new LlAssignStmtRegular(new LlLocation(new std::string("x")), new LlLiteralInt(0)));
+
         BasicBlock* block1 = new BasicBlock("1");
+        block1->addLlStatement(new LlAssignStmtRegular(new LlLocation(new std::string("x")), new LlLiteralInt(1)));
+
         BasicBlock* block2 = new BasicBlock("2");
+        block2->addLlStatement(new LlEmptyStmt());
+
         BasicBlock* block3 = new BasicBlock("3");
+        block3->addLlStatement(new LlEmptyStmt());
+
         BasicBlock* block4 = new BasicBlock("4");
+        block4->addLlStatement(new LlAssignStmtRegular(new LlLocation(new std::string("x")), new LlLiteralInt(4)));
+
         BasicBlock* block5 = new BasicBlock("5");
+        block5->addLlStatement(new LlEmptyStmt());
+
         BasicBlock* block6 = new BasicBlock("6");
+        block6->addLlStatement(new LlEmptyStmt());
+
+
         BasicBlock* block7 = new BasicBlock("7");
+        block7->addLlStatement(new LlEmptyStmt());
+
+
         BasicBlock* block8 = new BasicBlock("8");
+        block8->addLlStatement(new LlEmptyStmt());
+
         BasicBlock* block9 = new BasicBlock("9");
+        block9->addLlStatement(new LlAssignStmtRegular(new LlLocation(new std::string("x")), new LlLiteralInt(9)));
+
+
         BasicBlock* block10 = new BasicBlock("10");
+        block10->addLlStatement(new LlEmptyStmt());
+
+
         BasicBlock* exit = new BasicBlock("exit");
 
         cfg->addBlock(entry);
@@ -568,7 +595,11 @@ TEST_F(TestSSA, TestDominators5) {
     EXPECT_EQ(df.at(block9), std::unordered_set<BasicBlock*>({block10}));
     EXPECT_EQ(df.at(block10), std::unordered_set<BasicBlock*>({block7}));
     EXPECT_EQ(df.at(exit), std::unordered_set<BasicBlock*>());
-    
+
+
+    ssaGen.insertPhiFunctions(cfg);
+    ssaGen.renameVariables(cfg);
+    cfg->writeDotFile("cfg_test5_phi.dot");
 
 
     delete cfg;

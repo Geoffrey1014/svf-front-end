@@ -68,7 +68,16 @@ public:
         incomingVars.push_back(var);
         incomingBlocks.push_back(block);
     }
-    std::string toString() const override;
+    std::string toString() const override{
+        std::ostringstream ss;
+    ss << *definedVar << " = phi [";
+    for(size_t i = 0; i < incomingVars.size(); ++i) {
+        if(i > 0) ss << ", ";
+        ss << *incomingVars[i] << " from " << incomingBlocks[i]->getLabel();
+    }
+    ss << "]";
+    return ss.str();
+    }
 
     bool operator==(const Ll& other) const override {
         if (&other == this) {
