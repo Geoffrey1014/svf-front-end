@@ -1122,6 +1122,14 @@ public:
         }
     }
 
+    deque<IrStatement*> getStmtsList() {
+        return this->stmtsList;
+    }
+
+    void addStmt(IrStatement* stmt) {
+        this->stmtsList.push_back(stmt);
+    }
+
     void addStmtToFront(IrStatement* stmt) {
         this->stmtsList.push_front(stmt);
     }
@@ -1261,34 +1269,52 @@ public:
 
         string label = builder.generateLabel();
 
-
+        // if.end label
         string* endLabel = new string();
         endLabel->append("if.end.");
         endLabel->append(label);
 
-        string* elseLabel = new string();
-        elseLabel->append("if.else.");
-        elseLabel->append(label);
-
+        // If there's an else, we also need an "if.else" label
+        std::string* elseLabel = nullptr;
         if (elseBody) {
+            elseLabel = new std::string("if.else." + label);
+        }
+
+        // CASE A: if (cond) THEN ... else ...
+        if (elseBody) {
+            // if condition is false, jump to else
             LlJumpConditional *jumpUnconditionalToElse = new LlJumpConditional(elseLabel, conditionVar);
             builder.appendStatement(jumpUnconditionalToElse);
 
+            if(thenBody) {
+                thenBody->generateLlIr(builder, symbolTable);
+            }
+            builder.appendStatement(new LlJumpUnconditional(endLabel));
+            // if-else, else body
+            if (elseBody) {
+                LlEmptyStmt* emptyStmtElse = new LlEmptyStmt();
+                builder.appendStatement(*elseLabel, emptyStmtElse);
+                elseBody->generateLlIr(builder, symbolTable);
+            }
+
+            // append end if label
+            LlEmptyStmt* endIfEmptyStmt = new LlEmptyStmt();
+            builder.appendStatement(*endLabel, endIfEmptyStmt);}
+        // CASE B: if (cond) THEN ... (no else)
+        else {
+            //   1) ifZ cond => if.end
+            LlJumpConditional* jumpIfFalse = new LlJumpConditional(endLabel, conditionVar);
+            builder.appendStatement(jumpIfFalse);
+
+            //   2) THEN body
+            if (thenBody) {
+                thenBody->generateLlIr(builder, symbolTable);
+            }
+
+            //   3) if.end label
+            LlEmptyStmt* endIfEmptyStmt = new LlEmptyStmt();
+            builder.appendStatement(*endLabel, endIfEmptyStmt);
         }
-
-
-        thenBody->generateLlIr(builder, symbolTable);
-        builder.appendStatement(new LlJumpUnconditional(endLabel));
-
-        if (elseBody) {
-            LlEmptyStmt* emptyStmtElse = new LlEmptyStmt();
-            builder.appendStatement(*elseLabel, emptyStmtElse);
-            elseBody->generateLlIr(builder, symbolTable);
-        }
-
-        // append end if label
-        LlEmptyStmt* endIfEmptyStmt = new LlEmptyStmt();
-        builder.appendStatement(*endLabel, endIfEmptyStmt);
         return nullptr;
     }
 };
@@ -1885,12 +1911,17 @@ public:
         if (initializer) {
             initializer->generateLlIr(builder, symbolTable);
         }
+
         // each for-loop gets its own unique label--forLabel
         string forLabel = builder.generateLabel();
         string* condLabel = new string("for.cond." + forLabel);
         string* bodyLabel = new string("for.body." + forLabel);
         string* incLabel = new string("for.inc." + forLabel); // increment e.g. i +=1
         string* endLabel = new string("for.end." + forLabel);
+
+        // push loop labels onto stack
+        builder.getInBlock(forLabel);
+        builder.pushLoopExit(*endLabel);
 
         // Condition Check Block
         LlEmptyStmt* emptyStmtFor = new LlEmptyStmt();
@@ -1920,6 +1951,9 @@ public:
         LlEmptyStmt* emptyStmtForEnd = new LlEmptyStmt();
         builder.appendStatement(*endLabel, emptyStmtForEnd);
 
+        builder.popLoopExit();
+        builder.getOutOfBlock();
+
         return nullptr;
     }
 };
@@ -1938,54 +1972,54 @@ class IrWhileStmt : public IrStatement {
             delete body;
         }
 
-        string prettyPrint(string indentSpace) const override {
-            string prettyString = indentSpace + "|--whileStmt\n";
+    string prettyPrint(string indentSpace) const override {
+        string prettyString = indentSpace + "|--whileStmt\n";
 
-            prettyString += addIndent(indentSpace) + "|--condition\n";
-            prettyString += condition->prettyPrint(addIndent(indentSpace, 2));
+        prettyString += addIndent(indentSpace) + "|--condition\n";
+        prettyString += condition->prettyPrint(addIndent(indentSpace, 2));
 
-            prettyString += addIndent(indentSpace) + "|--body\n";
-            prettyString += body->prettyPrint(addIndent(indentSpace, 2));
+        prettyString += addIndent(indentSpace) + "|--body\n";
+        prettyString += body->prettyPrint(addIndent(indentSpace, 2));
 
-            return prettyString;
+        return prettyString;
+    }
+
+    string toString() const override {
+        return "while " + condition->toString() + " {" + body->toString(); + "}";
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        // Generate IR for while loop
+        string loopLabel = builder.generateLabel();
+        string* condLabel = new string("while.cond." + loopLabel);
+        string* bodyLabel = new string("while.body." + loopLabel);
+        string* endLabel = new string("while.end." + loopLabel);
+
+        // Condition Block
+        LlEmptyStmt* emptyStmtWhile = new LlEmptyStmt();
+        builder.appendStatement(*condLabel, emptyStmtWhile);
+
+        LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
+        LlJumpConditional* conditionalJump = new LlJumpConditional(endLabel, conditionVar);
+        builder.appendStatement(conditionalJump);
+
+        // Body Block
+        LlEmptyStmt* emptyStmtWhileBody = new LlEmptyStmt();
+        builder.appendStatement(*bodyLabel, emptyStmtWhileBody);
+        if (body) {
+            body->generateLlIr(builder, symbolTable);
         }
 
-        string toString() const override {
-            return "while " + condition->toString() + " {" + body->toString(); + "}";
-        }
+        // Jump back to condition
+        LlJumpUnconditional* jumpToWhile = new LlJumpUnconditional(condLabel);
+        builder.appendStatement(jumpToWhile);
 
-        LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-            // Generate IR for while loop
-            string loopLabel = builder.generateLabel();
-            string* condLabel = new string("while.cond." + loopLabel);
-            string* bodyLabel = new string("while.body." + loopLabel);
-            string* endLabel = new string("while.end." + loopLabel);
+        // End Block
+        LlEmptyStmt* emptyStmtWhileEnd = new LlEmptyStmt();
+        builder.appendStatement(*endLabel, emptyStmtWhileEnd);
 
-            // Condition Block
-            LlEmptyStmt* emptyStmtWhile = new LlEmptyStmt();
-            builder.appendStatement(*condLabel, emptyStmtWhile);
-
-            LlLocation* conditionVar = this->condition->generateLlIr(builder, symbolTable);
-            LlJumpConditional* conditionalJump = new LlJumpConditional(endLabel, conditionVar);
-            builder.appendStatement(conditionalJump);
-
-            // Body Block
-            LlEmptyStmt* emptyStmtWhileBody = new LlEmptyStmt();
-            builder.appendStatement(*bodyLabel, emptyStmtWhileBody);
-            if (body) {
-                body->generateLlIr(builder, symbolTable);
-            }
-
-            // Jump back to condition
-            LlJumpUnconditional* jumpToWhile = new LlJumpUnconditional(condLabel);
-            builder.appendStatement(jumpToWhile);
-
-            // End Block
-            LlEmptyStmt* emptyStmtWhileEnd = new LlEmptyStmt();
-            builder.appendStatement(*endLabel, emptyStmtWhileEnd);
-
-            return nullptr;
-}
+        return nullptr;
+    }
 };
 
 
@@ -2001,12 +2035,27 @@ public:
         return "break;";
     }
 
-    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        string* breakLabel = new string("break.");
-        LlJumpUnconditional* breakJump = new LlJumpUnconditional(breakLabel);
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) {
+
+        // Determine if we're inside a loop using `getCurrentBlock()`
+        std::string currentBlock = builder.getCurrentBlock();  // Get current block label
+
+        // Retrieve the correct loop exit label
+        std::string exitLabel = builder.getCurrentLoopExit();
+
+        // Ensure we're inside a valid loop before using `break`
+        if (exitLabel.empty() || currentBlock.empty()) {
+            std::cerr << "Error: break statement found outside of a loop!" << std::endl;
+            return nullptr;
+        }
+
+        // Generate an unconditional jump to the loop exit label
+        LlJumpUnconditional* breakJump = new LlJumpUnconditional(new std::string(exitLabel));
         builder.appendStatement(breakJump);
+
         return nullptr;
     }
+
 };
 
 

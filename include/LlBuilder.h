@@ -20,6 +20,7 @@ private:
     std::deque<LlLocationVar*> params;
     bool arrLeftSide = false;
     std::stack<std::string> currentBlockLabel;
+    std::stack<std::string> loopExitStack; // Stack to store the exit label of the loop
     std::string currentLoopCondition;
     Ll* pocket = nullptr;
 
@@ -128,10 +129,25 @@ public:
         return this->currentLoopCondition;
     }
 
+    void pushLoopExit(std::string exitLabel){
+        loopExitStack.push(exitLabel);
+    }
+
+    std::string getCurrentLoopExit(){
+        if(!loopExitStack.empty()){
+            return loopExitStack.top();
+        }
+        return "";
+    }
+
+    void popLoopExit(){
+        loopExitStack.pop();
+    }
+
     std::string toString() {
         std::stringstream st;
-        const int labelWidth = 15; 
-        
+        const int labelWidth = 15;
+
         st << "IR for Builder: " << this->name << "\n";
 
         for (const auto& label : insertionOrder) {

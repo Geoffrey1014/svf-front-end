@@ -846,15 +846,14 @@ void ASTBuilder::exitCaseStatement(const TSNode &cst_node) {
             caseBody.push_front(popFromStack<IrStatement>(cst_node));
         }
 
-    // Check if it's a default case
-    IrExpr* caseValue = nullptr;
-    std::string caseType = getNodeText(cst_node);
-    // std::string::npos: special constant that means "not found"
-    if (caseType.find("default") == std::string::npos) {
-        caseValue = popFromStack<IrExpr>(cst_node);
-    }
+        // Check if it's a default case
+        IrExpr* caseValue = nullptr;
+        std::string caseType = getNodeText(cst_node);
+        // std::string::npos: special constant that means "not found"
+        if (caseType.find("default") == std::string::npos) {
+            caseValue = popFromStack<IrExpr>(cst_node);
+        }
 
-        // Create an IrCaseStmt node
         IrCaseStmt* caseStmt = new IrCaseStmt(caseValue, caseBody, cst_node);
         ast_stack.push(caseStmt);
     } catch (const std::runtime_error& e) {

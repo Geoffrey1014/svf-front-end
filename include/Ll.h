@@ -139,7 +139,7 @@ public:
     }
 
    bool operator==(const Ll& other) const override{
-        if (dynamic_cast<const LlEmptyStmt*>(&other) == nullptr) 
+        if (dynamic_cast<const LlEmptyStmt*>(&other) == nullptr)
             return false;
         else
             return true;
@@ -157,7 +157,7 @@ private:
 public:
     LlLocation (std::string* varName): varName(varName){};
     ~LlLocation () override{delete varName;};
-    
+
     std::string toString() const override{
         return *(this->varName);
     };
@@ -167,9 +167,9 @@ public:
     }
 
     bool operator==(const Ll& other) const override{
-        if (dynamic_cast<const LlLocation*>(&other) == nullptr) 
+        if (dynamic_cast<const LlLocation*>(&other) == nullptr)
             return false;
-        else 
+        else
             return *varName == *dynamic_cast<const LlLocation*>(&other)->varName;
     }
 
@@ -180,7 +180,7 @@ public:
 
 class LlLocationDeref : public LlLocation {
     private:
-        LlLocation* base; 
+        LlLocation* base;
     public:
     LlLocationDeref(LlLocation* base) : LlLocation(base->getVarName()), base(base) {}
     ~LlLocationDeref() override {
@@ -193,7 +193,7 @@ class LlLocationDeref : public LlLocation {
 
     LlLocation* getBase() {
         return base;
-    }    
+    }
 };
 
 class LlAssignStmt : public LlStatement {
@@ -356,7 +356,7 @@ public:
     }
 
     std::string toString() const override{
-        return storeLocation->toString() + " = " + storeValue->toString(); 
+        return storeLocation->toString() + " = " + storeValue->toString();
     }
 
     bool operator==(const Ll& other) const override{
@@ -434,7 +434,7 @@ public:
     bool isConditionalJump() {
         return this->conditionalJump;
     }
-    
+
     std::string toString() const override{
         return "goto " + *(this->jumpToLabel);
     }
@@ -452,15 +452,15 @@ public:
     }
 };
 
-
+// ifZ Condition goto Label (ifZ: if condition is zero/false, then jump)
 class LlJumpConditional : public LlJump {
 private:
     LlComponent* condition;
 
 public:
-    LlJumpConditional(std::string* jumpToLabel, LlComponent* condition) 
+    LlJumpConditional(std::string* jumpToLabel, LlComponent* condition)
         : LlJump(jumpToLabel), condition(condition) {this->conditionalJump = true;}
-    
+
     ~LlJumpConditional() override {
         delete condition;
     }
@@ -488,6 +488,7 @@ public:
     }
 };
 
+// goto Label always executed when reached used for loops and break
 class LlJumpUnconditional : public LlJump {
 public:
     LlJumpUnconditional(std::string* jumpToLabel) : LlJump(jumpToLabel) {this->conditionalJump = false;}
@@ -710,7 +711,7 @@ private:
     std::vector<LlComponent*> argsList;
 
 public:
-    LlMethodCallStmt(const std::string methodName, std::vector<LlComponent*> argsList, LlLocation* returnLocation) 
+    LlMethodCallStmt(const std::string methodName, std::vector<LlComponent*> argsList, LlLocation* returnLocation)
         : methodName(methodName), argsList(argsList), returnLocation(returnLocation) {}
     ~LlMethodCallStmt() override {
         delete returnLocation;
@@ -829,7 +830,7 @@ namespace std {
             return k.hashCode();
         }
     };
-    
+
     template <>
     struct hash<LlLocationVar> {
         std::size_t operator()(const LlLocationVar& k) const {
@@ -864,9 +865,9 @@ public:
 
 class LlLocationStruct : public LlLocation {
 private:
-    LlLocation* baseLocation;   
+    LlLocation* baseLocation;
     std::string fieldName;      // Field name within the struct
-    int offset;                 
+    int offset;
 
 public:
     LlLocationStruct(LlLocation* baseLocation, const std::string& fieldName, int offset)
