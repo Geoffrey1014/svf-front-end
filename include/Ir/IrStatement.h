@@ -129,6 +129,10 @@ public:
         prettyString += block->prettyPrint("  " + indentSpace);
         return prettyString;
     }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        return block->generateLlIr(builder, symbolTable);
+    }
 };
 
 class IrExprStmt : public IrStatement {
@@ -164,7 +168,11 @@ public:
     }
 
     LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
-        return this->expr->generateLlIr(builder, symbolTable);
+        if (this->expr) {
+            return this->expr->generateLlIr(builder, symbolTable);
+        } else if (this->unsafeBlock) {
+            return this->unsafeBlock->generateLlIr(builder, symbolTable);
+        }
     }
 };
 

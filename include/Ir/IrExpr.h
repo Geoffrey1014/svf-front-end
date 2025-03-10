@@ -62,6 +62,10 @@ public:
         return "IrIdent: " + *name;
     }
 
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) {
+        return new LlLocationVar(name);
+    }
+
 };
 
 class IrLoopExpr : public IrExpr {

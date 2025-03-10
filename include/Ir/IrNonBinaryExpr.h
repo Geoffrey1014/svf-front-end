@@ -82,7 +82,19 @@ public:
         prettyString += this->rhs->prettyPrint("    " + indentSpace);
 
         return prettyString;
-    }    
+    }
+
+    std::string toString() override{
+        return lhs->toString() + " = " + rhs->toString();
+    }
+
+    LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable) override {
+        LlLocation* left = lhs->generateLlIr(builder, symbolTable);
+        LlLocation* right = rhs->generateLlIr(builder, symbolTable);
+        LlAssignStmt* assignStmt = new LlAssignStmtRegular(left, right);
+        builder.appendStatement(assignStmt);
+        return left;
+    }
 
 };
 
