@@ -27,13 +27,11 @@ class Ir {
     // virtual std::string semanticCheck(ScopeStack& scopeStack) = 0;
     virtual LlLocation* generateLlIr(LlBuilder& builder, SymbolTable& symbolTable){
             std::cerr << "Ir Error: generateLlIr not implemented for " << typeid(*this).name() << std::endl;
-            return new LlLocationVar(new std::string("Error")); 
+            return new LlLocationVar(new std::string("Error"));
         };
     virtual std::string prettyPrint(std::string indentSpace) const = 0;
 
-    virtual std::string toString() {
-        return "ASTNode: " + std::to_string(getLineNumber()) + ", " + std::to_string(getColNumber()) + " - " + std::to_string(ts_node_end_point(node).row) + ", " + std::to_string(ts_node_end_point(node).column);
-    }
+    virtual std::string toString() = 0;
 };
 
 #endif
